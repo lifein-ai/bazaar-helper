@@ -9,6 +9,7 @@ from typing import Any
 from urllib.parse import parse_qs, urlparse
 import re
 
+from recommender import get_card_role_for_build
 from advisor import analyze_game_state
 from ai_advisor import analyze_with_ai, compact_recommendations
 from build_strategy import applicable_build_names, build_applies_to_day, get_game_stage_for_day
@@ -20,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
 RUNTIME_DIR = BASE_DIR / "runtime"
 STATE_PATH = RUNTIME_DIR / "game_state.json"
-EXAMPLE_STATE_PATH = RUNTIME_DIR / "game_state.example.json"
+EXAMPLE_STATE_PATH = BASE_DIR / "examples" / "game_state.example.json"
 MISSING_EVENTS_PATH = RUNTIME_DIR / "missing_events.json"
 AUTO_BUILD_PREFIX = "Auto"
 STAGE_LABELS_ZH = {
@@ -134,29 +135,40 @@ def score_build_match(
     owned_names: set[str],
     day: int,
 ) -> float:
-    core = set(build_data.get("core_cards", []))
-    transition = set(build_data.get("transition_cards", []))
-    optional = set(build_data.get("optional_cards", []))
+    """
+    根据已拥有卡牌判断当前 build 的匹配度。
+
+    原则：
+    - 只按每张卡的最终定位加一次分，避免 builds.json 和 card_ratings.json 重复计分。
+    - 定位判断复用 recommender.py 的 get_card_role_for_build()。
+    - 当前天数适合该 build 时，给少量加成。
+    """
+
+    role_scores = {
+        "core": 5.0,
+        "transition": 3.0,
+        "optional": 1.0,
+    }
+
     score = 0.0
 
     for card_name in owned_names:
-        if card_name in core:
-            score += 5.0
-        elif card_name in transition:
-            score += 3.0
-        elif card_name in optional:
-            score += 1.0
+        card_data = data["cards"].get(card_name)
+        if not card_data:
+            continue
 
-        role = data["cards"].get(card_name, {}).get("build_roles", {}).get(build_name)
-        if role == "core":
-            score += 5.0
-        elif role == "transition":
-            score += 3.0
-        elif role == "optional":
-            score += 1.0
+        role = get_card_role_for_build(
+            card_name=card_name,
+            card_data=card_data,
+            build_name=build_name,
+            build_data=build_data,
+        )
+
+        score += role_scores.get(role, 0.0)
 
     if score and build_applies_to_day(build_data, day):
         score += 0.25
+
     return score
 
 

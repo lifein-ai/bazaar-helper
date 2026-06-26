@@ -1,36 +1,16 @@
 {
-  "source": "plugin",
+  "source": "bepinex-example",
   "hero": "Vanessa",
-  "build": "VanessaAquaticAmmo",
-  "day": 5,
-  "event_options": ["Nautica", "Colt", "Goldie"],
+  "day": 6,
+  "event_options": ["Colt", "Kina", "Gaseo"],
   "owned_cards": [
     {
-      "id": "8f18974c-eef9-4e82-a2d2-7f4e7c67daf8",
       "name": "Ballista",
       "rarity": "gold",
       "enchantments": ["Fiery"]
-    },
-    {
-      "id": "42f78ed2-0141-47f3-9bcd-71b433b1273b",
-      "name": "Ambergris",
-      "rarity": "silver"
     }
   ],
-  "visible_cards": [
-    {
-      "name": "Ambergris",
-      "rarity": "silver"
-    },
-    {
-      "name": "Torpedo",
-      "rarity": "silver"
-    },
-    {
-      "name": "Seaweed",
-      "rarity": "bronze"
-    }
-  ],
+  "visible_cards": [],
   "gold": 12,
   "health": 43
 }
