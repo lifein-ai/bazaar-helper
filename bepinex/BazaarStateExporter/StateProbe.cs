@@ -288,11 +288,17 @@ namespace BazaarStateExporter
 
             object allCards = GetField(dto, "Cards");
             HashSet<string> eventOptionIdSet = new HashSet<string>(snapshot.event_option_ids);
+            HashSet<string> detailedEventOptionIds = new HashSet<string>();
             foreach (CardSnapshot card in CardList(allCards))
             {
-                if (!string.IsNullOrEmpty(card.id) && eventOptionIdSet.Contains(card.id) && !string.IsNullOrEmpty(card.template_id))
+                if (!string.IsNullOrEmpty(card.id) && eventOptionIdSet.Contains(card.id))
                 {
-                    snapshot.event_option_template_ids.Add(card.template_id);
+                    AddEventOptionDetailed(snapshot, card, detailedEventOptionIds);
+
+                    if (!string.IsNullOrEmpty(card.template_id))
+                    {
+                        snapshot.event_option_template_ids.Add(card.template_id);
+                    }
                 }
 
                 string section = card.section ?? "";
@@ -303,7 +309,22 @@ namespace BazaarStateExporter
                     snapshot.visible_cards.Add(card);
                 }
             }
-            MergeCapturedUiCards(snapshot, eventOptionIdSet);
+            foreach (string optionId in snapshot.event_option_ids)
+            {
+                if (!detailedEventOptionIds.Contains(optionId))
+                {
+                    AddEventOptionDetailed(
+                        snapshot,
+                        new CardSnapshot
+                        {
+                            id = optionId,
+                            source = "selection_set",
+                        },
+                        detailedEventOptionIds);
+                }
+            }
+
+            MergeCapturedUiCards(snapshot, eventOptionIdSet, detailedEventOptionIds);
 
             Dictionary<string, int> attributes = AttributeDictionary(GetField(player, "Attributes"));
             snapshot.gold = FindAttribute(attributes, "Gold");
@@ -329,7 +350,10 @@ namespace BazaarStateExporter
             return snapshot;
         }
 
-        private static void MergeCapturedUiCards(GameStateSnapshot snapshot, HashSet<string> eventOptionIdSet)
+        private static void MergeCapturedUiCards(
+            GameStateSnapshot snapshot,
+            HashSet<string> eventOptionIdSet,
+            HashSet<string> detailedEventOptionIds)
         {
             List<CardSnapshot> capturedCards = RuntimeStateCache.GetCapturedUiCards(2.0f);
             List<CardSnapshot> recentEventCards = capturedCards
@@ -343,7 +367,9 @@ namespace BazaarStateExporter
                 snapshot.event_options.Clear();
                 snapshot.event_option_ids.Clear();
                 snapshot.event_option_template_ids.Clear();
+                snapshot.event_options_detailed.Clear();
                 eventOptionIdSet.Clear();
+                detailedEventOptionIds.Clear();
             }
 
             HashSet<string> visibleIds = new HashSet<string>(snapshot.visible_cards.Select(card => card.id).Where(id => !string.IsNullOrEmpty(id)));
@@ -360,6 +386,8 @@ namespace BazaarStateExporter
 
                 if (eventOptionIdSet.Contains(card.id))
                 {
+                    AddEventOptionDetailed(snapshot, card, detailedEventOptionIds);
+
                     if (!string.IsNullOrEmpty(card.template_id) && templateIds.Add(card.template_id))
                     {
                         snapshot.event_option_template_ids.Add(card.template_id);
@@ -381,6 +409,9 @@ namespace BazaarStateExporter
                         eventOptionIdSet.Add(card.id);
                         snapshot.event_option_ids.Add(card.id);
                     }
+
+                    AddEventOptionDetailed(snapshot, card, detailedEventOptionIds);
+
                     if (!string.IsNullOrEmpty(card.template_id) && templateIds.Add(card.template_id))
                     {
                         snapshot.event_option_template_ids.Add(card.template_id);
@@ -413,6 +444,61 @@ namespace BazaarStateExporter
             }
         }
 
+        private static void AddEventOptionDetailed(
+            GameStateSnapshot snapshot,
+            CardSnapshot card,
+            HashSet<string> detailedEventOptionIds)
+        {
+            if (card == null || string.IsNullOrEmpty(card.id))
+            {
+                return;
+            }
+
+            if (!detailedEventOptionIds.Add(card.id))
+            {
+                return;
+            }
+
+            snapshot.event_options_detailed.Add(new EventOptionSnapshot
+            {
+                id = card.id,
+                template_id = card.template_id,
+                name = card.name,
+                kind = EventKindFromCard(card),
+                card_type = card.card_type,
+                section = card.section,
+                source = string.IsNullOrEmpty(card.source) ? "unknown" : card.source,
+            });
+        }
+
+        private static string EventKindFromCard(CardSnapshot card)
+        {
+            string id = card == null ? "" : card.id ?? "";
+            string cardType = card == null ? "" : card.card_type ?? "";
+
+            if (cardType.IndexOf("Encounter", StringComparison.OrdinalIgnoreCase) >= 0
+                || id.StartsWith("enc_", StringComparison.OrdinalIgnoreCase))
+            {
+                return "encounter";
+            }
+
+            if (id.StartsWith("ste_", StringComparison.OrdinalIgnoreCase))
+            {
+                return "step";
+            }
+
+            if (id.StartsWith("com_", StringComparison.OrdinalIgnoreCase))
+            {
+                return "combat";
+            }
+
+            if (id.StartsWith("pvp_", StringComparison.OrdinalIgnoreCase))
+            {
+                return "pvp";
+            }
+
+            return "unknown";
+        }
         private static CardSnapshot CloneCard(CardSnapshot card)
         {
             CardSnapshot clone = new CardSnapshot

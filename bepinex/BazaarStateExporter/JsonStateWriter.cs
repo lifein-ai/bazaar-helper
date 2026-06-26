@@ -43,6 +43,7 @@ namespace BazaarStateExporter
             json.Property("event_options", snapshot.event_options);
             json.Property("event_option_ids", snapshot.event_option_ids);
             json.Property("event_option_template_ids", snapshot.event_option_template_ids);
+            json.Property("event_options_detailed", snapshot.event_options_detailed);
             json.Property("owned_cards", snapshot.owned_cards);
             json.Property("visible_cards", snapshot.visible_cards);
             json.Property("gold", snapshot.gold);
@@ -134,7 +135,47 @@ namespace BazaarStateExporter
                 }
                 builder.Append(']');
             }
+            public void Property(string name, List<EventOptionSnapshot> options)
+            {
+                WritePropertyName(name);
+                builder.Append('[');
 
+                if (options != null)
+                {
+                    for (int i = 0; i < options.Count; i++)
+                    {
+                        if (i > 0)
+                        {
+                            builder.Append(',');
+                        }
+                        WriteEventOption(options[i]);
+                    }
+                }
+
+                builder.Append(']');
+            }
+
+            private void WriteEventOption(EventOptionSnapshot option)
+            {
+                if (option == null)
+                {
+                    builder.Append("{}");
+                    return;
+                }
+
+                builder.Append('{');
+                bool wrote = false;
+
+                WriteOptionalCardProperty("id", option.id, ref wrote);
+                WriteOptionalCardProperty("template_id", option.template_id, ref wrote);
+                WriteOptionalCardProperty("name", option.name, ref wrote);
+                WriteOptionalCardProperty("kind", option.kind, ref wrote);
+                WriteOptionalCardProperty("card_type", option.card_type, ref wrote);
+                WriteOptionalCardProperty("section", option.section, ref wrote);
+                WriteOptionalCardProperty("source", option.source, ref wrote);
+
+                builder.Append('}');
+            }
             private void WriteCard(CardSnapshot card)
             {
                 builder.Append('{');

@@ -11,6 +11,7 @@ namespace BazaarStateExporter
         public List<string> event_options = new List<string>();
         public List<string> event_option_ids = new List<string>();
         public List<string> event_option_template_ids = new List<string>();
+        public List<EventOptionSnapshot> event_options_detailed = new List<EventOptionSnapshot>();
         public List<CardSnapshot> owned_cards = new List<CardSnapshot>();
         public List<CardSnapshot> visible_cards = new List<CardSnapshot>();
         public int? gold;
@@ -37,6 +38,17 @@ namespace BazaarStateExporter
                 health = 43
             };
         }
+    }
+
+    public sealed class EventOptionSnapshot
+    {
+        public string id;
+        public string template_id;
+        public string name;
+        public string kind;
+        public string card_type;
+        public string section;
+        public string source;
     }
 
     public sealed class CardSnapshot
