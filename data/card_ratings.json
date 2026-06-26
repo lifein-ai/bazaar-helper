@@ -1,0 +1,152 @@
+{
+  "Ambergris": {
+    "tier": "A",
+    "build_roles": {
+      "VanessaAquaticAmmo": "transition"
+    }
+  },
+  "Anchor": {
+    "tier": "D",
+    "build_roles": {
+      "VanessaAquaticAmmo": "unrelated"
+    }
+  },
+  "Arbalest": {
+    "tier": "A",
+    "build_roles": {
+      "VanessaAquaticAmmo": "transition"
+    }
+  },
+  "Ballista": {
+    "tier": "A",
+    "build_roles": {
+      "VanessaAquaticAmmo": "core"
+    }
+  },
+  "Beach Ball": {
+    "tier": "B",
+    "build_roles": {
+      "VanessaAquaticAmmo": "optional"
+    }
+  },
+  "Bilge Worm": {
+    "tier": "F",
+    "build_roles": {
+      "VanessaAquaticAmmo": "trap"
+    }
+  },
+  "Bladed Hoverboard": {
+    "tier": "D",
+    "build_roles": {
+      "VanessaAquaticAmmo": "unrelated"
+    }
+  },
+  "Blunderbuss": {
+    "tier": "A",
+    "build_roles": {
+      "VanessaAquaticAmmo": "core"
+    }
+  },
+  "Bolas": {
+    "tier": "B",
+    "build_roles": {
+      "VanessaAquaticAmmo": "optional"
+    }
+  },
+  "Cannon": {
+    "tier": "A",
+    "build_roles": {
+      "VanessaAquaticAmmo": "transition"
+    }
+  },
+  "Cannonball": {
+    "tier": "A",
+    "build_roles": {
+      "VanessaAquaticAmmo": "transition"
+    }
+  },
+  "Captain's Quarters": {
+    "tier": "A",
+    "build_roles": {
+      "VanessaAquaticAmmo": "transition"
+    }
+  },
+  "Captain's Wheel": {
+    "tier": "C",
+    "build_roles": {
+      "VanessaAquaticAmmo": "unrelated"
+    }
+  },
+  "Catfish": {
+    "tier": "C",
+    "build_roles": {
+      "VanessaAquaticAmmo": "unrelated"
+    }
+  },
+  "Chum": {
+    "tier": "A",
+    "build_roles": {
+      "VanessaAquaticAmmo": "transition"
+    }
+  },
+  "Clamera": {
+    "tier": "C",
+    "build_roles": {
+      "VanessaAquaticAmmo": "unrelated"
+    }
+  },
+  "Dive Weights": {
+    "tier": "A",
+    "build_roles": {
+      "VanessaAquaticAmmo": "transition"
+    }
+  },
+  "Double Barrel": {
+    "tier": "F",
+    "build_roles": {
+      "VanessaAquaticAmmo": "trap"
+    }
+  },
+  "Elemental Depth Charge": {
+    "tier": "A",
+    "build_roles": {
+      "VanessaAquaticAmmo": "core"
+    }
+  },
+  "Life Preserver": {
+    "tier": "F",
+    "build_roles": {
+      "VanessaAquaticAmmo": "trap"
+    }
+  },
+  "Narwhal": {
+    "tier": "B",
+    "build_roles": {
+      "VanessaAquaticAmmo": "unrelated"
+    }
+  },
+  "Seaweed": {
+    "tier": "B",
+    "build_roles": {
+      "VanessaAquaticAmmo": "unrelated"
+    }
+  },
+  "Torpedo": {
+    "tier": "A",
+    "build_roles": {
+      "VanessaAquaticAmmo": "transition"
+    }
+  },
+  "Shuriken": {
+    "tier": "C",
+    "build_roles": {
+      "VanessaAquaticAmmo": "optional"
+    }
+  },
+  "Burnacuda": {
+    "tier": "S",
+    "build_roles": {
+      "VanessaAquaticAmmo": "core"
+    }
+  }
+}

@@ -1,0 +1,126 @@
+using System;
+using System.IO;
+using BepInEx;
+using BepInEx.Configuration;
+using HarmonyLib;
+using UnityEngine;
+
+namespace BazaarStateExporter
+{
+    [BepInPlugin(PluginGuid, PluginName, PluginVersion)]
+    public sealed class Plugin : BaseUnityPlugin
+    {
+        public const string PluginGuid = "local.bazaar.stateexporter";
+        public const string PluginName = "Bazaar State Exporter";
+        public const string PluginVersion = "0.1.0";
+
+        private ConfigEntry<string> outputPath;
+        private ConfigEntry<float> pollIntervalSeconds;
+        private ConfigEntry<bool> writePlaceholderWhenEmpty;
+        private ConfigEntry<bool> enableRuntimeInspection;
+        private StateProbe probe;
+        private Harmony harmony;
+        private float nextPollAt;
+        private float nextUiScanAt;
+        private float inspectAt;
+        private bool inspected;
+
+        private void Awake()
+        {
+            string defaultOutputPath = Path.Combine(
+                Paths.GameRootPath,
+                "BepInEx",
+                "plugins",
+                "BazaarStateExporter",
+                "game_state.json");
+
+            outputPath = Config.Bind(
+                "Export",
+                "OutputPath",
+                defaultOutputPath,
+                "Absolute path to the JSON file consumed by the Python helper. Set this to D:\\bazzarhelp\\runtime\\game_state.json for the current workspace.");
+            pollIntervalSeconds = Config.Bind(
+                "Export",
+                "PollIntervalSeconds",
+                1.0f,
+                "How often to scan game state and write JSON.");
+            writePlaceholderWhenEmpty = Config.Bind(
+                "Debug",
+                "WritePlaceholderWhenEmpty",
+                false,
+                "Write a sample Vanessa state if the live probe has not been implemented or cannot find game objects.");
+            enableRuntimeInspection = Config.Bind(
+                "Debug",
+                "EnableRuntimeInspection",
+                true,
+                "Log likely The Bazaar runtime objects once after startup. Turn off after StateProbe is wired.");
+
+            probe = new StateProbe(Logger);
+            RuntimeStateCache.Logger = Logger;
+            try
+            {
+                harmony = new Harmony(PluginGuid);
+                harmony.PatchAll(typeof(Plugin).Assembly);
+                Logger.LogInfo("Harmony patches applied.");
+            }
+            catch (Exception ex)
+            {
+                Logger.LogWarning("Failed to apply Harmony patches: " + ex);
+            }
+            inspectAt = Time.unscaledTime + 8.0f;
+            Logger.LogInfo(PluginName + " loaded. OutputPath=" + outputPath.Value);
+        }
+
+        private void OnDestroy()
+        {
+            if (harmony != null)
+            {
+                harmony.UnpatchSelf();
+                harmony = null;
+            }
+        }
+
+        private void Update()
+        {
+            if (enableRuntimeInspection.Value && !inspected && Time.unscaledTime >= inspectAt)
+            {
+                inspected = true;
+                probe.LogRuntimeHints();
+            }
+
+            if (Time.unscaledTime < nextPollAt)
+            {
+                return;
+            }
+
+            nextPollAt = Time.unscaledTime + Math.Max(0.2f, pollIntervalSeconds.Value);
+            if (Time.unscaledTime >= nextUiScanAt)
+            {
+                nextUiScanAt = Time.unscaledTime + 0.5f;
+                probe.ScanVisibleUiCards();
+            }
+
+            try
+            {
+                GameStateSnapshot snapshot = probe.TryReadCurrentState();
+                if (snapshot == null && writePlaceholderWhenEmpty.Value)
+                {
+                    snapshot = GameStateSnapshot.CreatePlaceholder();
+                }
+
+                if (snapshot == null)
+                {
+                    return;
+                }
+
+                snapshot.source = "bepinex";
+                snapshot.updated_at_utc = DateTime.UtcNow.ToString("o");
+                JsonStateWriter.WriteAtomic(outputPath.Value, snapshot);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogWarning("Failed to export Bazaar state: " + ex);
+            }
+        }
+    }
+}

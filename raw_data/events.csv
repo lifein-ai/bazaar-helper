@@ -1,0 +1,16 @@
+name,event_type,reward_tags,match_mode,rarity_min,rarity_max,rarity_rule,gold,exp,health,notes
+Nautica,shop,"aquatic",any,,,normal_shop_by_day,0,0,0,Vanessa 商人，出售 Aquatic items。
+Colt,shop,"ammo",any,,,normal_shop_by_day,0,0,0,Vanessa 商人，出售 Ammo items。
+Aimbot,shop,"crit",any,,,normal_shop_by_day,0,0,0,出售 Crit items from any Hero。
+Jay Jay,shop,"",any,,,normal_shop_by_day,0,0,0,普通通用商人，出售 items。
+Silvia,shop,"",any,silver,silver,,0,0,0,出售 Silver-tier items。
+Goldie,shop,"",any,gold,gold,,0,0,0,出售 Gold-tier items。
+Luxe,shop,"",any,diamond,diamond,,0,0,0,出售 Diamond-tier items。
+Gaseo,shop,"apparel",any,,,normal_shop_by_day,0,0,0,出售 Apparel from any Hero。
+The Antiquarian,shop,"relic",any,,,normal_shop_by_day,0,0,0,出售 Relics from any Hero。
+The Tester,shop,"tech",any,,,normal_shop_by_day,0,0,0,出售 Tech items from any Hero。
+Kev's Armory,shop,"health,shield",any,,,normal_shop_by_day,0,0,0,出售 Health and Shield items。
+Shelter Shelby,shop,"friend",any,,,normal_shop_by_day,0,0,0,出售 Friend items。
+Vanessa,shop,"vanessa",any,,,normal_shop_by_day,0,0,0,Hero merchant，出售 Vanessa 相关 items。
+Botul,event,"poison",any,,,,0,0,0,Vanessa 事件，Improve your Poison items。
+Mad Maddie,event,"ammo",any,,,,0,0,5,Vanessa 事件，Improve your Ammo items。

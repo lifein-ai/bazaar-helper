@@ -1,0 +1,700 @@
+{
+  "VanessaAquaticAmmo": {
+    "hero": "Vanessa",
+    "display_name": "Vanessa Aquatic Ammo",
+    "applicable_stages": [
+      "mid",
+      "late"
+    ],
+    "day_range": [
+      5,
+      null
+    ],
+    "build_summary": "水产/弹药方向，围绕 Aquatic、Ammo、Weapon、Reload 等收益做中后期成型。",
+    "match_notes": [
+      "已有 Ammo/Aquatic 组件时考虑",
+      "拿到 Ballista/Depth Charge 等核心后可转入"
+    ],
+    "pilot_tips": [
+      "前期先拿水产/弹药过渡",
+      "第5天后有弩炮或船长舱再转入",
+      "金币紧张时优先战力事件"
+    ],
+    "core_cards": [
+      "Captain's Quarters",
+      "Captain's Wheel",
+      "Ballista"
+    ],
+    "transition_cards": [
+      "Beach Ball"
+    ],
+    "optional_cards": [
+      "Ambergris"
+    ],
+    "wanted_tags": [
+      "aquatic",
+      "ammo",
+      "weapon",
+      "tool",
+      "haste",
+      "reload",
+      "multicast"
+    ],
+    "event_priorities": [],
+    "avoid_events": [],
+    "source_type": "manual",
+    "confidence": "medium"
+  },
+  "BazaarDBKarnokMeta": {
+    "hero": "Karnok",
+    "display_name": "BazaarDB Karnok Meta",
+    "source_type": "bazaardb_hero_meta",
+    "confidence": "medium",
+    "sample_count": 1,
+    "applicable_stages": [
+      "mid",
+      "late"
+    ],
+    "day_range": [
+      5,
+      null
+    ],
+    "build_summary": "由 BazaarDB 胜利通关阵容自动聚合。核心卡代表多个样本里反复出现的成型方向，比单局样本更适合做事件和商店推荐。",
+    "match_notes": [
+      "样本数：1",
+      "核心卡按出现频率筛选；样本越多，推荐越稳定。",
+      "这是最终阵容聚合，不表示前期必须照单全拿；前期更适合把它当作转型方向。"
+    ],
+    "core_cards": [
+      "Caracal",
+      "Cargo Shorts",
+      "Defender's Flames",
+      "Extreme Comfort",
+      "Frontal Shielding",
+      "Healthy Jolt",
+      "Immolating Spark",
+      "Infused Arm Wraps",
+      "It's All Connected",
+      "Karnok's Rage",
+      "Keen Eye",
+      "Moon Orb"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Scavenger",
+      "Sharp Corners",
+      "Slow Burn",
+      "Spiked Collar",
+      "Stretch Pants",
+      "Toxic Weapons",
+      "Trickle Down Economics",
+      "Valley Fever",
+      "Waterskin"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": [],
+    "card_frequencies": [
+      {
+        "name": "Caracal",
+        "count": 1,
+        "frequency": 1.0
+      },
+      {
+        "name": "Cargo Shorts",
+        "count": 1,
+        "frequency": 1.0
+      },
+      {
+        "name": "Defender's Flames",
+        "count": 1,
+        "frequency": 1.0
+      },
+      {
+        "name": "Extreme Comfort",
+        "count": 1,
+        "frequency": 1.0
+      },
+      {
+        "name": "Frontal Shielding",
+        "count": 1,
+        "frequency": 1.0
+      },
+      {
+        "name": "Healthy Jolt",
+        "count": 1,
+        "frequency": 1.0
+      },
+      {
+        "name": "Immolating Spark",
+        "count": 1,
+        "frequency": 1.0
+      },
+      {
+        "name": "Infused Arm Wraps",
+        "count": 1,
+        "frequency": 1.0
+      },
+      {
+        "name": "It's All Connected",
+        "count": 1,
+        "frequency": 1.0
+      },
+      {
+        "name": "Karnok's Rage",
+        "count": 1,
+        "frequency": 1.0
+      },
+      {
+        "name": "Keen Eye",
+        "count": 1,
+        "frequency": 1.0
+      },
+      {
+        "name": "Moon Orb",
+        "count": 1,
+        "frequency": 1.0
+      },
+      {
+        "name": "Scavenger",
+        "count": 1,
+        "frequency": 1.0
+      },
+      {
+        "name": "Sharp Corners",
+        "count": 1,
+        "frequency": 1.0
+      },
+      {
+        "name": "Slow Burn",
+        "count": 1,
+        "frequency": 1.0
+      },
+      {
+        "name": "Spiked Collar",
+        "count": 1,
+        "frequency": 1.0
+      },
+      {
+        "name": "Stretch Pants",
+        "count": 1,
+        "frequency": 1.0
+      },
+      {
+        "name": "Toxic Weapons",
+        "count": 1,
+        "frequency": 1.0
+      },
+      {
+        "name": "Trickle Down Economics",
+        "count": 1,
+        "frequency": 1.0
+      },
+      {
+        "name": "Valley Fever",
+        "count": 1,
+        "frequency": 1.0
+      },
+      {
+        "name": "Waterskin",
+        "count": 1,
+        "frequency": 1.0
+      }
+    ],
+    "source_runs": [
+      {
+        "id": "0ff5e3c4-9586-461f-92e0-4836611c778b",
+        "url": "https://bazaardb.gg/run/0ff5e3c4-9586-461f-92e0-4836611c778b",
+        "player": "Joseph",
+        "hero": "Karnok",
+        "record": "10-?",
+        "result": "GOLD VICTORY",
+        "title": "Karnok 10 Wins Run by Joseph - Bazaar DB",
+        "imported_at_utc": "2026-06-25T13:28:49.2638156Z"
+      }
+    ]
+  },
+  "BazaarDBPygmalienMeta": {
+    "hero": "Pygmalien",
+    "display_name": "BazaarDB Pygmalien Meta",
+    "source_type": "bazaardb_hero_meta",
+    "confidence": "medium",
+    "sample_count": 3,
+    "applicable_stages": [
+      "mid",
+      "late"
+    ],
+    "day_range": [
+      5,
+      null
+    ],
+    "build_summary": "由 BazaarDB 胜利通关阵容自动聚合。核心卡代表多个样本里反复出现的成型方向，比单局样本更适合做事件和商店推荐。",
+    "match_notes": [
+      "样本数：3",
+      "核心卡按出现频率筛选；样本越多，推荐越稳定。",
+      "这是最终阵容聚合，不表示前期必须照单全拿；前期更适合把它当作转型方向。"
+    ],
+    "core_cards": [
+      "Belt",
+      "Lion Cane",
+      "Pure Imagination",
+      "Artillery Spotter",
+      "Atlatl",
+      "Brawler",
+      "Defense Grid",
+      "Dog",
+      "Keen Eye",
+      "Large Appetites",
+      "Regal Blade"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Ancient Flamekeeper",
+      "Augmented Weaponry",
+      "Backroom Dealings",
+      "Combat Medic",
+      "Critical Aid",
+      "Emergency Burn",
+      "Everlasting Life",
+      "Fast Food",
+      "Final Flame",
+      "Follow Up Care",
+      "Frenzy Cache",
+      "Grease Fire",
+      "Grindstone",
+      "Growth Spurt",
+      "Hardened Shield",
+      "Healthy Hoarder",
+      "Honed In",
+      "Housewarming Gifts",
+      "Hunter's Journal",
+      "I Would Eat That",
+      "Ice Luge",
+      "Insect Bite",
+      "Inspired Rage",
+      "Left Eye"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": [],
+    "card_frequencies": [
+      {
+        "name": "Belt",
+        "count": 3,
+        "frequency": 1.0
+      },
+      {
+        "name": "Lion Cane",
+        "count": 3,
+        "frequency": 1.0
+      },
+      {
+        "name": "Pure Imagination",
+        "count": 3,
+        "frequency": 1.0
+      },
+      {
+        "name": "Artillery Spotter",
+        "count": 2,
+        "frequency": 0.6667
+      },
+      {
+        "name": "Atlatl",
+        "count": 2,
+        "frequency": 0.6667
+      },
+      {
+        "name": "Brawler",
+        "count": 2,
+        "frequency": 0.6667
+      },
+      {
+        "name": "Defense Grid",
+        "count": 2,
+        "frequency": 0.6667
+      },
+      {
+        "name": "Dog",
+        "count": 2,
+        "frequency": 0.6667
+      },
+      {
+        "name": "Keen Eye",
+        "count": 2,
+        "frequency": 0.6667
+      },
+      {
+        "name": "Large Appetites",
+        "count": 2,
+        "frequency": 0.6667
+      },
+      {
+        "name": "Regal Blade",
+        "count": 2,
+        "frequency": 0.6667
+      },
+      {
+        "name": "Ancient Flamekeeper",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Augmented Weaponry",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Backroom Dealings",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Combat Medic",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Critical Aid",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Emergency Burn",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Everlasting Life",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Fast Food",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Final Flame",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Follow Up Care",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Frenzy Cache",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Grease Fire",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Grindstone",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Growth Spurt",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Hardened Shield",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Healthy Hoarder",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Honed In",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Housewarming Gifts",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Hunter's Journal",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "I Would Eat That",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Ice Luge",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Insect Bite",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Inspired Rage",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Left Eye",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Machine Learning",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Master Salesman",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Power Broker",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Precision Tools",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Property Mogul",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Rear Shielding",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Red Gumball",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Right Handed",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Sabotage",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Second Wind",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Sharpshooter",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Shatter",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Shield Bash",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Tempering",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Time to Tinker",
+        "count": 1,
+        "frequency": 0.3333
+      },
+      {
+        "name": "Trained",
+        "count": 1,
+        "frequency": 0.3333
+      }
+    ],
+    "source_runs": [
+      {
+        "id": "677210ce-d624-4600-9b9f-70971a3b4c84",
+        "url": "https://bazaardb.gg/run/677210ce-d624-4600-9b9f-70971a3b4c84",
+        "player": "Waltercoolest",
+        "hero": "Pygmalien",
+        "record": "10-?",
+        "result": "GOLD VICTORY",
+        "title": "Pygmalien 10 Wins Run by Waltercoolest - Bazaar DB",
+        "imported_at_utc": "2026-06-25T13:28:20.0490856Z"
+      },
+      {
+        "id": "2eb28675-e6b7-4206-9fd9-b85b1918d2c4",
+        "url": "https://bazaardb.gg/run/2eb28675-e6b7-4206-9fd9-b85b1918d2c4",
+        "player": "vladm343",
+        "hero": "Pygmalien",
+        "record": "10-?",
+        "result": "GOLD VICTORY",
+        "title": "Pygmalien 10 Wins Run by vladm343 - Bazaar DB",
+        "imported_at_utc": "2026-06-25T13:28:37.3601887Z"
+      },
+      {
+        "id": "d3bdea0d-4760-4846-a7f3-1103f56cb781",
+        "url": "https://bazaardb.gg/run/d3bdea0d-4760-4846-a7f3-1103f56cb781",
+        "player": "M00kz",
+        "hero": "Pygmalien",
+        "record": "10-?",
+        "result": "GOLD VICTORY",
+        "title": "Pygmalien 10 Wins Run by M00kz - Bazaar DB",
+        "imported_at_utc": "2026-06-25T13:28:55.0334725Z"
+      }
+    ]
+  },
+  "BazaarDBVanessaMeta": {
+    "hero": "Vanessa",
+    "display_name": "BazaarDB Vanessa Meta",
+    "applicable_stages": [
+      "mid",
+      "late"
+    ],
+    "day_range": [
+      5,
+      null
+    ],
+    "build_summary": "由胜利通关阵容聚合，按出现频率识别核心方向。",
+    "match_notes": [
+      "样本数：2",
+      "最终阵容聚合，不代表前期照单全拿"
+    ],
+    "pilot_tips": [],
+    "core_cards": [],
+    "transition_cards": [],
+    "optional_cards": [
+      "Pet Rock"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": [],
+    "source_type": "bazaardb_hero_meta",
+    "confidence": "medium",
+    "source_runs": [
+      {
+        "id": "02cf9e12-538d-4c35-a647-54849db92f0a",
+        "url": "https://bazaardb.gg/run/02cf9e12-538d-4c35-a647-54849db92f0a",
+        "player": "leodriango",
+        "hero": "Vanessa",
+        "record": "5-?",
+        "result": "BRONZE VICTORY",
+        "title": "Vanessa 5 Wins Run by leodriango - Bazaar DB",
+        "imported_at_utc": 46198.56161042824
+      },
+      {
+        "id": "e23afdcc-0d86-4907-8be6-dde617ae7484",
+        "url": "https://bazaardb.gg/run/e23afdcc-0d86-4907-8be6-dde617ae7484",
+        "player": "caprisun",
+        "hero": "Vanessa",
+        "record": "7-?",
+        "result": "SILVER VICTORY",
+        "title": "Vanessa 7 Wins Run by caprisun - Bazaar DB",
+        "imported_at_utc": 46198.561820625
+      }
+    ],
+    "card_frequencies": [
+      {
+        "name": "Pet Rock",
+        "count": 1,
+        "frequency": 0.5
+      }
+    ]
+  },
+  "5middle": {
+    "hero": "Pygmalien",
+    "display_name": "五中",
+    "applicable_stages": [
+      "early",
+      "mid"
+    ],
+    "day_range": [
+      1,
+      null
+    ],
+    "build_summary": "五中",
+    "match_notes": [],
+    "pilot_tips": [
+      "第一天事件选择：丛林遗迹选战利品不选收入；奇异蘑菇选4块钱，不要赌中立物品；芬恩饱餐餐厅没好店可进；萌萌怪兽有食物和玩具再进，优先选技能，如果没有就不如去白嫖三个巧克力事件；失落宝箱抽中型，不要抽技能",
+      "第一天结束理想状态：拥有3到5张优质武器卡，背包有若干食物，为后续卖食物、做狗任务和保持战力做准备",
+      "核心任务说明：刀狗任务指帝王之刃和狗这两张核心武器的任务。帝王之刃任务包括购买8件武器让自身增加150伤害，购买6件服饰让自身增加等于最大生命值10%的伤害，购买5件地产让自身和相邻物品获得20%暴击率；狗任务包括出售12件食物或玩具让自身增加200伤害，出售24件食物或玩具让自身冷却时间缩短，出售36件食物或玩具让自身获得额外多重释放",
+      "第二天到第六天行动优先级：优先完成刀狗任务，其次寻找升级武器，让关键武器尽快升到白银以上；同时注意理财和追经验，保证经济、等级和商店质量；中期还要寻找暴击手段和局外运转手段，为后期伤害爆发做准备",
+      "第六天结束理想状态：刀狗任务全做完；找齐6到7张关键武器，并且关键武器全部白银以上，最好有部分黄金；有稳定经济来源和50以上存款；有30以上基础暴击；如果有养了一段时间的当铺，可以留作终端暴击附魔使用"
+    ],
+    "core_cards": [
+      "Dog",
+      "Regal Blade",
+      "Gumball Machine"
+    ],
+    "transition_cards": [
+      "Briefcase",
+      "Pitchfork",
+      "Boomerang",
+      "Lumboars",
+      "Crook"
+    ],
+    "optional_cards": [
+      "Atlas Stone",
+      "Pinata"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "highHppig": {
+    "hero": "Pygmalien",
+    "display_name": "肉猪",
+    "applicable_stages": [
+      "mid",
+      "late"
+    ],
+    "day_range": [
+      6,
+      null
+    ],
+    "build_summary": "肉猪，后期上限",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Belt",
+      "Phonograph",
+      "Bootstraps",
+      "Lion Cane",
+      "Double Whammy"
+    ],
+    "transition_cards": [
+      "Dog",
+      "Pitchfork",
+      "Boomerang"
+    ],
+    "optional_cards": [
+      "Regal Blade"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  }
+}

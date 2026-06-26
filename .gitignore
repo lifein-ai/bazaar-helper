@@ -1,0 +1,44 @@
+# Python
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+
+# IDE
+.vscode/
+.idea/
+
+# Local browser / crawler profile
+.edge-bazaardb-profile/
+
+# Runtime / cache / temp
+runtime/
+tmp/
+temp/
+outputs/
+debug_output/
+*.log
+
+# Secrets
+.env
+*.key
+*.secret
+runtime/deepseek_api_key.txt
+
+# C# / BepInEx build artifacts
+bin/
+obj/
+bepinex/**/bin/
+bepinex/**/obj/
+*.dll
+*.pdb
+
+# Archives
+*.zip
+*.rar
+*.7z

@@ -1,0 +1,5 @@
+rule_name,from_day,to_day,min,max
+normal_shop_by_day,1,1,bronze,bronze
+normal_shop_by_day,2,4,bronze,silver
+normal_shop_by_day,5,8,bronze,gold
+normal_shop_by_day,9,,silver,diamond

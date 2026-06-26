@@ -1,0 +1,5816 @@
+{
+  "Third Degree Burns": {
+    "id": "b1b9ff21-32ac-436a-bd3c-120563b26bea",
+    "internal_name": "Third Degree Burns",
+    "name": "Third Degree Burns",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "burnreference"
+    ],
+    "description": "Your Large Burn items have +{aura.0} Burn."
+  },
+  "Thrill of the Flight": {
+    "id": "3c90df05-0cf7-4555-bebc-4eedd5d46356",
+    "internal_name": "Thrill of the Flight",
+    "name": "Thrill of the Flight",
+    "type": "Skill",
+    "heroes": [
+      "Stelle"
+    ],
+    "tags": [
+      "weapon",
+      "damagereference"
+    ],
+    "description": ""
+  },
+  "Honed Strike": {
+    "id": "41b9dac8-8020-4a0b-bd4e-c069b4cb1caf",
+    "internal_name": "Honed Strike",
+    "name": "Honed Strike",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Mak"
+    ],
+    "tags": [
+      "critreference"
+    ],
+    "description": "When you Crit with an item, it gains +{ability.0}% Crit Chance for the fight."
+  },
+  "[SKILL TEMPLATE]": {
+    "id": "edc0d83d-323e-4f3f-af66-ff5fe958387c",
+    "internal_name": "[SKILL TEMPLATE]",
+    "name": "[SKILL TEMPLATE]",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak",
+      "Pygmalien"
+    ],
+    "tags": [],
+    "description": "This is a Skill Template."
+  },
+  "Medic's Shield": {
+    "id": "6ef03e95-f3af-47d8-871f-e8c1e043a195",
+    "internal_name": "Medic's Shield",
+    "name": "Medic's Shield",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa"
+    ],
+    "tags": [
+      "healreference",
+      "shieldreference"
+    ],
+    "description": "Your rightmost item has +{aura.0} Shield if it is a Shield item and +{aura.1} Heal if it is a Heal item."
+  },
+  "Quick Freeze": {
+    "id": "b6334c78-623c-4662-8642-8e05555d873a",
+    "internal_name": "Quick Freeze",
+    "name": "Quick Freeze",
+    "type": "Skill",
+    "heroes": [
+      "Dooley",
+      "Vanessa",
+      "Stelle",
+      "Jules"
+    ],
+    "tags": [
+      "hastereference",
+      "freeze"
+    ],
+    "description": "The first time you Haste each fight, Freeze {ability.0.targets} item(s) for {ability.0} second(s)."
+  },
+  "Tiny Dancer": {
+    "id": "36410add-d0de-4618-a099-ceb32a87c589",
+    "internal_name": "Tiny Dancer",
+    "name": "Tiny Dancer",
+    "type": "Skill",
+    "heroes": [
+      "Dooley",
+      "Vanessa"
+    ],
+    "tags": [
+      "cooldown"
+    ],
+    "description": "If you have at least 7 items, your items have their cooldowns reduced by {aura.9}%."
+  },
+  "Flashy Pilot": {
+    "id": "a03e4ce6-4480-4edc-b612-8e1f6700cc26",
+    "internal_name": "Flashy Pilot",
+    "name": "Flashy Pilot",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Stelle"
+    ],
+    "tags": [
+      "vehicle"
+    ],
+    "description": "When you use a Vehicle, your items gain {ability.0}% Crit chance."
+  },
+  "Burn Containment": {
+    "id": "d6251362-7c11-4a7e-9d6d-97f445f2f828",
+    "internal_name": "Burn Containment",
+    "name": "Burn Containment",
+    "type": "Skill",
+    "heroes": [
+      "Dooley"
+    ],
+    "tags": [
+      "charge",
+      "burnreference",
+      "shieldreference"
+    ],
+    "description": "The first {aura.9} times you Burn each fight, Charge {ability.0.targets} Shield item {ability.0} second(s)."
+  },
+  "Left Eye": {
+    "id": "00f1ae18-33a6-499d-b2ea-319ac3debab9",
+    "internal_name": "Left Eye",
+    "name": "Left Eye",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "crit"
+    ],
+    "description": "Your leftmost item has +{aura.0}% Crit chance."
+  },
+  "Surrounded by Joy": {
+    "id": "e10188fc-6b44-49b8-afbb-6c9d41b9b85f",
+    "internal_name": "Surrounded by Joy",
+    "name": "Surrounded by Joy",
+    "type": "Skill",
+    "heroes": [
+      "Jules"
+    ],
+    "tags": [
+      "joyreference"
+    ],
+    "description": "The first time you use a Large item each fight, Adjacent items gain {ability.0} Joy for the fight."
+  },
+  "Tracer Fire": {
+    "id": "7434f3a5-2432-4603-b6d7-46febb9272fd",
+    "internal_name": "Tracer Fire",
+    "name": "Tracer Fire",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "burnreference",
+      "crit"
+    ],
+    "description": "When you burn, your items gain +{ability.0}% Crit Chance for the fight."
+  },
+  "Peaceful Eye": {
+    "id": "b76e0b9a-481c-4128-9ed3-a290f3b21b4f",
+    "internal_name": "Peaceful Eye",
+    "name": "Peaceful Eye",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "crit",
+      "nonweapon"
+    ],
+    "description": "Your Non-Weapon items have +{aura.0}% Crit chance."
+  },
+  "Pickpocket": {
+    "id": "c5936035-d32a-4d82-8dfc-44deb993b5ea",
+    "internal_name": "Pickpocket",
+    "name": "Pickpocket",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "gold"
+    ],
+    "description": "At the start of each fight, gain {ability.0} gold."
+  },
+  "Heat Lover": {
+    "id": "80b1dcad-fc56-43a2-8bcc-cc41e62a7616",
+    "internal_name": "Heat Lover",
+    "name": "Heat Lover",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "burnreference",
+      "regen"
+    ],
+    "description": "When you Burn, gain {ability.0} Regen for the fight."
+  },
+  "Quicken Weapons": {
+    "id": "2d9ee50a-e31b-4b43-b667-ca93ed1e248f",
+    "internal_name": "Quicken Weapons",
+    "name": "Quicken Weapons",
+    "type": "Skill",
+    "heroes": [
+      "Jules",
+      "Stelle",
+      "Mak",
+      "Dooley",
+      "Vanessa",
+      "Pygmalien"
+    ],
+    "tags": [
+      "weapon",
+      "cooldown"
+    ],
+    "description": "Your Weapons with cooldowns greater than 10 seconds have their cooldowns reduced by {aura.9} second(s)."
+  },
+  "Small Item Specialist": {
+    "id": "ee6059b6-f960-4ede-a65d-ad97cf4393b7",
+    "internal_name": "Small Item Specialist",
+    "name": "Small Item Specialist",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "crit"
+    ],
+    "description": "Your items have +{aura.0}% crit chance if you have 4 or more small items."
+  },
+  "Finesse Shield": {
+    "id": "8c16e6c8-2f44-4335-b31e-5b2268bf790e",
+    "internal_name": "Finesse Shield",
+    "name": "Finesse Shield",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Dooley",
+      "Stelle"
+    ],
+    "tags": [
+      "shieldreference",
+      "cooldown"
+    ],
+    "description": "While your enemy has more health than you, your Shield items have their cooldowns reduced by {aura.6}%."
+  },
+  "Venomous Vitality": {
+    "id": "6f593cc1-b44a-43d6-a83b-a68fb477aef2",
+    "internal_name": "Venomous Vitality",
+    "name": "Venomous Vitality",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Mak"
+    ],
+    "tags": [
+      "regen",
+      "poisonreference"
+    ],
+    "description": "You have Regen equal to half the Poison on your enemy."
+  },
+  "Healthy Hoarder": {
+    "id": "f1c3b934-254a-459f-9078-023edbcfcb03",
+    "internal_name": "Healthy Hoarder",
+    "name": "Healthy Hoarder",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "nonweapon"
+    ],
+    "description": "You have +{aura.0.mod} Max Health for each Non-Weapon item you have. [{aura.0}]"
+  },
+  "Healthy Food": {
+    "id": "247cee85-7bfd-44f2-8aff-2b86b67ece9b",
+    "internal_name": "Healthy Food",
+    "name": "Healthy Food",
+    "type": "Skill",
+    "heroes": [
+      "Jules"
+    ],
+    "tags": [
+      "food",
+      "cooldown"
+    ],
+    "description": "Reduce your food's cooldown by 5% for each level you have."
+  },
+  "Middle of the Pack": {
+    "id": "cf56751a-0973-486f-aec4-c8b21227b648",
+    "internal_name": "Middle of the Pack",
+    "name": "Middle of the Pack",
+    "type": "Skill",
+    "heroes": [
+      "Jules",
+      "Stelle",
+      "Mak",
+      "Dooley",
+      "Vanessa",
+      "Pygmalien"
+    ],
+    "tags": [
+      "cooldown"
+    ],
+    "description": "Your Medium items have their cooldowns reduced by {aura.9}%."
+  },
+  "Liquid Cooled": {
+    "id": "a89060ce-17fa-4706-9c6c-79c0834eeb2c",
+    "internal_name": "Liquid Cooled",
+    "name": "Liquid Cooled",
+    "type": "Skill",
+    "heroes": [
+      "Dooley"
+    ],
+    "tags": [
+      "core",
+      "freeze"
+    ],
+    "description": "The first {aura.9} times use the Core each fight, Freeze {ability.0.targets} item(s) of equal or smaller size for {ability.0} second(s)."
+  },
+  "Improvised Poison": {
+    "id": "d8e7fa0a-9127-4a11-a84e-d479a011a92d",
+    "internal_name": "Improvised Poison",
+    "name": "Improvised Poison",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Mak"
+    ],
+    "tags": [
+      "poisonreference",
+      "critreference"
+    ],
+    "description": "When you Crit, your Poison items gain {ability.0} Poison for the fight."
+  },
+  "Improvised Weaponry": {
+    "id": "3510040e-9d43-4e2a-867e-96cc6740a139",
+    "internal_name": "Improvised Weaponry",
+    "name": "Improvised Weaponry",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Mak"
+    ],
+    "tags": [
+      "weapon",
+      "damagereference",
+      "critreference"
+    ],
+    "description": "When you Crit, your weapons gain {ability.0} Damage for the fight."
+  },
+  "protein powder": {
+    "id": "5f63004e-26dd-460d-b359-38a84ffa66c1",
+    "internal_name": "protein powder",
+    "name": "protein powder",
+    "type": "Skill",
+    "heroes": [
+      "Jules"
+    ],
+    "tags": [
+      "joy"
+    ],
+    "description": ""
+  },
+  "Iron Sharpens Iron": {
+    "id": "71433809-d05a-4544-9959-aff20ae5db93",
+    "internal_name": "Iron Sharpens Iron",
+    "name": "Iron Sharpens Iron",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Jules",
+      "Mak"
+    ],
+    "tags": [
+      "weapon",
+      "damagereference"
+    ],
+    "description": "Your leftmost Weapon has +{aura.1} damage. When you buy a weapon, increase this bonus by {ability.0}."
+  },
+  "Defense Grid": {
+    "id": "115c2677-6880-4400-af80-f5afa3d502fe",
+    "internal_name": "Defense Grid",
+    "name": "Defense Grid",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Dooley",
+      "Stelle"
+    ],
+    "tags": [
+      "healthreference",
+      "shield"
+    ],
+    "description": "The first time you use an item each fight, shield equal to {aura.9}% of your max health. [{ability.0}]"
+  },
+  "Swole": {
+    "id": "c08396cd-ffc6-4b3f-86f8-18c053bee76f",
+    "internal_name": "Swole",
+    "name": "Swole",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "weapon",
+      "health"
+    ],
+    "description": "You have + Max Health equal to the damage of your Weapons. [{aura.0}]\nYou have + Max Health equal to double the damage of your Weapons. [{aura.1}]"
+  },
+  "Improvised Heal": {
+    "id": "2c637e34-ea4d-4532-9118-fddd9e637342",
+    "internal_name": "Improvised Heal",
+    "name": "Improvised Heal",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa"
+    ],
+    "tags": [
+      "healreference",
+      "critreference"
+    ],
+    "description": "When you Crit, your Heal items gain +{ability.0} Heal for the fight."
+  },
+  "Improvised Burn": {
+    "id": "1e8293e9-c60f-464a-9d44-21e766978edc",
+    "internal_name": "Improvised Burn",
+    "name": "Improvised Burn",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Mak"
+    ],
+    "tags": [
+      "burnreference",
+      "critreference"
+    ],
+    "description": "When you Crit, your Burn items gain {ability.0} Burn for the fight."
+  },
+  "CPU Throttling": {
+    "id": "3dd2dbac-97ee-4fc4-ac31-4d885d19e2ed",
+    "internal_name": "CPU Throttling",
+    "name": "CPU Throttling",
+    "type": "Skill",
+    "heroes": [
+      "Dooley"
+    ],
+    "tags": [
+      "core",
+      "slow"
+    ],
+    "description": "The first {aura.9} times you use The Core each fight, Slow {ability.0.targets} item(s) for {ability.0} second(s)."
+  },
+  "Desperate Strike": {
+    "id": "0dd4d40e-ac14-4a57-8c7f-9d47a5bdd38a",
+    "internal_name": "Desperate Strike",
+    "name": "Desperate Strike",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Jules",
+      "Stelle"
+    ],
+    "tags": [
+      "crit"
+    ],
+    "description": "While you have less health than your opponent, your items gain {aura.0}% Crit Chance."
+  },
+  "Flamedancer": {
+    "id": "19b74e9a-6723-4e94-a955-2c39ca48dbd0",
+    "internal_name": "Flamedancer Skill",
+    "name": "Flamedancer",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "burnreference"
+    ],
+    "description": "Your Burn items have +{aura.0}% Crit Chance."
+  },
+  "Cash Deposits": {
+    "id": "dff033fb-0fd4-4ae9-a9c2-ed8a81657d08",
+    "internal_name": "Cash Deposits",
+    "name": "Cash Deposits",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "weapon",
+      "damagereference",
+      "gold"
+    ],
+    "description": "Your weapons have + damage equal to your gold."
+  },
+  "Juggler": {
+    "id": "d071e4de-f87f-41b5-b02d-d622e35c0b4d",
+    "internal_name": "Juggler",
+    "name": "Juggler",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "cooldown"
+    ],
+    "description": "When you use a small item, Charge a large item for {ability.0} second(s)."
+  },
+  "Submerged": {
+    "id": "338b9fbe-0131-4d89-8661-13aa2dd0c9a1",
+    "internal_name": "Submerged",
+    "name": "Submerged",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa"
+    ],
+    "tags": [
+      "weapon",
+      "aquatic",
+      "damagereference",
+      "shieldreference"
+    ],
+    "description": "Your Weapons have +{aura.0.mod} Damage for each Aquatic item you have. [{aura.0}]\nYour Shield items have +{aura.1.mod} Shield for each Aquatic item you have. [{aura.1}]"
+  },
+  "Retaliatory Toxins": {
+    "id": "13f4df45-8f29-4a48-8a2b-b8176e17c85d",
+    "internal_name": "Retaliatory Toxins",
+    "name": "Retaliatory Toxins",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Mak"
+    ],
+    "tags": [
+      "poison"
+    ],
+    "description": "When your enemy uses an item, Poison {ability.0}."
+  },
+  "Grease Fire": {
+    "id": "cb8e9ed1-764e-4fa5-a2b8-61c2eddcbf7e",
+    "internal_name": "Grease Fire",
+    "name": "Grease Fire",
+    "type": "Skill",
+    "heroes": [
+      "Dooley",
+      "Jules",
+      "Stelle"
+    ],
+    "tags": [
+      "tool",
+      "burn"
+    ],
+    "description": "When you use a tool, Burn {ability.0}."
+  },
+  "Lifting": {
+    "id": "c3f674a0-4025-45e1-b611-bf70fd6f279c",
+    "internal_name": "Lifting",
+    "name": "Lifting",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Jules"
+    ],
+    "tags": [
+      "weapon",
+      "damagereference"
+    ],
+    "description": "Your weapons have +{aura.1} Damage. When you buy a Weapon, increase this bonus by +{ability.0} Damage."
+  },
+  "Void Rage": {
+    "id": "3b3b1f2b-7f43-440d-807b-61eea3a65cb0",
+    "internal_name": "Void Rage",
+    "name": "Void Rage",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "haste",
+      "burnreference"
+    ],
+    "description": "When you burn, Haste an item for {ability.0} second(s)."
+  },
+  "Foreboding Winds": {
+    "id": "c9c884fd-849e-4541-b770-4658c2e6e609",
+    "internal_name": "Foreboding Winds",
+    "name": "Foreboding Winds",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "crit"
+    ],
+    "description": "When any player uses an item, all items gain {ability.0}% Crit Chance for the fight."
+  },
+  "Makeshift Plate": {
+    "id": "1d0b3080-14a8-41c5-9449-9b48f46d4726",
+    "internal_name": "Makeshift Plate",
+    "name": "Makeshift Plate",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "shield",
+      "economyreference"
+    ],
+    "description": "Your Shield items have +1 Shield for every {aura.9} gold you have. [{aura.0}]\nYour Shield items have +1 Shield for every {aura.9} gold you have. [{aura.1}]\nYour Shield items have +1 Shield for every {aura.9} gold you have. [{aura.2}]"
+  },
+  "Valley Fever": {
+    "id": "83cf85fa-f486-4486-ba76-c28f4db60677",
+    "internal_name": "Valley Fever",
+    "name": "Valley Fever",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "burn"
+    ],
+    "description": "At the start of each fight, Burn yourself {ability.0}."
+  },
+  "First Degree Burns": {
+    "id": "f9b262a7-73fc-43b0-ad69-da351e927829",
+    "internal_name": "First Degree Burns",
+    "name": "First Degree Burns",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "burnreference"
+    ],
+    "description": "Your Small Burn items have +{aura.0} Burn."
+  },
+  "First Flames": {
+    "id": "f6a49c4a-7ee7-4aa7-8162-392eee2d3835",
+    "internal_name": "First Flames",
+    "name": "First Flames",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "burn"
+    ],
+    "description": "The first time you use a Large item each fight, Burn {ability.0}."
+  },
+  "Above the Clouds": {
+    "id": "cf20ff77-7f51-42ca-8451-a3a1befe3d66",
+    "internal_name": "Above the Clouds",
+    "name": "Above the Clouds",
+    "type": "Skill",
+    "heroes": [
+      "Stelle"
+    ],
+    "tags": [
+      "cooldown"
+    ],
+    "description": ""
+  },
+  "Like Clockwork": {
+    "id": "760fd7aa-fce6-4779-818e-99ba51274010",
+    "internal_name": "Like Clockwork",
+    "name": "Like Clockwork",
+    "type": "Skill",
+    "heroes": [
+      "Dooley"
+    ],
+    "tags": [
+      "core",
+      "damagereference"
+    ],
+    "description": "When you level up, Your Weapons gain +{ability.0} damage. If you have a Weapon Core, double this."
+  },
+  "Buffed and Polished": {
+    "id": "0283b102-e0ef-4df4-b447-c5208049bf02",
+    "internal_name": "Buffed and Polished",
+    "name": "Buffed and Polished",
+    "type": "Skill",
+    "heroes": [
+      "Stelle"
+    ],
+    "tags": [],
+    "description": "Reduce your Diamond-tier items' cooldowns by 10%."
+  },
+  "Sharpened Steel": {
+    "id": "813b4dd8-3fd3-4824-be6e-bce2b1f175a3",
+    "internal_name": "Sharpened Steel",
+    "name": "Sharpened Steel",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "weapon",
+      "crit"
+    ],
+    "description": "When you use a Weapon, Adjacent items gain {ability.0}% Crit Chance for the fight."
+  },
+  "Table Setting": {
+    "id": "5e4892b5-2be7-4552-9a72-5770785a733d",
+    "internal_name": "Table Setting",
+    "name": "Table Setting",
+    "type": "Skill",
+    "heroes": [
+      "Jules"
+    ],
+    "tags": [
+      "weapon",
+      "damagereference",
+      "cooldown"
+    ],
+    "description": "Your leftmost Weapon has +{aura.0} damage.\nYour rightmost Weapon has its cooldown reduced by {aura.6}%."
+  },
+  "Alacrity": {
+    "id": "a9e56561-95d9-46c4-83e3-499e6b159013",
+    "internal_name": "Alacrity",
+    "name": "Alacrity",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Mak"
+    ],
+    "tags": [
+      "charge",
+      "critreference"
+    ],
+    "description": "The first {aura.9} times you Crit each fight, Charge {ability.0.targets} item(s) {ability.0} second(s)."
+  },
+  "Follow-Up Care": {
+    "id": "c5ce101a-3af2-49ce-bcc9-42481355c58e",
+    "internal_name": "Follow-Up Care",
+    "name": "Follow-Up Care",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "healreference"
+    ],
+    "description": "Your rightmost Heal item has +{aura.0} Heal."
+  },
+  "Double Down": {
+    "id": "37efcae2-779d-4a60-95c6-0d663d7e0113",
+    "internal_name": "Double Down",
+    "name": "Double Down",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Pygmalien"
+    ],
+    "tags": [
+      "weapon",
+      "damagereference"
+    ],
+    "description": "The first time you fall below half health each fight, double the damage of your leftmost Weapon for the fight."
+  },
+  "Distributed Systems": {
+    "id": "b57df6d6-fc6c-4401-ad41-77f83388eabe",
+    "internal_name": "Distributed Systems",
+    "name": "Distributed Systems",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "haste"
+    ],
+    "description": "When you use a large item, haste {ability.0.targets} small items for {ability.0} second(s)."
+  },
+  "Dessert": {
+    "id": "3952fb1e-d60f-4b1e-8eaf-16f14b9e99e4",
+    "internal_name": "Dessert",
+    "name": "Dessert",
+    "type": "Skill",
+    "heroes": [
+      "Jules"
+    ],
+    "tags": [
+      "joyreference"
+    ],
+    "description": "Your rightmost item with Joy has +{aura.0} Joy."
+  },
+  "Petrifying Gaze": {
+    "id": "b21d98f7-d677-4598-8b53-5bfd8301d26a",
+    "internal_name": "Petrifying Gaze",
+    "name": "Petrifying Gaze",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "freeze",
+      "healthreference"
+    ],
+    "description": "The first time you fall below half health each fight, Freeze all enemy items for {ability.0} second(s)."
+  },
+  "Big Guns": {
+    "id": "f380f03c-3c71-4cae-b423-43fa31a5c3a3",
+    "internal_name": "Big Guns",
+    "name": "Big Guns",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Pygmalien",
+      "Stelle"
+    ],
+    "tags": [
+      "weapon",
+      "damagereference"
+    ],
+    "description": "Double the damage of your Large weapons."
+  },
+  "Panic": {
+    "id": "eea71cd9-2688-4c4d-99e7-6eee44cf47a2",
+    "internal_name": "Panic",
+    "name": "Panic",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "ammo"
+    ],
+    "description": "The first time you fall below 50% health each fight, Reload {ability.0.targets} items."
+  },
+  "Large Appetites": {
+    "id": "19c967e5-f4c0-4c11-bb96-aa039369600a",
+    "internal_name": "Large Appetites",
+    "name": "Large Appetites",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "health"
+    ],
+    "description": "If you have 5 or fewer items, you have +{aura.0} Max Health."
+  },
+  "Burning Rage": {
+    "id": "d675442d-7d59-4f13-9209-6e1a4ae7a1fc",
+    "internal_name": "Burning Rage",
+    "name": "Burning Rage",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "weapon",
+      "burnreference",
+      "damagereference"
+    ],
+    "description": "When you Burn, your Weapons gain +{ability.0} damage for the fight."
+  },
+  "Slowed Targets": {
+    "id": "1448f669-4c0f-4f86-a23c-00fb647b1153",
+    "internal_name": "Slowed Targets",
+    "name": "Slowed Targets",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "slowreference",
+      "crit"
+    ],
+    "description": "When you Slow, your items gain +{ability.0}% Crit Chance for the fight."
+  },
+  "Creeping Chill": {
+    "id": "1c47afbe-2e26-4b63-b50c-1bff7d48b88b",
+    "internal_name": "Creeping Chill",
+    "name": "Creeping Chill",
+    "type": "Skill",
+    "heroes": [
+      "Dooley",
+      "Vanessa",
+      "Mak",
+      "Stelle"
+    ],
+    "tags": [
+      "slowreference",
+      "freeze"
+    ],
+    "description": "The first time you Slow each fight, Freeze {ability.0.targets} item(s) for {ability.0} second(s)."
+  },
+  "Brawler": {
+    "id": "1c40716a-d125-4deb-8ada-8b177c5ff071",
+    "internal_name": "Brawler",
+    "name": "Brawler",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "weapon",
+      "health"
+    ],
+    "description": "You have +{aura.9} Max Health for each Weapon you have. [{aura.0}]\nYou have +{aura.9} Max Health for each Weapon you have. [{aura.1}]\nYou have +{aura.9} Max Health for each Weapon you have. [{aura.2}]"
+  },
+  "Master Salesman": {
+    "id": "b3c7f45e-23f3-44c8-adca-3ca99376e848",
+    "internal_name": "Master Salesman",
+    "name": "Master Salesman",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "value"
+    ],
+    "description": "Your items have double value during combat."
+  },
+  "Defender": {
+    "id": "279ca038-9f02-45ea-a946-7bd05be37d57",
+    "internal_name": "Defender",
+    "name": "Defender",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle"
+    ],
+    "tags": [
+      "shieldreference",
+      "health"
+    ],
+    "description": "You have +{aura.0} Health and your Shield items have their cooldowns reduced by 1%.\nYou have +{aura.0} Health and your Shield items have their cooldowns reduced by 2%.\nYou have +{aura.0} Health and your Shield items have their cooldowns reduced by 3%.\nYou have +{aura.0} Health and your Shield items have their cooldowns reduced by 4%."
+  },
+  "Heat Shield": {
+    "id": "7919e8b0-d749-4c13-892e-bc794c8cf06e",
+    "internal_name": "Heat Shield",
+    "name": "Heat Shield",
+    "type": "Skill",
+    "heroes": [
+      "Dooley",
+      "Stelle"
+    ],
+    "tags": [
+      "burnreference",
+      "shield"
+    ],
+    "description": "When you Burn with an item, gain Shield equal to that item's Burn.\nWhen you Burn with an item, gain Shield equal to double that item's Burn."
+  },
+  "Vital Renewal": {
+    "id": "f790df42-e8e6-4329-aaeb-8a757c02c326",
+    "internal_name": "Vital Renewal",
+    "name": "Vital Renewal",
+    "type": "Skill",
+    "heroes": [
+      "Mak"
+    ],
+    "tags": [
+      "cooldown"
+    ],
+    "description": "When you Slow, Freeze, Poison or Burn with an item, a Regen item gains {ability.0} Regen for the fight."
+  },
+  "Clean Storefront": {
+    "id": "6bd675c5-a9a3-4a04-b3b3-c6ed09904bc2",
+    "internal_name": "Clean Storefront",
+    "name": "Clean Storefront",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "value"
+    ],
+    "description": "Your leftmost item has +{ability.0} value during combat."
+  },
+  "Electrified Hull": {
+    "id": "1df8d85a-9095-4ab9-952a-c668a4d5d51c",
+    "internal_name": "Electrified Hull",
+    "name": "Electrified Hull",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Dooley"
+    ],
+    "tags": [
+      "shieldreference",
+      "charge"
+    ],
+    "description": "The first {aura.9} times you Shield each fight, Charge {ability.0.targets} item(s) {ability.0} second(s)."
+  },
+  "Poison Tyrant": {
+    "id": "b89ebdeb-1954-47c8-97fe-8cc3008f2a25",
+    "internal_name": "Poison Tyrant",
+    "name": "Poison Tyrant",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "regen",
+      "poisonreference"
+    ],
+    "description": "When you Poison, gain {ability.0} Regen for the fight."
+  },
+  "Trained": {
+    "id": "0526054f-98da-4e95-be68-d25b26bb0fe3",
+    "internal_name": "Trained (monster skill)",
+    "name": "Trained",
+    "type": "Skill",
+    "heroes": [],
+    "tags": [
+      "weapon",
+      "damagereference",
+      "slowreference"
+    ],
+    "description": "When you slow, a weapon gains +{ability.0} damage for the fight."
+  },
+  "Specialist": {
+    "id": "afe451fd-7726-4ed6-9ad9-48d917a12012",
+    "internal_name": "Specialist",
+    "name": "Specialist",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Dooley",
+      "Stelle"
+    ],
+    "tags": [
+      "weapon",
+      "shieldreference"
+    ],
+    "description": "If you have exactly 1 weapon, your Shield items have +{aura.0} shield."
+  },
+  "Depth Charge": {
+    "id": "6550ba8c-8d90-41f8-82c8-a0af040458ce",
+    "internal_name": "Depth Charge",
+    "name": "Depth Charge",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa"
+    ],
+    "tags": [
+      "weapon",
+      "aquatic",
+      "ammo",
+      "damagereference"
+    ],
+    "description": "If you have exactly one weapon, it has +{aura.0} Max Ammo.\n...if it is also Aquatic, it has +{aura.1} Damage."
+  },
+  "Potent Potables": {
+    "id": "edb9b01b-b4ce-4a77-848e-0a49b8a23c16",
+    "internal_name": "Potent Potables",
+    "name": "Potent Potables",
+    "type": "Skill",
+    "heroes": [
+      "Mak"
+    ],
+    "tags": [
+      "potion",
+      "poisonreference",
+      "burnreference"
+    ],
+    "description": "Your Poison items have +{aura.0.mod} Poison for each potion you have. [{aura.0}]\nYour Burn items have +{aura.1.mod} Burn for each potion you have. [{aura.1}]"
+  },
+  "Flurry of Blows": {
+    "id": "304d505a-d914-4264-9142-b6efb7aca1ff",
+    "internal_name": "Flurry of Blows",
+    "name": "Flurry of Blows",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa"
+    ],
+    "tags": [
+      "weapon",
+      "charge"
+    ],
+    "description": "The first {aura.9} times you use a Weapon each fight, charge {ability.0.targets} item(s) {ability.0} second(s)."
+  },
+  "Regenerative": {
+    "id": "a1975546-334f-4137-85cc-43a4c8ae49f3",
+    "internal_name": "Regenerative",
+    "name": "Regenerative",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "regen"
+    ],
+    "description": "You have {aura.0} Regen."
+  },
+  "Rust": {
+    "id": "aa603f52-3788-40c2-bb99-53e92a69b3f5",
+    "internal_name": "Rust",
+    "name": "Rust",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "slow"
+    ],
+    "description": "The first time you use an item each fight, slow {ability.0.targets} item(s) for {ability.0} second(s)."
+  },
+  "Quality over Quantity": {
+    "id": "a3695c78-63e4-45a9-a2b9-9b2827325527",
+    "internal_name": "Quality over Quantity",
+    "name": "Quality over Quantity",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Pygmalien",
+      "Mak"
+    ],
+    "tags": [
+      "weapon",
+      "lifesteal",
+      "crit"
+    ],
+    "description": "If you have exactly one weapon, it has Lifesteal and {aura.0}% Crit Chance."
+  },
+  "Hard Shell": {
+    "id": "050ff26a-59ec-4666-89b0-b0630a75149a",
+    "internal_name": "Hard Shell",
+    "name": "Hard Shell",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "shield",
+      "healthreference"
+    ],
+    "description": "The first time you fall below half health each fight, Shield equal to 20% of your Max Health. [{ability.0}]\nThe first time you fall below half health each fight, Shield equal to 30% of your Max Health. [{ability.0}]\nThe first time you fall below half health each fight, Shield equal to 40% of your Max Health. [{ability.0}]\nThe first time you fall below half health each fight, Shield equal to 50% of your Max Health. [{ability.0}]"
+  },
+  "Focused Rage": {
+    "id": "8d41a164-2667-4df4-91ed-3da224b8c63a",
+    "internal_name": "Focused Rage",
+    "name": "Focused Rage",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Dooley"
+    ],
+    "tags": [
+      "crit"
+    ],
+    "description": "The first time you fall below half health each fight, double all your items' Crit Chance for the fight."
+  },
+  "Prime Real Estate": {
+    "id": "b0b38699-beb0-4012-b4f0-bc424f4ba787",
+    "internal_name": "Prime Real Estate",
+    "name": "Prime Real Estate",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "property",
+      "crit"
+    ],
+    "description": "When you use a Property, adjacent items gain {ability.0}% Crit chance for the fight."
+  },
+  "Flanking Shield": {
+    "id": "5e193004-5e5f-4166-96a0-9a51a3ef8443",
+    "internal_name": "Flanking Shield",
+    "name": "Flanking Shield",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Dooley",
+      "Stelle"
+    ],
+    "tags": [
+      "shieldreference"
+    ],
+    "description": "The first time you use a Large item each fight, adjacent Shield items gain {ability.0} Shield for the fight."
+  },
+  "Balanced Workout": {
+    "id": "52492df1-d2da-4784-ad59-2afb05802684",
+    "internal_name": "Balanced Workout",
+    "name": "Balanced Workout",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "health"
+    ],
+    "description": "You have +{aura.0.mod} Max Health for each Medium item you have. [{aura.0}]\nYou have +{aura.1.mod} Max Health for each Medium item you have. [{aura.1}]\nYou have +{aura.2.mod} Max Health for each Medium item you have. [{aura.2}]\nYou have +{aura.3.mod} Max Health for each Medium item you have. [{aura.3}]"
+  },
+  "Venomous Blade": {
+    "id": "e41f6a66-9257-45c3-b249-9f9ef0f93f3e",
+    "internal_name": "Venomous Blade",
+    "name": "Venomous Blade",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Mak"
+    ],
+    "tags": [
+      "weapon",
+      "charge",
+      "poisonreference"
+    ],
+    "description": "The first {aura.9} times you use a Weapon each fight, Charge {ability.0.targets} Poison item {ability.0} second(s)."
+  },
+  "Inspirational Cooking": {
+    "id": "f75b8938-1dbb-45c4-8bca-f3f06e7568cc",
+    "internal_name": "Inspirational Cooking",
+    "name": "Inspirational Cooking",
+    "type": "Skill",
+    "heroes": [
+      "Jules"
+    ],
+    "tags": [
+      "crit",
+      "joyreference"
+    ],
+    "description": "Your Joy items have +{aura.0}% Crit chance."
+  },
+  "Emergency Draught": {
+    "id": "d179345d-953d-4c59-a324-5c2504951644",
+    "internal_name": "Emergency Draught",
+    "name": "Emergency Draught",
+    "type": "Skill",
+    "heroes": [
+      "Mak"
+    ],
+    "tags": [
+      "regen"
+    ],
+    "description": "The first time you fall below half health each fight, gain {aura.9} times your Regen for the fight. [{ability.0}]"
+  },
+  "Righty Tighty": {
+    "id": "b5160cb5-5d92-420b-8883-b67e701b5e5f",
+    "internal_name": "Righty Tighty",
+    "name": "Righty Tighty",
+    "type": "Skill",
+    "heroes": [
+      "Dooley",
+      "Mak",
+      "Vanessa"
+    ],
+    "tags": [
+      "slow"
+    ],
+    "description": "The first {aura.9} times you use your rightmost item each fight, Charge {ability.0.targets} Slow item {ability.0} second(s)."
+  },
+  "Improved Toxins": {
+    "id": "d31c4499-c05a-4d7b-8571-a19e102c3169",
+    "internal_name": "Improved Toxins",
+    "name": "Improved Toxins",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Mak"
+    ],
+    "tags": [
+      "poisonreference"
+    ],
+    "description": "Your Poison items have +{aura.0} Poison."
+  },
+  "Line Cook": {
+    "id": "ae686d2c-fce1-401a-8c65-f34fedcce740",
+    "internal_name": "Line Cook",
+    "name": "Line Cook",
+    "type": "Skill",
+    "heroes": [
+      "Jules"
+    ],
+    "tags": [
+      "food",
+      "haste"
+    ],
+    "description": "When you use a food, haste the item to the right of it for {ability.0} second(s)."
+  },
+  "Firepower": {
+    "id": "a6cc6854-91aa-4a30-9936-33db1cf16119",
+    "internal_name": "Firepower",
+    "name": "Firepower",
+    "type": "Skill",
+    "heroes": [
+      "Dooley"
+    ],
+    "tags": [
+      "core",
+      "damagereference"
+    ],
+    "description": "When you use the Core, adjacent weapons gain {ability.0} damage for the fight."
+  },
+  "Calming Heals": {
+    "id": "571b3909-e04c-454f-86ae-61cc46ea3066",
+    "internal_name": "Calming Heals",
+    "name": "Calming Heals",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Mak"
+    ],
+    "tags": [
+      "charge",
+      "healreference",
+      "slowreference"
+    ],
+    "description": "The first {aura.9} times you Slow each fight, Charge {ability.0.targets} Heal item {ability.0} second(s)."
+  },
+  "The Best Defense": {
+    "id": "318e27ee-611e-4e8b-bf3b-ae9982494453",
+    "internal_name": "The Best Defense",
+    "name": "The Best Defense",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa"
+    ],
+    "tags": [
+      "weapon",
+      "damagereference"
+    ],
+    "description": "When you use a weapon, Weapons adjacent to it gain +{ability.0} damage for the fight."
+  },
+  "Food Coma": {
+    "id": "778da878-7748-4782-b348-d5e8df792882",
+    "internal_name": "Food Coma",
+    "name": "Food Coma",
+    "type": "Skill",
+    "heroes": [
+      "Jules"
+    ],
+    "tags": [
+      "food",
+      "slow",
+      "joyreference"
+    ],
+    "description": "When you use a food, slow it for {ability.0} seconds and it gains 10 joy for the fight."
+  },
+  "Sparring Partner": {
+    "id": "fcb51ffd-6d25-4e74-871a-7dc0de2bae91",
+    "internal_name": "Sparring Partner (Skill)",
+    "name": "Sparring Partner",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "When you would die, Cleanse all Burn and Poison, double your Max Health and Heal to full. In addition, your enemy gains {ability.4} Gold."
+  },
+  "Reinforced Steel": {
+    "id": "3d75530d-ebad-46fa-a0da-04df6cdb9e5a",
+    "internal_name": "Reinforced Steel",
+    "name": "Reinforced Steel",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "property",
+      "damagereference",
+      "shieldreference"
+    ],
+    "description": "When you use a Property, your Weapons gain +{ability.0} damage and your Shield items gain +{ability.1} shield for the fight."
+  },
+  "Advanced Synthetics": {
+    "id": "1798b189-818a-456d-b7c5-efddf8da15c2",
+    "internal_name": "Advanced Synthetics",
+    "name": "Advanced Synthetics",
+    "type": "Skill",
+    "heroes": [
+      "Dooley",
+      "Stelle"
+    ],
+    "tags": [],
+    "description": "When you Level Up, upgrade a Bronze-tier item.\nWhen you Level Up, upgrade a Silver-tier item."
+  },
+  "Experimental Chef": {
+    "id": "71d7c241-d0f1-4153-a628-f618526fce4b",
+    "internal_name": "Experimental Chef",
+    "name": "Experimental Chef",
+    "type": "Skill",
+    "heroes": [
+      "Jules"
+    ],
+    "tags": [
+      "joyreference",
+      "critreference"
+    ],
+    "description": "When you Crit, your items gain {ability.0} Joy for the fight."
+  },
+  "Moth to a Flame": {
+    "id": "529f2133-0d39-4827-9788-2b90c5356b7e",
+    "internal_name": "Moth to a Flame",
+    "name": "Moth to a Flame",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Jules",
+      "Mak"
+    ],
+    "tags": [
+      "regen",
+      "burnreference"
+    ],
+    "description": "You have Regen equal to half the Burn on your enemy."
+  },
+  "Quick Bite": {
+    "id": "197c585a-22d0-4343-86e6-9916eaa7e75c",
+    "internal_name": "Quick Bite",
+    "name": "Quick Bite",
+    "type": "Skill",
+    "heroes": [
+      "Jules"
+    ],
+    "tags": [
+      "joyreference",
+      "cooldown"
+    ],
+    "description": "Your items have +{aura.0} Joy and have a cooldown reduction of 10%."
+  },
+  "Intrusion Countermeasures": {
+    "id": "c2e26fae-a435-44ff-8613-8977247ee972",
+    "internal_name": "Intrusion Countermeasures",
+    "name": "Intrusion Countermeasures",
+    "type": "Skill",
+    "heroes": [
+      "Dooley"
+    ],
+    "tags": [
+      "friend"
+    ],
+    "description": "The first time you fall below half health in a fight, use your Friends."
+  },
+  "Delayed Burn": {
+    "id": "e21930e9-942f-435a-9384-a17042a87e18",
+    "internal_name": "Delayed Burn",
+    "name": "Delayed Burn",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "burnreference"
+    ],
+    "description": "Your slowest Burn item has +{aura.0} Burn."
+  },
+  "Small Gains": {
+    "id": "8c9cdd4e-d494-42d9-918a-bf994fdecf3e",
+    "internal_name": "Small Gains",
+    "name": "Small Gains",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "health"
+    ],
+    "description": "You have +{aura.0.mod} Max Health for each small item you have. [{aura.0}]\nYou have +{aura.1.mod} Max Health for each small item you have. [{aura.1}]\nYou have +{aura.2.mod} Max Health for each small item you have. [{aura.2}]\nYou have +{aura.3.mod} Max Health for each small item you have. [{aura.3}]"
+  },
+  "Standardized Toxins": {
+    "id": "07fbd5ab-c52a-42d8-801d-8992c44714de",
+    "internal_name": "Standardized Toxins",
+    "name": "Standardized Toxins",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Mak"
+    ],
+    "tags": [
+      "poisonreference"
+    ],
+    "description": "Your Medium Poison items have +{aura.0} Poison."
+  },
+  "Heated Shells": {
+    "id": "76e1e841-8b6c-4871-a077-b17f4806675d",
+    "internal_name": "Heated Shells",
+    "name": "Heated Shells",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Mak"
+    ],
+    "tags": [
+      "burn",
+      "ammo"
+    ],
+    "description": "When you use an Ammo item, Burn {ability.0}."
+  },
+  "Poisonous Opener": {
+    "id": "9d7c0a60-c957-4513-81d8-2ba957b58fb1",
+    "internal_name": "Poisonous Opener",
+    "name": "Poisonous Opener",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Mak"
+    ],
+    "tags": [
+      "poison"
+    ],
+    "description": "The first time you use a Large item each fight, Poison {ability.0}."
+  },
+  "Alchemical Precision": {
+    "id": "8509674b-3c4b-4250-9bb4-666ef7402654",
+    "internal_name": "Alchemical Precision",
+    "name": "Alchemical Precision",
+    "type": "Skill",
+    "heroes": [
+      "Mak"
+    ],
+    "tags": [
+      "potion",
+      "cooldown"
+    ],
+    "description": "Your Potions have their cooldowns reduced by 1 second."
+  },
+  "Strength": {
+    "id": "fbbfbef7-8fe4-4ac0-81fa-09afb59e0fcc",
+    "internal_name": "Strength (Skill)",
+    "name": "Strength",
+    "type": "Skill",
+    "heroes": [
+      "Jules",
+      "Stelle",
+      "Mak",
+      "Dooley",
+      "Vanessa",
+      "Pygmalien"
+    ],
+    "tags": [
+      "weapon",
+      "damagereference"
+    ],
+    "description": "Your Weapons deal +{aura.0} Damage."
+  },
+  "Minimalist": {
+    "id": "d4471fb1-a60b-4f64-9c60-ae0e8c930306",
+    "internal_name": "Minimalist",
+    "name": "Minimalist",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "cooldown"
+    ],
+    "description": "If you have no weapons, your items' cooldowns are reduced by 10%.\nIf you have no weapons, your items' cooldowns are reduced by 20%."
+  },
+  "Waters of Infinity": {
+    "id": "a59bc243-7c8b-447a-8ab7-968f662b1c50",
+    "internal_name": "Waters of Infinity",
+    "name": "Waters of Infinity",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "regen"
+    ],
+    "description": "You have +{aura.9} Regen for each non-weapon item you have. [{aura.0}]"
+  },
+  "Boar Market": {
+    "id": "994de267-673b-4838-9302-1b3b47ab0934",
+    "internal_name": "Boar Market",
+    "name": "Boar Market",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "weapon",
+      "damagereference",
+      "economyreference"
+    ],
+    "description": "Your leftmost and rightmost Weapons have + Damage equal to their value.\nYour leftmost and rightmost Weapons have + Damage equal to double their value."
+  },
+  "Mixed Message": {
+    "id": "4fda14aa-365f-478f-8a27-b9b53c97c56a",
+    "internal_name": "Mixed Message",
+    "name": "Mixed Message",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak",
+      "Pygmalien"
+    ],
+    "tags": [
+      "weapon",
+      "charge"
+    ],
+    "description": "The first {aura.9} times you use a non-Weapon item each fight, Charge {ability.0.targets} Weapon {ability.0} second(s)."
+  },
+  "Parting Shot": {
+    "id": "a885b513-3fe3-4795-a10e-c2e4f6b5f1f6",
+    "internal_name": "Parting Shot",
+    "name": "Parting Shot",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa"
+    ],
+    "tags": [
+      "crit",
+      "ammoreference"
+    ],
+    "description": "When you use an item with Ammo, it gains +{ability.0}% Crit Chance for the fight."
+  },
+  "Quick Protection": {
+    "id": "fe8e65e6-69c7-4e1e-b92f-b23af65cb819",
+    "internal_name": "Quick Protection",
+    "name": "Quick Protection",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle"
+    ],
+    "tags": [
+      "shieldreference"
+    ],
+    "description": "Your fastest Shield item has +{aura.0} Shield."
+  },
+  "Toxic Friendship": {
+    "id": "570a7c19-0dab-459f-b545-6ade12a69312",
+    "internal_name": "Toxic Friendship",
+    "name": "Toxic Friendship",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "friend",
+      "poison"
+    ],
+    "description": "When you use a Friend, Poison {ability.0}."
+  },
+  "Lefty Loosey": {
+    "id": "69336595-1135-4e17-8192-247e0478d020",
+    "internal_name": "Lefty Loosey",
+    "name": "Lefty Loosey",
+    "type": "Skill",
+    "heroes": [
+      "Dooley",
+      "Jules",
+      "Vanessa"
+    ],
+    "tags": [
+      "haste"
+    ],
+    "description": "The first {aura.9} times you use your leftmost item each fight, Haste {ability.0.targets} item(s) for {ability.0} second(s)."
+  },
+  "Well-Oiled Machine": {
+    "id": "3c9eefb8-f348-486b-9ec2-a4920f71bee4",
+    "internal_name": "Well-Oiled Machine",
+    "name": "Well-Oiled Machine",
+    "type": "Skill",
+    "heroes": [
+      "Dooley"
+    ],
+    "tags": [
+      "core",
+      "damagereference"
+    ],
+    "description": "When you use The Core, reduce an item's cooldown by 5% for the fight."
+  },
+  "Overheal Haste": {
+    "id": "721fa7ca-3451-4bbd-ac17-ffcff4a31ac6",
+    "internal_name": "Overheal Haste",
+    "name": "Overheal Haste",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa"
+    ],
+    "tags": [
+      "healreference",
+      "haste"
+    ],
+    "description": "The first time you Over-heal each fight, Haste your items for {ability.0} second(s)."
+  },
+  "Paralytic Poison": {
+    "id": "f08ab88b-c40e-4f4e-9419-e7501f9224ec",
+    "internal_name": "Paralytic Poison",
+    "name": "Paralytic Poison",
+    "type": "Skill",
+    "heroes": [
+      "Dooley",
+      "Vanessa",
+      "Mak"
+    ],
+    "tags": [
+      "poisonreference",
+      "freeze"
+    ],
+    "description": "The first time you Poison each fight, Freeze {ability.0.targets} item(s) for {ability.0} second(s)."
+  },
+  "Cosmic Wind": {
+    "id": "870ed8e7-9c1f-4be0-b84c-00ebcf475a74",
+    "internal_name": "Cosmic Wind",
+    "name": "Cosmic Wind",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "critreference",
+      "haste"
+    ],
+    "description": "When you Crit, Haste {ability.0.targets} item(s) for {ability.0} second(s)."
+  },
+  "Tools of the Trade": {
+    "id": "6c3d41e4-1ca7-4be5-b0e2-6cadbbd2bd27",
+    "internal_name": "Tools of the Trade",
+    "name": "Tools of the Trade",
+    "type": "Skill",
+    "heroes": [
+      "Dooley",
+      "Jules",
+      "Stelle"
+    ],
+    "tags": [
+      "tool",
+      "haste"
+    ],
+    "description": "The first {aura.9} times you use a Tool each fight, Haste {ability.0.targets} Tool for {ability.0} second(s)."
+  },
+  "Beautiful Friendship": {
+    "id": "0eb35f18-3c03-4ea6-9af4-b7345bce1e3c",
+    "internal_name": "Beautiful Friendship",
+    "name": "Beautiful Friendship",
+    "type": "Skill",
+    "heroes": [
+      "Dooley"
+    ],
+    "tags": [
+      "friend",
+      "weapon",
+      "damagereference"
+    ],
+    "description": "When you use a Friend, your weapons gain {ability.0} damage for the fight."
+  },
+  "Equivalent Exchange": {
+    "id": "dd9d1ad7-8c28-46da-9f98-aaa2cc55cd00",
+    "internal_name": "Equivalent Exchange",
+    "name": "Equivalent Exchange",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "poison",
+      "healreference"
+    ],
+    "description": "When you Heal, charge {ability.0.targets} Poison item {ability.0} second(s)."
+  },
+  "Thick Hide": {
+    "id": "7ab9d9a7-09b2-4dab-b821-eaaf0fb84523",
+    "internal_name": "Thick Hide",
+    "name": "Thick Hide",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "slowreference",
+      "charge"
+    ],
+    "description": "When you slow, charge {ability.0.targets} item(s) {ability.0} second(s)."
+  },
+  "Arbitrage": {
+    "id": "113091ab-c543-4745-9dc4-18ab1cdfb3b8",
+    "internal_name": "Arbitrage",
+    "name": "Arbitrage",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Pygmalien",
+      "Stelle"
+    ],
+    "tags": [
+      "gold"
+    ],
+    "description": "When you win a fight against a Hero, gain {ability.0} gold."
+  },
+  "Defensive Stance": {
+    "id": "4225d131-791a-4ea4-ab0e-80a3343a3253",
+    "internal_name": "Defensive Stance",
+    "name": "Defensive Stance",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Dooley",
+      "Stelle"
+    ],
+    "tags": [
+      "weapon",
+      "shieldreference"
+    ],
+    "description": "When you use a weapon, your Shield items gain {ability.0} Shield for the fight."
+  },
+  "Loaded Fury": {
+    "id": "a80d8cc7-3472-45cb-ac33-11fe7e583e42",
+    "internal_name": "Loaded Fury",
+    "name": "Loaded Fury",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa"
+    ],
+    "tags": [
+      "ammo",
+      "damagereference"
+    ],
+    "description": "Your Weapons have +{aura.0.mod} damage for each ammo you have on your items in play. [{aura.0}]"
+  },
+  "Frontal Shielding": {
+    "id": "b7b9f86e-689d-44ec-889d-026e8d45081c",
+    "internal_name": "Frontal Shielding",
+    "name": "Frontal Shielding",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle"
+    ],
+    "tags": [
+      "shieldreference"
+    ],
+    "description": "Your leftmost Shield item has +{aura.0} Shield."
+  },
+  "Lash Out": {
+    "id": "239aeabb-0b0c-484d-a761-ee68ede3223c",
+    "internal_name": "Lash Out Skill",
+    "name": "Lash Out",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "poison"
+    ],
+    "description": "At the start of each fight, Poison {ability.0}."
+  },
+  "First Strike": {
+    "id": "ef12c160-99ce-4171-a7ba-7fccaaafa239",
+    "internal_name": "First Strike",
+    "name": "First Strike",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "crit"
+    ],
+    "description": "Your items have +{aura.0}% Crit Chance.\nWhen you use an item, all your items lose 10% crit chance for the fight."
+  },
+  "Small Refresh": {
+    "id": "8b513e67-9c49-4fed-a7e4-335d982367ac",
+    "internal_name": "Small Refresh",
+    "name": "Small Refresh",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "heal"
+    ],
+    "description": "The first {aura.9} times you use a small item each fight, Heal {ability.0}."
+  },
+  "Ravenous": {
+    "id": "9215b678-2833-427b-bc97-75a90968c634",
+    "internal_name": "Ravenous",
+    "name": "Ravenous",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "The first time you fall below half health each fight, destroy an item for the fight."
+  },
+  "Rear Shielding": {
+    "id": "976d7de6-8191-44c4-8270-2ebc47775fe8",
+    "internal_name": "Rear Shielding",
+    "name": "Rear Shielding",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle"
+    ],
+    "tags": [
+      "shieldreference"
+    ],
+    "description": "Your rightmost Shield item has +{aura.0} Shield."
+  },
+  "Void Render": {
+    "id": "73722d74-be04-4c9a-a925-6f235feeb11f",
+    "internal_name": "Void Render",
+    "name": "Void Render",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "When you destroy an item during combat, your Weapons gain {ability.0} damage and your burn items gain {ability.1} Burn for the fight."
+  },
+  "Toxic Spores": {
+    "id": "1eebbbc3-595a-485c-be96-0755c9c7c2a5",
+    "internal_name": "Toxic Spores",
+    "name": "Toxic Spores",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Mak"
+    ],
+    "tags": [
+      "poisonreference"
+    ],
+    "description": "Your Small Poison items have +{aura.0} Poison."
+  },
+  "Chocoholic": {
+    "id": "b2cc190c-ddbd-487c-b99a-ed21150b6c10",
+    "internal_name": "Chocoholic",
+    "name": "Chocoholic",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "health"
+    ],
+    "description": "When you sell a medium or large item, get a Chocolate Bar."
+  },
+  "Hypnotic Drain": {
+    "id": "09f668a1-82f6-42d5-94fa-88af3568edd8",
+    "internal_name": "Hypnotic Drain",
+    "name": "Hypnotic Drain",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "weapon",
+      "freeze"
+    ],
+    "description": "When you use a weapon with Lifesteal, Freeze a smaller item for {ability.0} second(s)."
+  },
+  "Snowstorm": {
+    "id": "e7cc942b-96c5-4b90-a916-b3db0ee4bfe7",
+    "internal_name": "Snowstorm",
+    "name": "Snowstorm",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "freezereference",
+      "damagereference"
+    ],
+    "description": "When you freeze, your weapons gain {ability.0} damage for the fight."
+  },
+  "Thirsty": {
+    "id": "878440a6-99e8-4178-8d3f-38c94fb8c334",
+    "internal_name": "Thirsty",
+    "name": "Thirsty",
+    "type": "Skill",
+    "heroes": [
+      "Mak"
+    ],
+    "tags": [
+      "potion",
+      "regen"
+    ],
+    "description": "The first {aura.9} times you use a potion each fight, gain {ability.0} Regen for the fight."
+  },
+  "Housewarming Gifts": {
+    "id": "c149f8da-b64e-46f4-bf80-f6f4cae88fbc",
+    "internal_name": "Housewarming Gifts",
+    "name": "Housewarming Gifts",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "property"
+    ],
+    "description": "When you buy a property, get {ability.0} Chocolate Bar and {ability.0} Spare Change."
+  },
+  "Critical Aid": {
+    "id": "12291452-e5c6-4d98-98c6-69f766536dbd",
+    "internal_name": "Critical Aid",
+    "name": "Critical Aid",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "healthreference"
+    ],
+    "description": "Your Heal items have +{aura.0}% Crit chance."
+  },
+  "Letting off Steam": {
+    "id": "f1e354bd-d94c-48fa-b63e-5012f68129a9",
+    "internal_name": "Letting Off Steam",
+    "name": "Letting off Steam",
+    "type": "Skill",
+    "heroes": [
+      "Dooley"
+    ],
+    "tags": [
+      "core",
+      "haste",
+      "burnreference"
+    ],
+    "description": "The first {aura.9} times you Burn each fight, Haste the Core for {ability.0} second(s)."
+  },
+  "Stocked": {
+    "id": "ca3da34f-a982-4ae4-bea0-8dddac873650",
+    "internal_name": "Stocked",
+    "name": "Stocked",
+    "type": "Skill",
+    "heroes": [
+      "Mak"
+    ],
+    "tags": [
+      "potion",
+      "ammo"
+    ],
+    "description": "Your Potions have +{aura.0} Ammo."
+  },
+  "Warm Hugs": {
+    "id": "1d9eb8d1-ef94-4847-b472-28290159e894",
+    "internal_name": "Warm Hugs",
+    "name": "Warm Hugs",
+    "type": "Skill",
+    "heroes": [
+      "Dooley",
+      "Vanessa"
+    ],
+    "tags": [
+      "burn"
+    ],
+    "description": "When you use a Friend, Burn {ability.0}."
+  },
+  "One Shot, One Kill": {
+    "id": "f9628cc5-fdf8-49cf-8807-d7b85f457aa8",
+    "internal_name": "One Shot, One Kill",
+    "name": "One Shot, One Kill",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "weapon",
+      "damagereference"
+    ],
+    "description": "If you only have one weapon, it deals triple damage and has its cooldown increased by 50%."
+  },
+  "Speed": {
+    "id": "f1078e92-7092-4674-a279-b8d9962e7752",
+    "internal_name": "Speed (Skill)",
+    "name": "Speed",
+    "type": "Skill",
+    "heroes": [
+      "Jules",
+      "Stelle",
+      "Mak",
+      "Dooley",
+      "Vanessa",
+      "Pygmalien"
+    ],
+    "tags": [
+      "cooldown"
+    ],
+    "description": "Your items have their cooldowns reduced by 2%.\nYour items have their cooldowns reduced by 3%.\nYour items have their cooldowns reduced by 4%.\nYour items have their cooldowns reduced by 5%."
+  },
+  "Circle of Life": {
+    "id": "9ec041be-6f89-4e95-963d-1deb7460e1d0",
+    "internal_name": "Circle of Life",
+    "name": "Circle of Life",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Mak"
+    ],
+    "tags": [
+      "weapon",
+      "lifesteal"
+    ],
+    "description": "Your leftmost Weapon has lifesteal."
+  },
+  "Keen Edge": {
+    "id": "1034cd09-ce16-44ad-9a73-ba86a592c9d2",
+    "internal_name": "Keen Edge",
+    "name": "Keen Edge",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa"
+    ],
+    "tags": [],
+    "description": ""
+  },
+  "Critical Protector": {
+    "id": "6216741f-f7fe-4de0-82c0-3733263378f1",
+    "internal_name": "Critical Protector",
+    "name": "Critical Protector",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Dooley"
+    ],
+    "tags": [
+      "shieldreference"
+    ],
+    "description": "Your Shield items have +{aura.0}% Crit chance."
+  },
+  "Outmaneuver": {
+    "id": "f3abf6be-b28d-42f5-a239-7208c2dcde25",
+    "internal_name": "Outmaneuver",
+    "name": "Outmaneuver",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Stelle"
+    ],
+    "tags": [
+      "vehicle",
+      "haste",
+      "slowreference"
+    ],
+    "description": "The first {aura.9} times you Slow each fight, Haste {ability.0.targets} vehicle for {ability.0} second(s)."
+  },
+  "Power Broker": {
+    "id": "09c4c894-0397-47e5-9635-7b1f4c49527a",
+    "internal_name": "Power Broker",
+    "name": "Power Broker",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "weapon",
+      "damagereference",
+      "economyreference"
+    ],
+    "description": "Your weapons have + damage equal to your income.\nYour weapons have + damage equal to double your income."
+  },
+  "Small Weaponry": {
+    "id": "c4c70f57-c51e-4bc4-848c-0f0e7fbddd28",
+    "internal_name": "Small Weaponry",
+    "name": "Small Weaponry",
+    "type": "Skill",
+    "heroes": [
+      "Jules",
+      "Stelle",
+      "Mak",
+      "Dooley",
+      "Vanessa",
+      "Pygmalien"
+    ],
+    "tags": [
+      "weapon",
+      "damagereference"
+    ],
+    "description": "Your Small Weapons deal +{aura.0} Damage."
+  },
+  "Ignition": {
+    "id": "7f097b31-c29e-4082-a835-6d6457c2d536",
+    "internal_name": "Ignition",
+    "name": "Ignition",
+    "type": "Skill",
+    "heroes": [
+      "Stelle"
+    ],
+    "tags": [],
+    "description": ""
+  },
+  "Creeping Toxins": {
+    "id": "3728b5fe-43aa-4f77-b7a8-b20c3b359295",
+    "internal_name": "Creeping Toxins",
+    "name": "Creeping Toxins",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Mak"
+    ],
+    "tags": [
+      "charge",
+      "poisonreference",
+      "slowreference"
+    ],
+    "description": "The first {aura.9} times you Slow each fight, Charge {ability.0.targets} Poison item {ability.0} second(s)."
+  },
+  "Frozen Shot": {
+    "id": "6914df97-567f-4d9a-9473-d3de39a09e86",
+    "internal_name": "Frozen Shot",
+    "name": "Frozen Shot",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Dooley",
+      "Jules",
+      "Mak"
+    ],
+    "tags": [
+      "weapon",
+      "freezereference",
+      "cooldown"
+    ],
+    "description": "Your Weapons' cooldowns are reduced by {aura.9}% while your enemy has a Frozen item."
+  },
+  "Street Food": {
+    "id": "94ea865d-07ca-4e54-a1cb-8cca3945c3c6",
+    "internal_name": "Street Food",
+    "name": "Street Food",
+    "type": "Skill",
+    "heroes": [
+      "Jules"
+    ],
+    "tags": [
+      "food",
+      "haste"
+    ],
+    "description": "At the start of each fight, Haste {ability.0.targets} Food for {ability.0} second(s)."
+  },
+  "Toxic": {
+    "id": "1fb47cc1-c38f-4240-8f7f-04a78222f5e7",
+    "internal_name": "Toxicity",
+    "name": "Toxic",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Mak"
+    ],
+    "tags": [
+      "damagereference",
+      "poisonreference"
+    ],
+    "description": "When you poison, your weapons gain {ability.0} damage for the fight."
+  },
+  "Blizzard": {
+    "id": "b2e947ce-a8d9-46e0-8249-22a6a97fbffc",
+    "internal_name": "Blizzard",
+    "name": "Blizzard",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "freeze"
+    ],
+    "description": "The first time you use an item each fight, Freeze all non-weapon items for {ability.0} second(s)."
+  },
+  "Large Poisons": {
+    "id": "aa59ff52-e4de-4728-bf9c-3ac8411ecbd8",
+    "internal_name": "Large Poisons",
+    "name": "Large Poisons",
+    "type": "Skill",
+    "heroes": [
+      "Mak"
+    ],
+    "tags": [
+      "poisonreference"
+    ],
+    "description": "Your Large Poison items have +{aura.0} Poison."
+  },
+  "Chemical Fire": {
+    "id": "3715da61-af37-49c6-aa7d-68804484b685",
+    "internal_name": "Chemical Fire",
+    "name": "Chemical Fire",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Mak"
+    ],
+    "tags": [
+      "poisonreference",
+      "burnreference"
+    ],
+    "description": "Your Burn items have +{aura.0} Burn.\nYour Poison items have +{aura.1} Poison."
+  },
+  "Left-Handed": {
+    "id": "25c63d19-8254-47f8-acc9-519ee5a69e1f",
+    "internal_name": "Left-Handed",
+    "name": "Left-Handed",
+    "type": "Skill",
+    "heroes": [
+      "Jules",
+      "Stelle",
+      "Mak",
+      "Dooley",
+      "Vanessa",
+      "Pygmalien"
+    ],
+    "tags": [
+      "weapon",
+      "damagereference"
+    ],
+    "description": "Your leftmost Weapon deals +{aura.0} Damage."
+  },
+  "Counterstrike": {
+    "id": "c5bff6ad-5d13-4cf3-9941-98f3cf913949",
+    "internal_name": "Counterstrike",
+    "name": "Counterstrike",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "weapon",
+      "charge"
+    ],
+    "description": "The first {aura.9} times your enemy uses a weapon, Charge {ability.0.targets} item(s) {ability.0} second(s)."
+  },
+  "Heavy Mettle": {
+    "id": "82d8a964-4068-44c0-a123-af96e5c350d4",
+    "internal_name": "Heavy Mettle",
+    "name": "Heavy Mettle",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Dooley",
+      "Stelle"
+    ],
+    "tags": [
+      "shieldreference"
+    ],
+    "description": "Your Shield items have + Shield equal to {aura.9} times your level. [{aura.0}]"
+  },
+  "Purifying Flame": {
+    "id": "8e02521d-4353-4a1d-9d2e-80f6f1e22f53",
+    "internal_name": "Purifying Flame",
+    "name": "Purifying Flame",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "burnreference",
+      "regenreference"
+    ],
+    "description": "When you gain Regen, a Burn item gains {ability.0} Burn for the fight."
+  },
+  "Cauterize": {
+    "id": "7e32e9be-23d1-4d3f-a103-0a0db10bc4f4",
+    "internal_name": "Cauterize",
+    "name": "Cauterize",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Mak",
+      "Pygmalien",
+      "Stelle",
+      "Jules"
+    ],
+    "tags": [
+      "regen",
+      "burnreference"
+    ],
+    "description": "When you gain Burn, gain {ability.0} Regen for this fight."
+  },
+  "Concentrated Venom": {
+    "id": "c442e2c4-0e93-4efb-b6d0-909cee428c95",
+    "internal_name": "Concentrated Venom",
+    "name": "Concentrated Venom",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "poisonreference"
+    ],
+    "description": "Your highest poison item has +{aura.0} Poison."
+  },
+  "Warrior": {
+    "id": "87d058f2-828f-4737-a61e-3c9320bfd4a5",
+    "internal_name": "Warrior",
+    "name": "Warrior",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "weapon",
+      "damagereference",
+      "health"
+    ],
+    "description": "Your Weapons deal +{aura.0} Damage.\nYou have +{aura.1} Max Health."
+  },
+  "Trader": {
+    "id": "9cd3f8a9-3ca8-482b-8f4c-79f9d1d3400e",
+    "internal_name": "Trader",
+    "name": "Trader",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "value"
+    ],
+    "description": "Your items have +{aura.0} value."
+  },
+  "Shatter": {
+    "id": "b7edb810-2ead-4e1c-965d-d787eacc6fd3",
+    "internal_name": "Shatter",
+    "name": "Shatter",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Pygmalien",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "weapon",
+      "freezereference",
+      "damagereference"
+    ],
+    "description": "When you freeze, your Weapons gain +{ability.0} damage for the fight."
+  },
+  "Desperate Cleanse": {
+    "id": "69e15083-66e9-40ca-a3c9-f8bdd8b3887d",
+    "internal_name": "Desperate Cleanse",
+    "name": "Desperate Cleanse",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Dooley"
+    ],
+    "tags": [],
+    "description": "The first time you fall below half health each fight, remove Freeze and Slow from your items and Cleanse half your Burn and Poison."
+  },
+  "Secret Ingredient": {
+    "id": "4199514b-f966-462b-8f5d-7188033bc9d1",
+    "internal_name": "Secret Ingredient",
+    "name": "Secret Ingredient",
+    "type": "Skill",
+    "heroes": [
+      "Jules"
+    ],
+    "tags": [
+      "food",
+      "weapon",
+      "damagereference"
+    ],
+    "description": "If you have exactly 1 food, when you use it, your weapons gain {ability.0} damage for the fight."
+  },
+  "Bloodhound": {
+    "id": "13989ad3-2122-4d86-a323-bb90fda8360b",
+    "internal_name": "Bloodhound",
+    "name": "Bloodhound",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Jules"
+    ],
+    "tags": [],
+    "description": "The first time your enemy falls below half health each fight, Charge your items {ability.0} second(s)."
+  },
+  "Void Energy": {
+    "id": "f74f460e-6b49-43a9-9b9f-9b6fe36d28e9",
+    "internal_name": "Void Energy",
+    "name": "Void Energy",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "burnreference",
+      "shieldreference"
+    ],
+    "description": "When you Burn, charge a Shield item {ability.0} second(s)."
+  },
+  "Combat Medic": {
+    "id": "83d940dd-4b3d-4b0c-9f46-43d0041f5626",
+    "internal_name": "Combat Medic",
+    "name": "Combat Medic",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Mak"
+    ],
+    "tags": [
+      "healreference",
+      "regenreference",
+      "crit"
+    ],
+    "description": "When you Heal or gain Regen, an item gains {ability.0}% Crit Chance for the fight."
+  },
+  "Dumpster Diving": {
+    "id": "8a9a98fe-b1bd-4da7-8233-dffd3845aa45",
+    "internal_name": "Dumpster Diving",
+    "name": "Dumpster Diving",
+    "type": "Skill",
+    "heroes": [
+      "Mak"
+    ],
+    "tags": [
+      "potion"
+    ],
+    "description": "At the start of each day, get a random Potion."
+  },
+  "Backroom Dealings": {
+    "id": "0045d15e-ac74-436f-a200-eeedab7baf90",
+    "internal_name": "Backroom Dealings",
+    "name": "Backroom Dealings",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Mak"
+    ],
+    "tags": [
+      "health"
+    ],
+    "description": "When you visit a Merchant, permanently gain {ability.0} Max Health."
+  },
+  "Crimson Dash": {
+    "id": "42a673e6-f6cd-45ea-89e2-d37614271016",
+    "internal_name": "Crimson Dash",
+    "name": "Crimson Dash",
+    "type": "Skill",
+    "heroes": [
+      "Mak"
+    ],
+    "tags": [
+      "weapon",
+      "cooldown"
+    ],
+    "description": "Your Lifesteal weapons have their cooldowns reduced by {aura.0} second."
+  },
+  "Essence Overflow": {
+    "id": "db94a1da-532e-42e1-af25-5033b0fc8bcb",
+    "internal_name": "Essence Overflow",
+    "name": "Essence Overflow",
+    "type": "Skill",
+    "heroes": [
+      "Mak"
+    ],
+    "tags": [
+      "weapon",
+      "damagereference",
+      "regenreference"
+    ],
+    "description": "Your weapons have + damage equal to your Regen. [{aura.0}]"
+  },
+  "Overheal Regeneration": {
+    "id": "ef4e5045-91c6-4973-8aed-1f29300e1db4",
+    "internal_name": "Overheal Regeneration",
+    "name": "Overheal Regeneration",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "healreference",
+      "regen"
+    ],
+    "description": "When you Over-heal, gain {ability.0} Regen for the fight."
+  },
+  "Heavy Firepower": {
+    "id": "e634860d-fec5-43c1-a6ca-a349450ae9c8",
+    "internal_name": "Heavy Firepower",
+    "name": "Heavy Firepower",
+    "type": "Skill",
+    "heroes": [
+      "Dooley",
+      "Vanessa",
+      "Mak",
+      "Pygmalien",
+      "Stelle",
+      "Jules"
+    ],
+    "tags": [
+      "weapon",
+      "damagereference"
+    ],
+    "description": "If you have 5 or fewer items in play, your Weapons have +{aura.0} damage."
+  },
+  "Toxic Flame": {
+    "id": "cbd2810c-4713-4503-a97d-30e73ccaebb7",
+    "internal_name": "Toxic Flame",
+    "name": "Toxic Flame",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Mak"
+    ],
+    "tags": [
+      "poison",
+      "burn"
+    ],
+    "description": "When you Burn with an item, Poison {ability.0}.\nWhen you Poison with an item, Burn {ability.1}."
+  },
+  "Deadly Eye": {
+    "id": "34ad2511-dec9-4e8f-8392-1cc691e77b87",
+    "internal_name": "Deadly Eye",
+    "name": "Deadly Eye",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "weapon",
+      "crit"
+    ],
+    "description": "Your Weapons have +{aura.0}% Crit chance."
+  },
+  "Balanced Friendship": {
+    "id": "f3f43bb9-1177-458f-8244-aaf409a050dd",
+    "internal_name": "Balanced Friendship",
+    "name": "Balanced Friendship",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley"
+    ],
+    "tags": [
+      "friend",
+      "shieldreference",
+      "damagereference"
+    ],
+    "description": "Your Weapons have +{aura.0.mod} damage and Shield items have +{aura.1.mod} shield for each friend you have. [{aura.0}, {aura.1}]\nYour Weapons have +{aura.2.mod} damage and Shield items have +{aura.3.mod} shield for each friend you have. [{aura.2}, {aura.3}]\nYour Weapons have +{aura.4.mod} damage and Shield items have +{aura.5.mod} shield for each friend you have. [{aura.4}, {aura.5}]"
+  },
+  "Critical Captain": {
+    "id": "f2782115-1920-4bf2-9306-32697bcfee15",
+    "internal_name": "Critical Captain",
+    "name": "Critical Captain",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Stelle"
+    ],
+    "tags": [
+      "crit"
+    ],
+    "description": "The first time you use a Large item each fight, your items gain +{ability.0}% Crit Chance for the fight."
+  },
+  "Sick Burn": {
+    "id": "d56a6e90-f664-4791-8b78-5c8bd3f45f80",
+    "internal_name": "Sick Burn",
+    "name": "Sick Burn",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Mak"
+    ],
+    "tags": [
+      "charge",
+      "poisonreference"
+    ],
+    "description": "The first {aura.9} times you Poison each fight, charge {ability.0.targets} Burn item {ability.0} second(s)."
+  },
+  "Concentrated Firepower": {
+    "id": "549bc8cf-3d6b-48b8-ae61-2ce416c2daeb",
+    "internal_name": "Concentrated Firepower",
+    "name": "Concentrated Firepower",
+    "type": "Skill",
+    "heroes": [
+      "Dooley",
+      "Vanessa",
+      "Mak",
+      "Pygmalien",
+      "Stelle",
+      "Jules"
+    ],
+    "tags": [
+      "weapon",
+      "damagereference"
+    ],
+    "description": "Your highest damage weapon deals +{aura.0} Damage."
+  },
+  "Burning Shield": {
+    "id": "7931571a-3d32-41e8-bf7b-ca6b4d1b7a3d",
+    "internal_name": "Burning Shield",
+    "name": "Burning Shield",
+    "type": "Skill",
+    "heroes": [
+      "Dooley"
+    ],
+    "tags": [
+      "burnreference",
+      "shield"
+    ],
+    "description": "The first time you fall below half health each fight, Shield equal to {aura.9} times the Burn on your opponent. [{ability.0}]"
+  },
+  "Diamond Heart": {
+    "id": "f568cc30-31d8-48b3-8d26-a0f2032ebc6f",
+    "internal_name": "Diamond Heart",
+    "name": "Diamond Heart",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Stelle"
+    ],
+    "tags": [
+      "health"
+    ],
+    "description": "You have +{aura.0.mod} Max Health for each Diamond-tier item you have. [{aura.0}]\nYou have +{aura.1.mod} Max Health for each Diamond-tier item you have. [{aura.1}]"
+  },
+  "Re-Tooled": {
+    "id": "d1505b87-551f-4786-818c-3c441f920d7b",
+    "internal_name": "Re-Tooled",
+    "name": "Re-Tooled",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Jules",
+      "Mak",
+      "Vanessa",
+      "Dooley",
+      "Stelle"
+    ],
+    "tags": [
+      "tool"
+    ],
+    "description": "Your leftmost Tool has +1 Multicast."
+  },
+  "Strong Arm": {
+    "id": "31e244c7-e013-4e6c-a51c-4f0ca8d10472",
+    "internal_name": "Strong Arm",
+    "name": "Strong Arm",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "weapon",
+      "damage",
+      "economyreference"
+    ],
+    "description": "Your Weapons have + Damage equal to your income. [{aura.0}]\nYour Weapons have + Damage equal to double your income. [{aura.1}]\nYour Weapons have + Damage equal to triple your income. [{aura.2}]"
+  },
+  "Heavy Machinery": {
+    "id": "50eaea1d-0159-4feb-b855-9965cd7eddc2",
+    "internal_name": "Heavy Machinery",
+    "name": "Heavy Machinery",
+    "type": "Skill",
+    "heroes": [
+      "Dooley"
+    ],
+    "tags": [
+      "core",
+      "haste"
+    ],
+    "description": "The first {aura.9} times you use The Core each fight, Haste {ability.0.targets} item(s) for {ability.0} second(s)."
+  },
+  "Command Ship": {
+    "id": "ab0ae449-82f3-414d-82d0-1ebc73ba5ee5",
+    "internal_name": "Command Ship",
+    "name": "Command Ship",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Stelle"
+    ],
+    "tags": [
+      "vehicle",
+      "cooldown"
+    ],
+    "description": "If you have a vehicle, reduce your non-vehicle items' cooldowns by {aura.9}%."
+  },
+  "Wild Strength": {
+    "id": "fb4a4bf9-581c-4e36-aed7-b77ec7e515bb",
+    "internal_name": "Wild Strength",
+    "name": "Wild Strength",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "damagereference"
+    ],
+    "description": "You have +{aura.0}% Crit Chance."
+  },
+  "Toxic Shield": {
+    "id": "a9b441e1-5824-4855-9359-2ab4643d9ff5",
+    "internal_name": "Toxic Shield",
+    "name": "Toxic Shield",
+    "type": "Skill",
+    "heroes": [
+      "Mak",
+      "Dooley"
+    ],
+    "tags": [
+      "poisonreference",
+      "shield"
+    ],
+    "description": "The first time you fall below half health each fight, Shield equal to {aura.9} times the Poison on your opponent. [{ability.0}]"
+  },
+  "Arms Dealer": {
+    "id": "560a532c-73f4-4edd-b197-0127e2ca4cc9",
+    "internal_name": "Arms Dealer",
+    "name": "Arms Dealer",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Pygmalien"
+    ],
+    "tags": [
+      "weapon",
+      "health"
+    ],
+    "description": "When you buy a Weapon, permanently gain {ability.0} Max Health."
+  },
+  "Steelstorm": {
+    "id": "e43da7b1-1190-469a-b6c6-43d8e3ca0ad6",
+    "internal_name": "Steelstorm",
+    "name": "Steelstorm",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa"
+    ],
+    "tags": [
+      "weapon",
+      "damagereference"
+    ],
+    "description": "Your Weapons have +{aura.0.mod} Damage for each Weapon you have."
+  },
+  "Glass Cannon": {
+    "id": "66d65bb7-09fa-4262-b0a1-12a29ac9e946",
+    "internal_name": "Glass Cannon",
+    "name": "Glass Cannon",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Mak",
+      "Stelle"
+    ],
+    "tags": [
+      "weapon",
+      "damagereference"
+    ],
+    "description": "Both players' weapons have double damage."
+  },
+  "Fast Food": {
+    "id": "965202e6-12e7-476d-adf3-93748e47661f",
+    "internal_name": "Fast Food",
+    "name": "Fast Food",
+    "type": "Skill",
+    "heroes": [
+      "Jules"
+    ],
+    "tags": [
+      "food",
+      "cooldown"
+    ],
+    "description": "Reduce your Foods' cooldown by 5%"
+  },
+  "Rapid Thaw": {
+    "id": "4589a64c-fdc8-4334-a2c7-05a3a8b2c5da",
+    "internal_name": "Rapid Thaw",
+    "name": "Rapid Thaw",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Mak",
+      "Stelle",
+      "Dooley",
+      "Jules"
+    ],
+    "tags": [],
+    "description": "When your items gain Freeze, reduce the duration by {ability.0} second(s)."
+  },
+  "Initial Chill": {
+    "id": "05ea3ce6-0626-45c5-af36-a7711200d431",
+    "internal_name": "Initial Chill",
+    "name": "Initial Chill",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Dooley",
+      "Jules",
+      "Mak"
+    ],
+    "tags": [
+      "freeze"
+    ],
+    "description": "The first time you use a Large item each fight, Freeze {ability.0.targets} item(s) for {ability.0} second(s)."
+  },
+  "Heavy Drinker": {
+    "id": "af42d725-dc55-4f6f-9de6-b7a4c7f7013e",
+    "internal_name": "Heavy Drinker",
+    "name": "Heavy Drinker",
+    "type": "Skill",
+    "heroes": [
+      "Mak"
+    ],
+    "tags": [
+      "potion",
+      "weapon",
+      "damagereference",
+      "regen"
+    ],
+    "description": "When you use a potion, increase the damage of your weapons by {ability.0} and gain {ability.1} Regen for the fight."
+  },
+  "Titanium Casing": {
+    "id": "9a8aedfe-6b97-4db9-8676-c774292637ee",
+    "internal_name": "Titanium Casing",
+    "name": "Titanium Casing",
+    "type": "Skill",
+    "heroes": [
+      "Dooley"
+    ],
+    "tags": [
+      "core",
+      "shieldreference"
+    ],
+    "description": "When you use The Core, your Shield items gain {ability.0} Shield for the fight."
+  },
+  "Right-Handed": {
+    "id": "18c6637b-14c7-4311-b853-e3fd74c613eb",
+    "internal_name": "Right-Handed",
+    "name": "Right-Handed",
+    "type": "Skill",
+    "heroes": [
+      "Jules",
+      "Stelle",
+      "Mak",
+      "Dooley",
+      "Vanessa",
+      "Pygmalien"
+    ],
+    "tags": [
+      "weapon",
+      "damagereference"
+    ],
+    "description": "Your rightmost Weapon has +{aura.0} Damage."
+  },
+  "Cryomastery": {
+    "id": "e2b02661-62c8-42da-be35-3b15eebdb31d",
+    "internal_name": "Cryomastery",
+    "name": "Cryomastery",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "freeze",
+      "shieldreference"
+    ],
+    "description": "The first {aura.9} times you Shield each fight, Freeze {ability.0.targets} item(s) for {ability.0} second(s)."
+  },
+  "Anything to Win": {
+    "id": "c1ffec09-0567-47fe-b80e-4f55f62ee7fd",
+    "internal_name": "Anything to Win",
+    "name": "Anything to Win",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "poison",
+      "burn",
+      "nonweapon"
+    ],
+    "description": "When you use a non-weapon item, Burn {ability.0} and Poison {ability.1}."
+  },
+  "Shored Up": {
+    "id": "7b6a982f-7196-4d3e-8674-825fddba80d2",
+    "internal_name": "Shored Up",
+    "name": "Shored Up",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "healreference",
+      "shieldreference"
+    ],
+    "description": "When you Heal, charge a Shield item {ability.0} second(s)."
+  },
+  "Big Ego": {
+    "id": "035a7356-9021-4ba9-8c87-6a88181660ea",
+    "internal_name": "Big Ego",
+    "name": "Big Ego",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "weapon",
+      "lifesteal"
+    ],
+    "description": "Your Weapons have Lifesteal."
+  },
+  "Keen Eye": {
+    "id": "b49dd22b-ef95-4f7e-954e-556e1e431d4a",
+    "internal_name": "Keen Eye",
+    "name": "Keen Eye",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "crit"
+    ],
+    "description": "Your items have +{aura.0}% Crit chance."
+  },
+  "Quick Ignition": {
+    "id": "6a2b0ffc-bb7b-4ad3-a20c-8b46f9684a12",
+    "internal_name": "Quick Ignition",
+    "name": "Quick Ignition",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "burnreference",
+      "haste"
+    ],
+    "description": "The first time you use an item each fight, Haste {ability.0.targets} Burn item(s) for {ability.0} second(s)."
+  },
+  "Honed Arsenal": {
+    "id": "a2200487-1d56-4383-8671-781049f8f7de",
+    "internal_name": "Honed Arsenal",
+    "name": "Honed Arsenal",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "weapon",
+      "crit"
+    ],
+    "description": "Your items have +{aura.0.mod}% Crit Chance per Weapon you have. [{aura.0}%]"
+  },
+  "Hunker Down": {
+    "id": "369a6704-2727-4cea-be27-01b76c82df45",
+    "internal_name": "Hunker Down",
+    "name": "Hunker Down",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "shield",
+      "healthreference"
+    ],
+    "description": "The first time you fall below half health each fight, Shield equal to 30% of your Max Health. [{ability.0}]\nThe first time you fall below half health each fight, Shield equal to 50% of your Max Health. [{ability.0}]\nThe first time you fall below half health each fight, Shield equal to 80% of your Max Health. [{ability.0}]"
+  },
+  "Pop-Up Shop": {
+    "id": "4d8b7111-c324-4558-af3c-d7c8df61618d",
+    "internal_name": "Pop-Up Shop",
+    "name": "Pop-Up Shop",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "toy",
+      "apparel",
+      "cooldown"
+    ],
+    "description": "Your Toys and Apparel have their cooldowns reduced by {aura.6}%."
+  },
+  "Draconic Rage": {
+    "id": "72010bea-fadf-4f64-9cba-d34bfd014388",
+    "internal_name": "Draconic Rage",
+    "name": "Draconic Rage",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "burn"
+    ],
+    "description": "When you use a Medium item, one of your Burn items gains +{ability.0} burn for the fight."
+  },
+  "Party Like it's 011111001111": {
+    "id": "57a19498-4525-4f15-9aa2-d0b21cf20d73",
+    "internal_name": "Party Like it's 011111001111",
+    "name": "Party Like it's 011111001111",
+    "type": "Skill",
+    "heroes": [
+      "Dooley"
+    ],
+    "tags": [
+      "core",
+      "tech",
+      "friend",
+      "damagereference"
+    ],
+    "description": "When you upgrade a Friend, your other items gain {ability.0} bonus Damage, {ability.1} bonus Shield and {ability.2} bonus Burn."
+  },
+  "Assault Focus": {
+    "id": "08adc2fd-986c-4e8f-914e-fda9703ace3d",
+    "internal_name": "Assault Focus",
+    "name": "Assault Focus",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "slow",
+      "nonweapon"
+    ],
+    "description": "When any non-weapon item is used, slow it for {ability.0} second(s)."
+  },
+  "Fiery": {
+    "id": "b6c90dc6-f497-4fe4-90a1-759947180884",
+    "internal_name": "Fiery",
+    "name": "Fiery",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Mak",
+      "Stelle"
+    ],
+    "tags": [
+      "burnreference"
+    ],
+    "description": "Your Burn items have +{aura.0} Burn."
+  },
+  "Standardized Defenses": {
+    "id": "254017cc-e3b9-486e-9276-850867ceba6b",
+    "internal_name": "Standardized Defenses",
+    "name": "Standardized Defenses",
+    "type": "Skill",
+    "heroes": [
+      "Stelle",
+      "Dooley",
+      "Pygmalien"
+    ],
+    "tags": [
+      "shieldreference"
+    ],
+    "description": "Your Medium Shield items have +{aura.0} shield."
+  },
+  "Adaptive Ordinance": {
+    "id": "53aa52ea-b2b7-4b8a-8109-4f67fb4a3e29",
+    "internal_name": "Adaptive Ordinance",
+    "name": "Adaptive Ordinance",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "regen",
+      "ammoreference"
+    ],
+    "description": "You have {aura.9} Regen for each Ammo item you have. [{aura.0}]"
+  },
+  "Buckle Up!": {
+    "id": "f39c1881-f42f-4338-961f-8de0c725fadf",
+    "internal_name": "Buckle Up!",
+    "name": "Buckle Up!",
+    "type": "Skill",
+    "heroes": [
+      "Stelle"
+    ],
+    "tags": [
+      "vehicle",
+      "cooldown"
+    ],
+    "description": "Reduce your Vehicles' cooldowns by 10%.\nReduce your Vehicles' cooldowns by 15%."
+  },
+  "Sharpshooter": {
+    "id": "3865bde8-45b8-49d6-8945-0453c24251a9",
+    "internal_name": "Sharpshooter",
+    "name": "Sharpshooter",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Mak"
+    ],
+    "tags": [
+      "ammoreference"
+    ],
+    "description": "Your Ammo items have +{aura.0}% Crit chance."
+  },
+  "Herbal Supplements": {
+    "id": "cac848c8-dc77-4277-ba9f-df282b9f36ef",
+    "internal_name": "Herbal Supplements",
+    "name": "Herbal Supplements",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Mak"
+    ],
+    "tags": [
+      "regenreference"
+    ],
+    "description": "Your Regen items have +{aura.0} Regen."
+  },
+  "Trickle Down Economics": {
+    "id": "639fdb70-8dde-4301-ab75-426556a65eb6",
+    "internal_name": "Trickle Down Economics",
+    "name": "Trickle Down Economics",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "haste"
+    ],
+    "description": "When you use a large item, haste another item for {ability.0} second(s)."
+  },
+  "On the Prowl": {
+    "id": "786299fc-450a-4a81-9838-d468143cf514",
+    "internal_name": "On The Prowl",
+    "name": "On the Prowl",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "damagereference"
+    ],
+    "description": "When you win a fight, gain {ability.0} strength."
+  },
+  "Pyromania": {
+    "id": "5de1aaae-adb9-48a4-81fc-aff714956656",
+    "internal_name": "Pyromania",
+    "name": "Pyromania",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "burn"
+    ],
+    "description": "When you use a large item, Burn {ability.0}."
+  },
+  "Inexorable": {
+    "id": "d53d5ba0-b087-42a2-9523-2a44d9001e07",
+    "internal_name": "Inexorable",
+    "name": "Inexorable",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa"
+    ],
+    "tags": [
+      "crit"
+    ],
+    "description": "Your items have +{aura.1}% crit chance. When you start a fight, increase this bonus by +{ability.0}%."
+  },
+  "Staying Power": {
+    "id": "6a332b72-d300-486b-9659-1ca83e064ed2",
+    "internal_name": "Staying Power",
+    "name": "Staying Power",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "tool",
+      "heal"
+    ],
+    "description": "When you use a Tool, Heal {ability.0}."
+  },
+  "Acclimation": {
+    "id": "81075325-d0fd-4bbd-aa62-cc24a35fef79",
+    "internal_name": "Acclimation",
+    "name": "Acclimation",
+    "type": "Skill",
+    "heroes": [
+      "Stelle"
+    ],
+    "tags": [
+      "damagereference"
+    ],
+    "description": ""
+  },
+  "Stop That!": {
+    "id": "9ff2cb3f-99dd-425b-b44f-14a1d0271f56",
+    "internal_name": "Stop That!",
+    "name": "Stop That!",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Mak"
+    ],
+    "tags": [
+      "slow"
+    ],
+    "description": "The first time you fall below half health each fight, slow {ability.0.targets} items for {ability.0} second(s)."
+  },
+  "Green Light": {
+    "id": "d26ef556-5508-4c10-b94b-c61e005d2378",
+    "internal_name": "Green Light",
+    "name": "Green Light",
+    "type": "Skill",
+    "heroes": [
+      "Stelle"
+    ],
+    "tags": [
+      "vehicle",
+      "haste"
+    ],
+    "description": "At the start of each fight, Haste all your vehicles for {ability.0} second(s)."
+  },
+  "Eject, Eject!": {
+    "id": "7edf2ff2-f644-4b68-984f-57cd51bfc0c2",
+    "internal_name": "Eject, Eject!",
+    "name": "Eject, Eject!",
+    "type": "Skill",
+    "heroes": [
+      "Stelle"
+    ],
+    "tags": [
+      "haste"
+    ],
+    "description": ""
+  },
+  "Invigorating Cold": {
+    "id": "d08258b5-be49-410e-a650-4dfa01b35662",
+    "internal_name": "Invigorating Cold",
+    "name": "Invigorating Cold",
+    "type": "Skill",
+    "heroes": [
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Pygmalien",
+      "Vanessa",
+      "Mak"
+    ],
+    "tags": [
+      "haste",
+      "freezereference"
+    ],
+    "description": "The first time you Freeze each fight, Haste {ability.0.targets} item(s) for {ability.0} second(s)."
+  },
+  "Chilling Touch": {
+    "id": "2c4b4d14-19db-4d75-9fb6-a377d9ca9882",
+    "internal_name": "Chilling Touch",
+    "name": "Chilling Touch",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "freezereference",
+      "slow"
+    ],
+    "description": "The first time you Freeze each fight, Slow all enemy items for {ability.0} second(s)."
+  },
+  "Final Flame": {
+    "id": "0cb66928-870b-4c6b-9325-2c53f774eab9",
+    "internal_name": "Final Flame",
+    "name": "Final Flame",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak",
+      "Pygmalien"
+    ],
+    "tags": [
+      "burnreference"
+    ],
+    "description": "Your rightmost Burn item has +{aura.0} Burn."
+  },
+  "Unwavering": {
+    "id": "56450d16-bc69-43fd-bb89-4aff071cda29",
+    "internal_name": "Unwavering",
+    "name": "Unwavering",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "shield"
+    ],
+    "description": "When you use an item, Shield {ability.0}."
+  },
+  "Rigged": {
+    "id": "51cec489-1988-48ff-95af-0235b374803e",
+    "internal_name": "Rigged",
+    "name": "Rigged",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "haste"
+    ],
+    "description": "The first time you use an item each fight, Haste your items for {ability.0} second(s)."
+  },
+  "Hot Spot": {
+    "id": "9d910b0a-9ef3-447f-ab41-195effb68f21",
+    "internal_name": "Hot Spot",
+    "name": "Hot Spot",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Pygmalien"
+    ],
+    "tags": [
+      "burn"
+    ],
+    "description": "When you use your leftmost item, Burn {ability.0}."
+  },
+  "Appetizer": {
+    "id": "8156e190-6598-4bfb-ad93-ec3e7648f0da",
+    "internal_name": "Appetizer",
+    "name": "Appetizer",
+    "type": "Skill",
+    "heroes": [
+      "Jules"
+    ],
+    "tags": [
+      "joyreference"
+    ],
+    "description": "Your Medium Joy items have +{aura.0} Joy."
+  },
+  "Lethargy": {
+    "id": "81881146-f3ba-4092-9041-9f68cc30b732",
+    "internal_name": "Lethargy",
+    "name": "Lethargy",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [],
+    "description": "All item cooldowns are increased by {aura.9} second(s)."
+  },
+  "Nimble": {
+    "id": "ad3927b0-0fdb-41ab-ab12-8264e43ac213",
+    "internal_name": "Nimble",
+    "name": "Nimble",
+    "type": "Skill",
+    "heroes": [
+      "Dooley",
+      "Vanessa"
+    ],
+    "tags": [
+      "tool",
+      "cooldown"
+    ],
+    "description": "Your items have their cooldowns reduced by 2% for each Tool you have."
+  },
+  "Vital Reserve": {
+    "id": "b6936741-8ec9-42f1-a6ec-d76061141f7d",
+    "internal_name": "Vital Reserve",
+    "name": "Vital Reserve",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Mak"
+    ],
+    "tags": [
+      "regenreference"
+    ],
+    "description": "Your rightmost Regen item has +{aura.0} Regen."
+  },
+  "Shield Bash": {
+    "id": "6e95c90d-e4b4-42c3-b5e9-3c390d762c92",
+    "internal_name": "Shield Bash",
+    "name": "Shield Bash",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Stelle"
+    ],
+    "tags": [
+      "charge"
+    ],
+    "description": "The first {aura.9} times your enemy uses a non-weapon item each fight, Charge {ability.0.targets} Weapon {ability.0} second(s)."
+  },
+  "Oceanic Rush": {
+    "id": "42ca6153-fe5b-44b4-a043-f14870659472",
+    "internal_name": "Oceanic Rush",
+    "name": "Oceanic Rush",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa"
+    ],
+    "tags": [
+      "aquatic",
+      "haste"
+    ],
+    "description": "The first time you use an item each fight, Haste {ability.0.targets} Aquatic item(s) for {ability.0} second(s)."
+  },
+  "Captain's Charge": {
+    "id": "5780e3ce-316c-4871-bfb8-45261b686fc2",
+    "internal_name": "Captain's Charge",
+    "name": "Captain's Charge",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle"
+    ],
+    "tags": [
+      "haste"
+    ],
+    "description": "The first time you use a Large item each fight, Haste {ability.0.targets} items for {ability.0} second(s)."
+  },
+  "The Right Tool": {
+    "id": "4797e5ba-c3ac-4b32-a7ef-93c0a45d1c4f",
+    "internal_name": "The Right Tool",
+    "name": "The Right Tool",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "weapon",
+      "damagereference"
+    ],
+    "description": "Your non-tool items have +{aura.0.mod}% Crit Chance for each tool you have. [{aura.0}]\nYour non-tool items have +{aura.1.mod}% Crit Chance for each tool you have. [{aura.1}]\nYour non-tool items have +{aura.2.mod}% Crit Chance for each tool you have. [{aura.2}]"
+  },
+  "Temporal Strike": {
+    "id": "1e63e9bd-603a-4965-a6e8-4e180377c0ff",
+    "internal_name": "Temporal Strike",
+    "name": "Temporal Strike",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Mak"
+    ],
+    "tags": [
+      "weapon",
+      "slowreference",
+      "cooldown"
+    ],
+    "description": "If you have exactly one weapon, its cooldown is reduced by {aura.9}% while your enemy has a Slowed item."
+  },
+  "Steady Defender": {
+    "id": "17b06564-f267-4fea-9549-f953fa872673",
+    "internal_name": "Steady Defender",
+    "name": "Steady Defender",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle"
+    ],
+    "tags": [
+      "shieldreference"
+    ],
+    "description": "Your slowest Shield item has +{aura.0} Shield."
+  },
+  "Flashy Mechanic": {
+    "id": "40118425-c016-4400-826d-f6ea40b2fc39",
+    "internal_name": "Flashy Mechanic",
+    "name": "Flashy Mechanic",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle"
+    ],
+    "tags": [
+      "tool"
+    ],
+    "description": "When you use a Tool, items adjacent to it gain {ability.0}% Crit chance."
+  },
+  "Master Mechanic": {
+    "id": "663ca415-c46a-46d1-8f63-c04080fb6a30",
+    "internal_name": "Master Mechanic",
+    "name": "Master Mechanic",
+    "type": "Skill",
+    "heroes": [
+      "Stelle"
+    ],
+    "tags": [
+      "experience"
+    ],
+    "description": "When you upgrade an item, gain {ability.0} exp."
+  },
+  "Time to Tinker": {
+    "id": "b76a00ad-8034-4ad8-9f55-9fdc279cf60e",
+    "internal_name": "Time to Tinker",
+    "name": "Time to Tinker",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "shield",
+      "hastereference"
+    ],
+    "description": "When you Haste, Shield {ability.0}."
+  },
+  "Retool": {
+    "id": "fb409226-bf38-4275-b775-7fab879a1d6f",
+    "internal_name": "Retool",
+    "name": "Retool",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "tool",
+      "ammoreference"
+    ],
+    "description": "When you use a Tool, Reload an adjacent item."
+  },
+  "Toughness": {
+    "id": "292f58c0-409b-4de7-a8d2-099a8629aa5e",
+    "internal_name": "Toughness (Skill)",
+    "name": "Toughness",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Dooley",
+      "Stelle"
+    ],
+    "tags": [
+      "shieldreference"
+    ],
+    "description": "Your Shield items have +{aura.0} Shield."
+  },
+  "Into the Void": {
+    "id": "a2351de3-f077-4631-81fa-5b0f8c2cbb23",
+    "internal_name": "Into the Void",
+    "name": "Into the Void",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "The first time you use an item, destroy an item on each player's board for the fight."
+  },
+  "Gold-tier Garnish": {
+    "id": "a557b352-cc6d-45f8-aa3c-d070997cd8cc",
+    "internal_name": "Gold-tier Garnish",
+    "name": "Gold-tier Garnish",
+    "type": "Skill",
+    "heroes": [
+      "Jules"
+    ],
+    "tags": [
+      "food",
+      "joy",
+      "economyreference"
+    ],
+    "description": ""
+  },
+  "Biohazard": {
+    "id": "f45baa82-ff32-4337-88b9-71f7a8f2336f",
+    "internal_name": "Biohazard",
+    "name": "Biohazard",
+    "type": "Skill",
+    "heroes": [
+      "Mak"
+    ],
+    "tags": [
+      "poison"
+    ],
+    "description": "The first time you fall below half health each fight, double your enemy's Poison."
+  },
+  "Fiery Rebirth": {
+    "id": "09c59ebf-d2f9-4862-9c30-396b9ddfdd89",
+    "internal_name": "Fiery Rebirth",
+    "name": "Fiery Rebirth",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "The first time you would die each fight, Heal to full."
+  },
+  "Prosperity": {
+    "id": "3c42764f-2a89-4fa2-b901-ca2ec127c411",
+    "internal_name": "Prosperity",
+    "name": "Prosperity",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "shield",
+      "economyreference"
+    ],
+    "description": "Your Shield items have + Shield equal to the value of your Items. [{aura.0}]"
+  },
+  "Farm to Table": {
+    "id": "ed63ead8-5ba3-4972-b547-b1791484fccf",
+    "internal_name": "Farm To Table",
+    "name": "Farm to Table",
+    "type": "Skill",
+    "heroes": [
+      "Jules"
+    ],
+    "tags": [
+      "tool",
+      "food",
+      "joyreference"
+    ],
+    "description": "When you use a Tool, Your Food items gain +{ability.0} Joy for the fight."
+  },
+  "Ambush": {
+    "id": "dfe40f90-61de-46dc-b807-0da587140e9d",
+    "internal_name": "Ambush",
+    "name": "Ambush",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "damage"
+    ],
+    "description": "At the start of each fight, deal damage equal to 15% of your enemy's Max Health.\nAt the start of each fight, deal damage equal to 30% of your enemy's Max Health."
+  },
+  "Brewmaster": {
+    "id": "6640af95-3999-43b2-b32d-fae5caf0b8cc",
+    "internal_name": "Brewmaster",
+    "name": "Brewmaster",
+    "type": "Skill",
+    "heroes": [
+      "Mak"
+    ],
+    "tags": [
+      "potion"
+    ],
+    "description": "At the start of each fight, a random Potion gains +{ability.0} Multicast for the fight."
+  },
+  "Large Item Specialist": {
+    "id": "62368886-ce2f-4503-9d34-c8bb8b3829a3",
+    "internal_name": "Large Item Specialist",
+    "name": "Large Item Specialist",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "crit"
+    ],
+    "description": "Your items have +{aura.0}% Crit Chance if you have a large item."
+  },
+  "Balanced Specialist": {
+    "id": "1ab0b3dc-5c68-4bb8-8614-c7adf1d9b192",
+    "internal_name": "Balanced Specialist",
+    "name": "Balanced Specialist",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "crit"
+    ],
+    "description": "Your items have +{aura.0}% crit chance if you have 2 or more medium items."
+  },
+  "Right Eye": {
+    "id": "f38a0fb0-b94a-4701-9330-d14a943ac5c4",
+    "internal_name": "Right Eye",
+    "name": "Right Eye",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "crit"
+    ],
+    "description": "Your rightmost item has +{aura.0}% Crit chance."
+  },
+  "Property Mogul": {
+    "id": "61ffd0e3-a0fe-43d2-8112-85fc90580d71",
+    "internal_name": "Property Mogul",
+    "name": "Property Mogul",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "property",
+      "health"
+    ],
+    "description": "When you buy a Property, permanently gain {ability.0} Max Health."
+  },
+  "Building Crescendo": {
+    "id": "3735516a-1517-40fe-b158-9ccee3758fef",
+    "internal_name": "Building Crescendo",
+    "name": "Building Crescendo",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "crit"
+    ],
+    "description": "When you use an item, your items gain {ability.0}% crit chance for the fight.\nYour items have 100% less crit chance."
+  },
+  "Searing Flames": {
+    "id": "53315fc2-ef04-45fc-b269-9d4932c52621",
+    "internal_name": "Searing Flames",
+    "name": "Searing Flames",
+    "type": "Skill",
+    "heroes": [
+      "Dooley"
+    ],
+    "tags": [
+      "burnreference",
+      "hastereference"
+    ],
+    "description": "When one of your Burn items gains Haste, if it already has Haste, it gains {ability.0} Burn for the fight."
+  },
+  "Amuse Bouche": {
+    "id": "07a37584-834c-4f79-afdb-7fe115a26b27",
+    "internal_name": "Amuse Bouche",
+    "name": "Amuse Bouche",
+    "type": "Skill",
+    "heroes": [
+      "Jules"
+    ],
+    "tags": [
+      "joyreference"
+    ],
+    "description": "Your Small items have +{aura.0} Joy."
+  },
+  "Stunning Strike": {
+    "id": "1e75f81b-f982-4642-b33d-497336784f9e",
+    "internal_name": "Stunning Strike",
+    "name": "Stunning Strike",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa"
+    ],
+    "tags": [
+      "critreference",
+      "freeze"
+    ],
+    "description": "The first time you Crit each fight, Freeze {ability.0.targets} item(s) for {ability.0} second(s)."
+  },
+  "Crashing Waves": {
+    "id": "d2f910bc-3490-456f-8ab0-aedda752bc5c",
+    "internal_name": "Crashing Waves",
+    "name": "Crashing Waves",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa"
+    ],
+    "tags": [
+      "weapon",
+      "aquatic",
+      "haste"
+    ],
+    "description": "The first {aura.9} times you use an Aquatic item each fight, Haste {ability.0.targets} weapon for {ability.0} second(s)."
+  },
+  "Explosive Potions": {
+    "id": "dbd50f7c-4261-4afd-93da-2f4d9e33509e",
+    "internal_name": "Explosive Potions",
+    "name": "Explosive Potions",
+    "type": "Skill",
+    "heroes": [
+      "Mak"
+    ],
+    "tags": [
+      "weapon",
+      "potion",
+      "charge",
+      "burnreference"
+    ],
+    "description": "The first {aura.9} times you use a potion each fight, charge {ability.0.targets} Weapon or Burn item {ability.0} second(s)."
+  },
+  "Dirty Dishes": {
+    "id": "fdeee7b2-7c1f-48e0-8fe1-e5a43e7a6726",
+    "internal_name": "Dirty Dishes",
+    "name": "Dirty Dishes",
+    "type": "Skill",
+    "heroes": [
+      "Jules"
+    ],
+    "tags": [
+      "weapon",
+      "food",
+      "joyreference"
+    ],
+    "description": "When you use a weapon, One of your food items gain +{ability.0} joy for the fight."
+  },
+  "Healthy Tip": {
+    "id": "c6a57594-4358-44de-b888-64216df4aa05",
+    "internal_name": "Healthy Tip",
+    "name": "Healthy Tip",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "health",
+      "economyreference"
+    ],
+    "description": "When you gain gold, permanently gain Max Health equal to the amount of gold gained.\nWhen you gain gold, permanently gain Max Health equal to double the amount of gold gained."
+  },
+  "Sharp Corners": {
+    "id": "f0955884-1ea7-4cac-ad73-c30798d3642c",
+    "internal_name": "Sharp Corners",
+    "name": "Sharp Corners",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Dooley",
+      "Stelle"
+    ],
+    "tags": [
+      "weapon",
+      "shieldreference",
+      "damagereference"
+    ],
+    "description": "When you Shield, your weapons gain {ability.0} damage for the fight."
+  },
+  "Multi-Target Lock": {
+    "id": "1e65b121-c928-4147-8a76-34a495e7bbb2",
+    "internal_name": "Multi-Target Lock",
+    "name": "Multi-Target Lock",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "crit"
+    ],
+    "description": "Your Small items have +{aura.0}% Crit chance."
+  },
+  "Healthy Heart": {
+    "id": "05ec8652-3c5f-4cba-acd1-c3eee8e49d44",
+    "internal_name": "Healthy Heart",
+    "name": "Healthy Heart",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "health"
+    ],
+    "description": "The first time you fall below half health each fight, Heal for 30% of your Max Health and Cleanse half your Burn and Poison.[{ability.0}][{ability.1}][{ability.2}]"
+  },
+  "Sword and Board": {
+    "id": "8370ff26-ceb7-4342-a0ae-bd306fa80780",
+    "internal_name": "Sword and Board",
+    "name": "Sword and Board",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Stelle"
+    ],
+    "tags": [
+      "damagereference",
+      "shieldreference"
+    ],
+    "description": "Your leftmost item has +{aura.0} Damage if is a Weapon and +{aura.1} Shield if it is a Shield item."
+  },
+  "Streamline Weapon": {
+    "id": "3d9279b1-dbf8-4193-8989-8d2b022533af",
+    "internal_name": "Streamline Weapon",
+    "name": "Streamline Weapon",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa"
+    ],
+    "tags": [
+      "weapon",
+      "damagereference",
+      "hastereference"
+    ],
+    "description": "When one of your Weapons gains Haste, if it already has Haste, it gains +{ability.0} damage."
+  },
+  "Conflagration": {
+    "id": "f6883b13-0dd2-475f-92e9-760102341bda",
+    "internal_name": "Conflagration",
+    "name": "Conflagration",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Mak",
+      "Jules",
+      "Stelle"
+    ],
+    "tags": [
+      "burnreference"
+    ],
+    "description": "When you use an item with Burn, that item gains {ability.0} Burn for the fight."
+  },
+  "Backup Defenses": {
+    "id": "f7ae1ab0-16dc-46af-9a77-b23b7f33104f",
+    "internal_name": "Backup Defenses",
+    "name": "Backup Defenses",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Dooley",
+      "Stelle"
+    ],
+    "tags": [
+      "shield",
+      "healthreference"
+    ],
+    "description": "The first time you fall below half health each fight, Shield equal to 20% of your Max Health. [{ability.0|%}]\nThe first time you fall below half health each fight, Shield equal to 30% of your Max Health. [{ability.0|%}]"
+  },
+  "Stout Fire": {
+    "id": "d08bdeb9-ef08-48be-9df7-0edd9fcff6cf",
+    "internal_name": "Stout Fire",
+    "name": "Stout Fire",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "regen",
+      "damagereference",
+      "burnreference"
+    ],
+    "description": "When you gain Burn, gain {ability.0} Regen and increase the damage of your weapons by {ability.1} for the fight."
+  },
+  "Emergency Shield": {
+    "id": "158c1575-71c6-406c-82c9-f4435d9b37ca",
+    "internal_name": "Emergency Shield",
+    "name": "Emergency Shield",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Dooley",
+      "Stelle"
+    ],
+    "tags": [
+      "shield"
+    ],
+    "description": "The first time you fall below half health each fight, use your highest Shield item."
+  },
+  "Flanking Toxins": {
+    "id": "8c36b532-0eb5-49f8-9128-a50b17ef3eed",
+    "internal_name": "Flanking Toxins",
+    "name": "Flanking Toxins",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Mak"
+    ],
+    "tags": [
+      "poisonreference"
+    ],
+    "description": "The first time you use a Large item each fight, adjacent Poison items gain {ability.0} Poison for the fight."
+  },
+  "Flanking Fire": {
+    "id": "7518cb66-252b-4b9c-9d4d-269aaad8daf3",
+    "internal_name": "Flanking Fire",
+    "name": "Flanking Fire",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Jules",
+      "Stelle"
+    ],
+    "tags": [
+      "burnreference"
+    ],
+    "description": "The first time you use a Large item each fight, Adjacent items gain {ability.0} Burn for the fight."
+  },
+  "Renovation": {
+    "id": "ec327a59-8fde-444f-b29b-73b22c248c4e",
+    "internal_name": "Renovation",
+    "name": "Renovation",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "property"
+    ],
+    "description": "When you level up, upgrade a Property."
+  },
+  "Reserve Shield": {
+    "id": "b9ac862b-7599-4d1c-96c7-99e4edaad05f",
+    "internal_name": "Reserve Shield",
+    "name": "Reserve Shield",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Dooley",
+      "Stelle"
+    ],
+    "tags": [
+      "shield",
+      "healthreference"
+    ],
+    "description": "The first time you use a Large item each fight, Shield equal to 10% of your max health.\nThe first time you use a Large item each fight, Shield equal to 20% of your max health.\nThe first time you use a Large item each fight, Shield equal to 30% of your max health."
+  },
+  "Long Strides": {
+    "id": "6b47d5d7-cd43-4efb-9e3b-5ee3c07a7f7d",
+    "internal_name": "Long Strides",
+    "name": "Long Strides",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "cooldown"
+    ],
+    "description": "If you have 5 or fewer items, your items have their cooldowns reduced by {aura.9}%."
+  },
+  "Frozen Synapse": {
+    "id": "e5602f0a-0f7f-4832-97cc-59bc7b605804",
+    "internal_name": "Frozen Synapse",
+    "name": "Frozen Synapse",
+    "type": "Skill",
+    "heroes": [
+      "Dooley"
+    ],
+    "tags": [
+      "core",
+      "haste",
+      "freezereference"
+    ],
+    "description": "The first {aura.9} times you Freeze each fight, Haste the Core for {ability.0} second(s)."
+  },
+  "Gunner": {
+    "id": "315dc6e8-bc86-4ea5-9c6a-23848028456a",
+    "internal_name": "Gunner",
+    "name": "Gunner",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Mak"
+    ],
+    "tags": [
+      "ammo"
+    ],
+    "description": "Your items have +{aura.0} Max Ammo."
+  },
+  "Static Acceleration": {
+    "id": "32e45628-c864-4f99-a2e8-94efe6f37cdc",
+    "internal_name": "Static Acceleration",
+    "name": "Static Acceleration",
+    "type": "Skill",
+    "heroes": [
+      "Dooley",
+      "Stelle",
+      "Mak",
+      "Vanessa"
+    ],
+    "tags": [
+      "hastereference",
+      "crit"
+    ],
+    "description": "When you Haste, your items gain +{ability.0}% crit chance for the fight."
+  },
+  "Ammo Stash": {
+    "id": "52f43602-8404-4a38-9d16-b1845489851c",
+    "internal_name": "Ammo Stash",
+    "name": "Ammo Stash",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "ammo"
+    ],
+    "description": "Your leftmost Ammo item has +{aura.0} Max Ammo."
+  },
+  "Diamond Fangs": {
+    "id": "20db8a31-f74d-40d2-a5a5-db28e3261bea",
+    "internal_name": "Diamond Fangs",
+    "name": "Diamond Fangs",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "cooldown"
+    ],
+    "description": "Your Small Diamond-tier items have their cooldowns reduced by 30%.\nYour Small Diamond-tier items have their cooldowns reduced by 40%.\nYour Small Diamond-tier items have their cooldowns reduced by 50%.\nYour Small Diamond-tier items have their cooldowns reduced by 60%."
+  },
+  "Big Numbers": {
+    "id": "62154f7f-ea50-4703-aa2e-d2d4ae55e9b0",
+    "internal_name": "Big Numbers",
+    "name": "Big Numbers",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "crit"
+    ],
+    "description": "Your large items have +{aura.0}% crit chance"
+  },
+  "Overclocked": {
+    "id": "fb89bd6d-2677-435a-a73a-e0350cdab29e",
+    "internal_name": "Overclocked",
+    "name": "Overclocked",
+    "type": "Skill",
+    "heroes": [
+      "Dooley"
+    ],
+    "tags": [
+      "core",
+      "burnreference",
+      "cooldown"
+    ],
+    "description": "The Core has its cooldown reduced by 10%.\nThe Core has its cooldown reduced by 15%.\nWhile you have Burn, double this effect."
+  },
+  "Microfiber": {
+    "id": "883043eb-5a5f-4fa2-9cae-185f51019b11",
+    "internal_name": "Microfiber",
+    "name": "Microfiber",
+    "type": "Skill",
+    "heroes": [
+      "Stelle",
+      "Dooley",
+      "Pygmalien"
+    ],
+    "tags": [
+      "shieldreference"
+    ],
+    "description": "Your Small Shield items have +{aura.0} shield."
+  },
+  "Firestarter": {
+    "id": "ffceb0c7-7913-4339-8013-f1bcc67cca9c",
+    "internal_name": "Firestarter",
+    "name": "Firestarter",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "burn"
+    ],
+    "description": "At the start of each fight, burn {ability.0}."
+  },
+  "Hardened Shield": {
+    "id": "2aabac27-fb64-44df-96f5-b1dac0b23b1c",
+    "internal_name": "Hardened Shield",
+    "name": "Hardened Shield",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Dooley",
+      "Stelle"
+    ],
+    "tags": [
+      "shieldreference"
+    ],
+    "description": "When your enemy uses a Weapon, your Shield items gain {ability.0} Shield for the fight."
+  },
+  "Walk-in Clinic": {
+    "id": "65a77e2d-6c13-46c2-ae28-c521502a8be3",
+    "internal_name": "Walk-in Clinic",
+    "name": "Walk-in Clinic",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Mak"
+    ],
+    "tags": [
+      "healreference"
+    ],
+    "description": "Your leftmost Regen item has +{aura.0} Regen."
+  },
+  "[DEBUG] Arbitrage": {
+    "id": "4f496bdd-a8b5-409e-af06-fca8fed4c46e",
+    "internal_name": "[DEBUG] Arbitrage",
+    "name": "[DEBUG] Arbitrage",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "economyreference"
+    ],
+    "description": "Your rerolls cost {aura.0} less gold."
+  },
+  "Machine Learning": {
+    "id": "d1e825ba-653c-4993-8002-50c3933c5827",
+    "internal_name": "Machine Learning",
+    "name": "Machine Learning",
+    "type": "Skill",
+    "heroes": [
+      "Dooley"
+    ],
+    "tags": [
+      "core"
+    ],
+    "description": "When you buy or upgrade this, upgrade the core."
+  },
+  "Toxin Injector": {
+    "id": "42c33f6c-a233-4ad1-8f04-b1cadac3a15f",
+    "internal_name": "Toxin Injector",
+    "name": "Toxin Injector",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Mak"
+    ],
+    "tags": [
+      "poisonreference",
+      "haste"
+    ],
+    "description": "The first time you use an item each fight, Haste {ability.0.targets} Poison item(s) for {ability.0} second(s)."
+  },
+  "Vengeance": {
+    "id": "9dacb0ad-a016-40ff-a54a-24d807c0988f",
+    "internal_name": "Vengeance",
+    "name": "Vengeance",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "cooldown"
+    ],
+    "description": "Your leftmost and rightmost items have their cooldowns reduced by {aura.9}%."
+  },
+  "First Responder": {
+    "id": "4e2e23aa-a3d1-46b0-9d59-c06fb64bea2f",
+    "internal_name": "First Responder",
+    "name": "First Responder",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "healreference"
+    ],
+    "description": "Your leftmost Heal item has +{aura.0} Heal."
+  },
+  "Flashy Reload": {
+    "id": "ff37ca26-2e4a-49bc-982d-49ff434e7295",
+    "internal_name": "Flashy Reload",
+    "name": "Flashy Reload",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa"
+    ],
+    "tags": [
+      "ammo",
+      "critreference"
+    ],
+    "description": "When you Crit with an item, Reload another item {ability.0} ammo."
+  },
+  "High Impact": {
+    "id": "5b393f5e-2c86-40c6-b210-1a215c1ccd51",
+    "internal_name": "High Impact",
+    "name": "High Impact",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "damagereference"
+    ],
+    "description": "At the start of each fight, a Weapon gains 25% damage for the fight."
+  },
+  "Reaching the Summit": {
+    "id": "8a42ef6e-3a7e-41f4-a741-6a33839afe64",
+    "internal_name": "Reaching the Summit",
+    "name": "Reaching the Summit",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak",
+      "Pygmalien"
+    ],
+    "tags": [
+      "freezereference",
+      "crit"
+    ],
+    "description": "When you Freeze, your items gain +{ability.0}% Crit Chance for the fight."
+  },
+  "Noisy Cricket": {
+    "id": "c38468ba-2636-4818-a821-6fb7e73d7110",
+    "internal_name": "Noisy Cricket",
+    "name": "Noisy Cricket",
+    "type": "Skill",
+    "heroes": [
+      "Dooley",
+      "Vanessa",
+      "Mak",
+      "Pygmalien",
+      "Stelle",
+      "Jules"
+    ],
+    "tags": [
+      "weapon",
+      "damagereference"
+    ],
+    "description": "If you have at least 7 items in play, your Weapons deal +{aura.0} damage."
+  },
+  "Heal Power": {
+    "id": "614a7ba0-6c7f-4686-88e2-42ecfe2d8735",
+    "internal_name": "Heal Power",
+    "name": "Heal Power",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "healreference"
+    ],
+    "description": "Your Heal items have +{aura.0} Heal."
+  },
+  "Final Dose": {
+    "id": "1aa32e3b-fb93-4d4e-9630-f6168cd77cdc",
+    "internal_name": "Final Dose",
+    "name": "Final Dose",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Mak"
+    ],
+    "tags": [
+      "poisonreference"
+    ],
+    "description": "Your rightmost Poison item has +{aura.0} Poison."
+  },
+  "Arms Race": {
+    "id": "1c4c5aaa-6aa2-4329-a55a-ac75e987ee95",
+    "internal_name": "Arms Race",
+    "name": "Arms Race",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "weapon",
+      "crit"
+    ],
+    "description": "Your items have +{aura.0.mod}% Crit Chance for each weapon you have. [{aura.0}]\nYour items have +{aura.1.mod}% Crit Chance for each weapon you have. [{aura.1}]"
+  },
+  "Red Envelope": {
+    "id": "5ff845f5-6cb5-40b8-957f-8a6ae47c3962",
+    "internal_name": "Red Envelope",
+    "name": "Red Envelope",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Pygmalien",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "gold"
+    ],
+    "description": "When you buy this, gain {ability.0} gold."
+  },
+  "Tall Buildings": {
+    "id": "cdf1d8f2-851b-43a8-bc8b-6d3ce2d4bca9",
+    "internal_name": "Tall Buildings",
+    "name": "Tall Buildings",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "property",
+      "haste"
+    ],
+    "description": "When you use a Property, haste items adjacent to it {ability.0} second(s)."
+  },
+  "Burst of Flame": {
+    "id": "ee178ba8-666d-426f-8499-1bd611a91802",
+    "internal_name": "Burst of Flame",
+    "name": "Burst of Flame",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "burn"
+    ],
+    "description": "The first time your enemy falls below half health each fight, Burn {ability.0}."
+  },
+  "Flanking Shots": {
+    "id": "94b80fbf-4d21-4439-beb2-e1bdf56cea03",
+    "internal_name": "Flanking Shots",
+    "name": "Flanking Shots",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "weapon",
+      "damagereference"
+    ],
+    "description": "The first time you use a Large item each fight, adjacent weapons gain {ability.0} Damage for the fight."
+  },
+  "Living Flame": {
+    "id": "ab4d7a85-3eb2-43e8-aa11-f94581f5690f",
+    "internal_name": "Living Flame",
+    "name": "Living Flame",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Mak",
+      "Jules",
+      "Stelle"
+    ],
+    "tags": [
+      "burn",
+      "cooldown"
+    ],
+    "description": "The first time you fall below half health each fight, your Burn items have their cooldowns reduced by 50% for the fight."
+  },
+  "Frostfire": {
+    "id": "e9218caf-28ed-4e9a-a24b-358d4852d88b",
+    "internal_name": "Frostfire",
+    "name": "Frostfire",
+    "type": "Skill",
+    "heroes": [
+      "Dooley",
+      "Vanessa",
+      "Mak",
+      "Jules",
+      "Stelle",
+      "Pygmalien"
+    ],
+    "tags": [
+      "burnreference",
+      "freeze"
+    ],
+    "description": "The first time you Burn each fight, Freeze {ability.0.targets} item(s) for {ability.0} second(s)."
+  },
+  "Emergency Burn": {
+    "id": "280eb842-0600-4f2c-bbf9-01926b43f1dc",
+    "internal_name": "Emergency Burn",
+    "name": "Emergency Burn",
+    "type": "Skill",
+    "heroes": [
+      "Dooley",
+      "Jules",
+      "Stelle"
+    ],
+    "tags": [
+      "burn"
+    ],
+    "description": "The first time you fall below half health each fight, Burn {ability.0}."
+  },
+  "Second Wind": {
+    "id": "4b491993-ccc9-4021-a347-5492a51f7b30",
+    "internal_name": "Second Wind",
+    "name": "Second Wind",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Dooley",
+      "Mak"
+    ],
+    "tags": [
+      "heal",
+      "healthreference"
+    ],
+    "description": "The first time you use a Large item each fight, heal 20% of your max health.\nThe first time you use a Large item each fight, heal 40% of your max health.\nThe first time you use a Large item each fight, heal 60% of your max health."
+  },
+  "Insect Bite": {
+    "id": "dfeaa982-9ed6-4aee-840e-628fa8b508bd",
+    "internal_name": "Insect Bite",
+    "name": "Insect Bite",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "poison"
+    ],
+    "description": "At the start of each fight, Poison yourself {ability.0}."
+  },
+  "Invigorating Blade": {
+    "id": "549263e2-4ab4-4fe8-a552-e94486b3e91b",
+    "internal_name": "Invigorating Blade",
+    "name": "Invigorating Blade",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "weapon",
+      "charge",
+      "healreference"
+    ],
+    "description": "The first {aura.9} times you use a Weapon each fight, Charge {ability.0.targets} Heal item {ability.0} second(s)."
+  },
+  "Morning Rush": {
+    "id": "9a707fa9-38b6-42dc-a4fb-737982f47745",
+    "internal_name": "Morning Rush",
+    "name": "Morning Rush",
+    "type": "Skill",
+    "heroes": [
+      "Jules"
+    ],
+    "tags": [
+      "food",
+      "income"
+    ],
+    "description": "if you have 3 or more food, you have +{aura.0} income."
+  },
+  "Closing Speed": {
+    "id": "b607f75b-e245-4e4a-809e-899fcdd1e6e5",
+    "internal_name": "Closing Speed",
+    "name": "Closing Speed",
+    "type": "Skill",
+    "heroes": [
+      "Jules",
+      "Stelle",
+      "Mak",
+      "Dooley",
+      "Vanessa",
+      "Pygmalien"
+    ],
+    "tags": [
+      "cooldown"
+    ],
+    "description": "Your rightmost item has its cooldown reduced by 4%.\nYour rightmost item has its cooldown reduced by 6%.\nYour rightmost item has its cooldown reduced by 8%.\nYour rightmost item has its cooldown reduced by 10%."
+  },
+  "Main Course": {
+    "id": "d0974dba-6234-49ab-a0b1-9fae08dce22b",
+    "internal_name": "Main Course",
+    "name": "Main Course",
+    "type": "Skill",
+    "heroes": [
+      "Jules"
+    ],
+    "tags": [
+      "joyreference"
+    ],
+    "description": "Your Large Joy items have +{aura.0} Joy."
+  },
+  "Pole Position": {
+    "id": "915b9236-6d91-47f6-ad06-ec00c8ce7018",
+    "internal_name": "Pole Position",
+    "name": "Pole Position",
+    "type": "Skill",
+    "heroes": [
+      "Jules",
+      "Stelle",
+      "Mak",
+      "Dooley",
+      "Vanessa",
+      "Pygmalien"
+    ],
+    "tags": [
+      "cooldown"
+    ],
+    "description": "Your leftmost item has its cooldown reduced by 4%.\nYour leftmost item has its cooldown reduced by 6%.\nYour leftmost item has its cooldown reduced by 8%.\nYour leftmost item has its cooldown reduced by 10%."
+  },
+  "Buddy System": {
+    "id": "fa2dfc79-67be-4307-95d9-b4279ab58900",
+    "internal_name": "Buddy System",
+    "name": "Buddy System",
+    "type": "Skill",
+    "heroes": [
+      "Dooley"
+    ],
+    "tags": [
+      "core",
+      "tech",
+      "friend",
+      "cooldown"
+    ],
+    "description": "If you have exactly one friend, reduce its and the Core's cooldown by 5%\nIf you have exactly one friend, reduce its and the Core's cooldown by 10%\nIf you have exactly one friend, reduce its and the Core's cooldown by 15%."
+  },
+  "Knife Tricks": {
+    "id": "b3c4ed70-958a-42e5-b4d4-16b27c03ac54",
+    "internal_name": "Knife Tricks",
+    "name": "Knife Tricks",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Pygmalien",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "weapon",
+      "cooldown"
+    ],
+    "description": "When you use a weapon, reduce its cooldown by 5% for the fight."
+  },
+  "Relax Bro": {
+    "id": "544be6e9-ff3e-4cb6-9759-498ac2d24d71",
+    "internal_name": "Relax Bro",
+    "name": "Relax Bro",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "weapon",
+      "slowreference",
+      "regen"
+    ],
+    "description": "When you Slow, gain {ability.0} Regen for the fight."
+  },
+  "Workin' Hard": {
+    "id": "76ae19fd-2783-4c21-919a-cdce66bb8948",
+    "internal_name": "Workin' Hard",
+    "name": "Workin' Hard",
+    "type": "Skill",
+    "heroes": [
+      "Dooley",
+      "Jules",
+      "Stelle"
+    ],
+    "tags": [
+      "weapon",
+      "tool",
+      "damagereference"
+    ],
+    "description": "Your weapons have +{aura.0.mod} Damage for each Tool you have. [{aura.0}]"
+  },
+  "Neophiliac": {
+    "id": "f9170d20-9caa-41ca-82dd-9536f2f75dd6",
+    "internal_name": "Neophiliac",
+    "name": "Neophiliac",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "freezereference",
+      "slowreference",
+      "poisonreference",
+      "burnreference",
+      "hastereference",
+      "cooldown"
+    ],
+    "description": "The first time you freeze, burn, slow, poison, and haste each fight, charge {ability.0.targets} item(s) {ability.0} second(s)."
+  },
+  "Quick Defenses": {
+    "id": "6e7328ed-f925-4ca6-8637-9625626e12d2",
+    "internal_name": "Quick Defenses",
+    "name": "Quick Defenses",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle"
+    ],
+    "tags": [
+      "shieldreference",
+      "cooldown"
+    ],
+    "description": "Your Shield items have their cooldowns reduced by 4%.\nYour Shield items have their cooldowns reduced by 6%.\nYour Shield items have their cooldowns reduced by 8%.\nYour Shield items have their cooldowns reduced by 10%."
+  },
+  "Industrialist": {
+    "id": "abba2590-426d-449f-8f19-4a3bd51ae4fe",
+    "internal_name": "Industrialist",
+    "name": "Industrialist",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "property",
+      "cooldown"
+    ],
+    "description": "Reduce the cooldown of your Properties by 10%.\nReduce the cooldown of your Properties by 15%."
+  },
+  "Aggressive": {
+    "id": "756024f8-ad19-4f9b-a3c1-3a93c285b5d1",
+    "internal_name": "Aggressive",
+    "name": "Aggressive",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "weapon",
+      "crit"
+    ],
+    "description": "When you use a Weapon, it gains +{ability.0}% crit Chance for the fight."
+  },
+  "Commercial Zoning": {
+    "id": "e2bed270-5a6c-46ae-ab7e-a0d34f6da903",
+    "internal_name": "Commercial Zoning",
+    "name": "Commercial Zoning",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "property",
+      "damage",
+      "economyreference"
+    ],
+    "description": "When you use a Property, deal damage equal to your gold. [{aura.1}]\nWhen you use a Property, deal damage equal to double your gold. [{aura.2}]"
+  },
+  "Ice Bullets": {
+    "id": "d52f6759-3ab5-46f4-87d1-bc719634c0d8",
+    "internal_name": "Ice Bullets",
+    "name": "Ice Bullets",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa"
+    ],
+    "tags": [
+      "freezereference",
+      "ammo"
+    ],
+    "description": "When you Freeze, Reload a Weapon {ability.0} ammo."
+  },
+  "Augmented Defenses": {
+    "id": "c318939d-3ba2-41d8-ad5d-1b8267c0cf22",
+    "internal_name": "Augmented Defenses",
+    "name": "Augmented Defenses",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "shieldreference"
+    ],
+    "description": "Your Shield items have +{aura.1} Shield. When you sell a small item, increase this bonus by +{ability.0} Shield."
+  },
+  "Heavy Weaponry": {
+    "id": "015bc348-773e-4009-87ff-231452431bba",
+    "internal_name": "Heavy Weaponry",
+    "name": "Heavy Weaponry",
+    "type": "Skill",
+    "heroes": [
+      "Jules",
+      "Stelle",
+      "Mak",
+      "Dooley",
+      "Vanessa",
+      "Pygmalien"
+    ],
+    "tags": [
+      "weapon",
+      "damagereference"
+    ],
+    "description": "Your Large Weapons deal +{aura.0} Damage."
+  },
+  "Rush": {
+    "id": "d5b180a2-9dfa-43e3-bfb9-3e15dac0398e",
+    "internal_name": "Rush",
+    "name": "Rush",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "weapon",
+      "haste"
+    ],
+    "description": "The first time you use an item, Haste {ability.0.targets} Weapon {ability.0} seconds."
+  },
+  "Immunocompromised": {
+    "id": "8089e76c-1565-457b-9cd5-fc38f60bd185",
+    "internal_name": "Immunocompromised",
+    "name": "Immunocompromised",
+    "type": "Skill",
+    "heroes": [
+      "Mak"
+    ],
+    "tags": [
+      "potion",
+      "poisonreference",
+      "healthreference"
+    ],
+    "description": "Your Poison items have +3 Poison while your enemy has less than 20 Poison."
+  },
+  "Tempering": {
+    "id": "13bcf77b-0ad0-4dd3-85ed-927799691a72",
+    "internal_name": "Tempering",
+    "name": "Tempering",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Jules"
+    ],
+    "tags": [
+      "damage"
+    ],
+    "description": "When you use a weapon, it gains +{ability.0} damage for the fight."
+  },
+  "Full Arsenal": {
+    "id": "3849770c-59df-4471-b0b0-f02713be8bb0",
+    "internal_name": "Full Arsenal",
+    "name": "Full Arsenal",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "vehicle",
+      "weapon",
+      "tool",
+      "cooldown"
+    ],
+    "description": "Your item's cooldowns are reduced by 5% if you have a Vehicle, reduced by 5% if you have a Weapon, and reduced by 5% if you have a Tool.\nYour item's cooldowns are reduced by 10% if you have a Vehicle, reduced by 10% if you have a Weapon, and reduced by 10% if you have a Tool."
+  },
+  "Paralyzing Rush": {
+    "id": "b7938579-8bc3-4bbf-b002-ffa1870acd50",
+    "internal_name": "Paralyzing Rush",
+    "name": "Paralyzing Rush",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "weapon",
+      "slowreference",
+      "haste"
+    ],
+    "description": "When you Slow, Haste a Weapon {ability.0} second(s)."
+  },
+  "Sabotage": {
+    "id": "fd3f0e7b-27ac-4bde-87f8-5ec61b19c4f7",
+    "internal_name": "Sabotage",
+    "name": "Sabotage",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Stelle"
+    ],
+    "tags": [
+      "tool",
+      "slow"
+    ],
+    "description": "The first {aura.9} times you use a Tool each fight, Slow {ability.0.targets} item(s) for {ability.0} second(s)."
+  },
+  "Extreme Comfort": {
+    "id": "ed7379d4-38ee-48b0-9ef0-61ed3c57ec22",
+    "internal_name": "Extreme Comfort",
+    "name": "Extreme Comfort",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "healreference",
+      "shieldreference"
+    ],
+    "description": "When you heal, your Shield items gain {ability.0} shield for the fight."
+  },
+  "Second Degree Burns": {
+    "id": "11a262fe-e1e7-4656-a07c-f6a3a1249352",
+    "internal_name": "Second Degree Burns",
+    "name": "Second Degree Burns",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "burnreference"
+    ],
+    "description": "Your Medium Burn items have +{aura.0} Burn."
+  },
+  "Net Launcher": {
+    "id": "9b8912ec-1219-4cdf-acd5-cf9b73438280",
+    "internal_name": "Net Launcher",
+    "name": "Net Launcher",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "slow"
+    ],
+    "description": "The first time you use a Large item each fight, Slow {ability.0.targets} item(s) for {ability.0} second(s)."
+  },
+  "All Talk": {
+    "id": "64727f7e-adfd-4f25-aa4e-1f127b9d5b70",
+    "internal_name": "All Talk",
+    "name": "All Talk",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "damagereference",
+      "healthreference"
+    ],
+    "description": "While you have more than half Health, your weapons have +{aura.0} damage."
+  },
+  "Endurance": {
+    "id": "c7261fd4-ef40-4091-abb2-dcf5694ae2ac",
+    "internal_name": "Endurance",
+    "name": "Endurance",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "healreference"
+    ],
+    "description": "When you use a weapon, your Heal items gain +{ability.0} Heal for the fight."
+  },
+  "Slow and Steady": {
+    "id": "61c83a38-2976-45d1-95c7-cafe4f34ed51",
+    "internal_name": "Slow and Steady",
+    "name": "Slow and Steady",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "weapon",
+      "damagereference",
+      "slowreference"
+    ],
+    "description": "When you Slow, your weapons gain {ability.0} damage for the fight."
+  },
+  "Healthy Lifestyle": {
+    "id": "76ac0aa6-ef43-4a5b-9a30-f0ab4186dc83",
+    "internal_name": "Healthy Lifestyle",
+    "name": "Healthy Lifestyle",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Mak"
+    ],
+    "tags": [
+      "regen"
+    ],
+    "description": "You have {aura.9} Regen for each non-weapon item you have. [{aura.0}]"
+  },
+  "Happiness": {
+    "id": "03aa7efa-8590-470f-9ff5-8ae76e015741",
+    "internal_name": "Happiness",
+    "name": "Happiness",
+    "type": "Skill",
+    "heroes": [
+      "Jules"
+    ],
+    "tags": [
+      "joyreference"
+    ],
+    "description": "Your items have +{aura.0} Joy"
+  },
+  "Flanking Aid": {
+    "id": "35cd34d4-80f5-48bd-95ed-5bb7fde3d21c",
+    "internal_name": "Flanking Aid",
+    "name": "Flanking Aid",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Mak"
+    ],
+    "tags": [
+      "healreference"
+    ],
+    "description": "The first time you use a Large item each fight, Adjacent items gain +{ability.0} Heal for the fight."
+  },
+  "Initial Dose": {
+    "id": "04168bfd-eac1-40ff-ad34-bc10cb92e636",
+    "internal_name": "Initial Dose",
+    "name": "Initial Dose",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Mak"
+    ],
+    "tags": [
+      "poisonreference"
+    ],
+    "description": "Your leftmost Poison item has +{aura.0} Poison."
+  },
+  "Open for Business": {
+    "id": "bead31da-27fe-4056-ab77-1adbb37bb973",
+    "internal_name": "Open for Business",
+    "name": "Open for Business",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "property",
+      "income"
+    ],
+    "description": "You have +{aura.9} income for each Property you have (including Stash)."
+  },
+  "Barnacle Crusted": {
+    "id": "13d1b66a-1d45-4e8e-9921-8312253fc48e",
+    "internal_name": "Barnacle Crusted",
+    "name": "Barnacle Crusted",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa"
+    ],
+    "tags": [
+      "aquatic",
+      "cooldown"
+    ],
+    "description": "Reduce the cooldown of your aquatic items by {aura.6}%."
+  },
+  "Virulent Research": {
+    "id": "e78b1599-ca80-47b0-b386-04ae403994d5",
+    "internal_name": "Virulent Research",
+    "name": "Virulent Research",
+    "type": "Skill",
+    "heroes": [
+      "Mak"
+    ],
+    "tags": [
+      "poison"
+    ],
+    "description": "Your Poison items have +1 poison."
+  },
+  "Chef of War": {
+    "id": "0e790e41-203a-4b07-8a06-352a2070588d",
+    "internal_name": "Chef of War",
+    "name": "Chef of War",
+    "type": "Skill",
+    "heroes": [
+      "Jules"
+    ],
+    "tags": [
+      "damage"
+    ],
+    "description": "If you have exactly one weapon, it has bonus damage equal to the joy of adjacent food."
+  },
+  "Precision Diver": {
+    "id": "2a2ef40a-38d6-4441-ad43-76fc01f31eb4",
+    "internal_name": "Precision Diver",
+    "name": "Precision Diver",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa"
+    ],
+    "tags": [
+      "aquatic",
+      "crit"
+    ],
+    "description": "Your Aquatic items have +{aura.0}% Crit chance."
+  },
+  "Dual Wield": {
+    "id": "4a443bdd-f949-4fb5-9ccd-a710f74d2311",
+    "internal_name": "Dual Wield",
+    "name": "Dual Wield",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "crit"
+    ],
+    "description": "If you have exactly 2 Weapons, your items have +{aura.0}% Crit Chance."
+  },
+  "Rapid Relief": {
+    "id": "063df89c-4fe9-4e89-a0c4-a0af4dedc9bb",
+    "internal_name": "Rapid Relief",
+    "name": "Rapid Relief",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Mak"
+    ],
+    "tags": [
+      "healreference",
+      "cooldown"
+    ],
+    "description": "While your enemy has more health than you, your Heal and Regen items have their cooldowns reduced by {aura.9}%."
+  },
+  "Aggressive Mutations": {
+    "id": "d8bb20e5-4c72-409b-893a-686a8fc43006",
+    "internal_name": "Aggressive Mutations",
+    "name": "Aggressive Mutations",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "damage"
+    ],
+    "description": ""
+  },
+  "Corrosive Toxins": {
+    "id": "b8f04ea6-ecdd-46a0-9ae6-397a090d294b",
+    "internal_name": "Corrosive Toxins",
+    "name": "Corrosive Toxins",
+    "type": "Skill",
+    "heroes": [
+      "Mak"
+    ],
+    "tags": [
+      "poisonreference"
+    ],
+    "description": "When you Poison, enemy Weapons lose {ability.0} damage."
+  },
+  "Immolating Spark": {
+    "id": "d09d1ff8-a49b-485b-b1e3-ea50c4af5781",
+    "internal_name": "Immolating Spark",
+    "name": "Immolating Spark",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak",
+      "Pygmalien"
+    ],
+    "tags": [
+      "burnreference"
+    ],
+    "description": "Your leftmost Burn item has +{aura.0} Burn."
+  },
+  "Quick Fix": {
+    "id": "63c3c74e-8a01-44cf-a629-2b12aa842264",
+    "internal_name": "Quick Fix",
+    "name": "Quick Fix",
+    "type": "Skill",
+    "heroes": [
+      "Jules",
+      "Stelle",
+      "Mak",
+      "Dooley",
+      "Vanessa",
+      "Pygmalien"
+    ],
+    "tags": [
+      "cooldown"
+    ],
+    "description": "Your Non-Weapon items with cooldowns greater than 10 seconds have their cooldowns reduced by 1 second(s).\nYour Non-Weapon items with cooldowns greater than 10 seconds have their cooldowns reduced by 2 second(s)."
+  },
+  "Thieves Guild Discount": {
+    "id": "ad417c8e-fe6f-4b98-879b-447c8aafc37f",
+    "internal_name": "Thieves Guild Discount",
+    "name": "Thieves Guild Discount",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "damage"
+    ],
+    "description": "When you visit a Merchant, a Small item is free."
+  },
+  "Flanking Criticals": {
+    "id": "7a301c09-3e32-473a-ba6c-89097657a400",
+    "internal_name": "Flanking Criticals",
+    "name": "Flanking Criticals",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "crit"
+    ],
+    "description": "The first time you use a Large item each fight, Adjacent items gain {ability.0}% Crit Chance for the fight."
+  },
+  "Junk Food": {
+    "id": "4eb1f2c3-2211-4118-8cb8-fa4445d526ad",
+    "internal_name": "Junk Food",
+    "name": "Junk Food",
+    "type": "Skill",
+    "heroes": [
+      "Jules"
+    ],
+    "tags": [
+      "joyreference",
+      "health"
+    ],
+    "description": "Your items have +{aura.0} Joy.\nYou have -{aura.1.mod|%} Max Health."
+  },
+  "Reel 'Em In": {
+    "id": "8e4fed70-3ad9-488d-8c77-f926c1621544",
+    "internal_name": "Reel 'Em In",
+    "name": "Reel 'Em In",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Stelle"
+    ],
+    "tags": [
+      "cooldown"
+    ],
+    "description": "The first time your enemy falls below half health each fight, your items have their cooldowns reduced by 50% for the fight."
+  },
+  "Regular Maintenance": {
+    "id": "7ce449d2-0843-4fee-9bdf-dacf380afb8f",
+    "internal_name": "Regular Maintenance",
+    "name": "Regular Maintenance",
+    "type": "Skill",
+    "heroes": [
+      "Stelle"
+    ],
+    "tags": [
+      "toughness"
+    ],
+    "description": ""
+  },
+  "Heavy Shielding": {
+    "id": "b7c2ce67-0da5-4360-9eda-b328817affe6",
+    "internal_name": "Heavy Shielding",
+    "name": "Heavy Shielding",
+    "type": "Skill",
+    "heroes": [
+      "Stelle",
+      "Dooley",
+      "Pygmalien"
+    ],
+    "tags": [
+      "shieldreference"
+    ],
+    "description": "Your Large Shield items have +{aura.0} shield."
+  },
+  "Concentrated Defense": {
+    "id": "530f34ea-250a-476c-ac4e-417b37841c8a",
+    "internal_name": "Concentrated Defense",
+    "name": "Concentrated Defense",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "shieldreference"
+    ],
+    "description": "Your highest Shield item has +{aura.0} Shield."
+  },
+  "Augmented Weaponry": {
+    "id": "4bcc9eeb-5fa9-4b1f-85b1-d3dfd198d38f",
+    "internal_name": "Augmented Weaponry",
+    "name": "Augmented Weaponry",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "weapon",
+      "damagereference"
+    ],
+    "description": "Your weapons have +{aura.1} Damage. When you sell a small item, increase this bonus by +{ability.0} Damage."
+  },
+  "Toxic Weapons": {
+    "id": "202e4917-e744-41bf-965a-81edcded9d5f",
+    "internal_name": "Toxic Weapons",
+    "name": "Toxic Weapons",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Mak"
+    ],
+    "tags": [
+      "weapon",
+      "poisonreference"
+    ],
+    "description": "Your Poison items have +{aura.0.mod} Poison for each Weapon you have. [{aura.0}]"
+  },
+  "Slow Burn": {
+    "id": "cd6ac6ef-dafb-4001-a338-52e791bec4c3",
+    "internal_name": "Slow Burn",
+    "name": "Slow Burn",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Mak"
+    ],
+    "tags": [
+      "charge",
+      "burnreference",
+      "slowreference"
+    ],
+    "description": "The first {aura.9} times you Slow each fight, Charge {ability.0.targets} Burn item {ability.0} second(s)."
+  },
+  "Vengeful Strike": {
+    "id": "dab89eb6-be1a-4651-a4d8-44c2d2716569",
+    "internal_name": "Vengeful Strike",
+    "name": "Vengeful Strike",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "haste"
+    ],
+    "description": "Your Weapons' Cooldowns are reduced by {aura.0}%."
+  },
+  "Critical Investments": {
+    "id": "ae41f574-fc9f-492a-8ae0-45853ab607a6",
+    "internal_name": "Critical Investments",
+    "name": "Critical Investments",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "property",
+      "crit"
+    ],
+    "description": "Your Properties have +{aura.0}% Crit chance."
+  },
+  "Hardly Workin'": {
+    "id": "3b4c3700-6c77-4954-a3e1-dfeaeab08c4a",
+    "internal_name": "Hardly Workin'",
+    "name": "Hardly Workin'",
+    "type": "Skill",
+    "heroes": [
+      "Mak"
+    ],
+    "tags": [
+      "slowreference",
+      "regenreference",
+      "charge"
+    ],
+    "description": "The first {aura.9} times times you slow each fight, Charge {ability.0.targets} Regen item {ability.0} second(s)."
+  },
+  "Exposing Toxins": {
+    "id": "08db2099-a4a9-4d95-afad-e86d4abbf829",
+    "internal_name": "Exposing Toxins",
+    "name": "Exposing Toxins",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Mak"
+    ],
+    "tags": [
+      "poison",
+      "crit"
+    ],
+    "description": "When you Poison, your items gain +{ability.0}% Crit Chance for the fight."
+  },
+  "Coolant Leak": {
+    "id": "dec273b3-155e-4fbd-9629-5dbd2900e032",
+    "internal_name": "Coolant Leak",
+    "name": "Coolant Leak",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Dooley",
+      "Jules",
+      "Mak",
+      "Stelle"
+    ],
+    "tags": [
+      "freezereference",
+      "charge"
+    ],
+    "description": "The first {aura.9} times you use your rightmost item each fight, Charge {ability.0.targets} Freeze item {ability.0} second(s)."
+  },
+  "Frozen Flames": {
+    "id": "2efc2530-badd-4460-9b03-9d34a10a85de",
+    "internal_name": "Frozen Flames",
+    "name": "Frozen Flames",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak",
+      "Pygmalien"
+    ],
+    "tags": [
+      "freezereference"
+    ],
+    "description": "When your items gain Freeze, Burn {ability.0}."
+  },
+  "Berserker": {
+    "id": "42a245de-4281-40d1-ad98-7a79b471aefe",
+    "internal_name": "Berserker",
+    "name": "Berserker",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa"
+    ],
+    "tags": [
+      "weapon",
+      "cooldown"
+    ],
+    "description": "While your enemy has more health than you, your Weapons have their cooldowns reduced by {aura.9}%."
+  },
+  "Growth Spurt": {
+    "id": "7f803167-d540-4ea9-bd46-9b6bdad687d3",
+    "internal_name": "Growth Spurt",
+    "name": "Growth Spurt",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [
+      "health"
+    ],
+    "description": "You have +20% Max Health.\nYou have +30% Max Health.\nYou have +40% Max Health.\nYou have +50% Max Health."
+  },
+  "Bold Under Pressure": {
+    "id": "daec4b27-bd32-434e-85ef-4bd4629e7d11",
+    "internal_name": "Bold Under Pressure",
+    "name": "Bold Under Pressure",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa",
+      "Pygmalien",
+      "Jules",
+      "Mak"
+    ],
+    "tags": [
+      "haste"
+    ],
+    "description": "The first time you fall below half health each fight, Haste {ability.0.targets} items {ability.0} second(s)."
+  },
+  "Expert Pilot": {
+    "id": "5fca38e0-2144-422d-b9bd-85a3cd443215",
+    "internal_name": "Expert Pilot",
+    "name": "Expert Pilot",
+    "type": "Skill",
+    "heroes": [
+      "Stelle"
+    ],
+    "tags": [
+      "vehicle"
+    ],
+    "description": "Your Shield Vehicles gain 30% Shield.\nYour Weapon Vehicles gain 30% Damage.\nYour Shield Vehicles gain 60% Shield.\nYour Weapon Vehicles gain 60% Damage."
+  },
+  "Improvised Protection": {
+    "id": "fd927bfc-ff5a-4d9c-87ce-b9510a22e444",
+    "internal_name": "Improvised Protection",
+    "name": "Improvised Protection",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle"
+    ],
+    "tags": [
+      "shieldreference",
+      "critreference"
+    ],
+    "description": "When you Crit, your Shield items gain {ability.0} Shield for the fight."
+  },
+  "Jury Rigger": {
+    "id": "03968f2d-5f40-464a-bf1f-9475836157cd",
+    "internal_name": "Jury Rigger",
+    "name": "Jury Rigger",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "ammo"
+    ],
+    "description": "When you use an Ammo item, Reload the item to the left of it {ability.0} Ammo."
+  },
+  "Hyper Focus": {
+    "id": "8e2f3e1c-bd00-4b58-b746-a6ae18f804c3",
+    "internal_name": "Hyper Focus",
+    "name": "Hyper Focus",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "cooldown"
+    ],
+    "description": "If you have only one medium item, its cooldown is reduced by 30%."
+  },
+  "SkillCard - Speed": {
+    "id": "d562bfda-d926-44da-9e64-95ce81e3e6a9",
+    "internal_name": "SkillCard - Speed",
+    "name": "SkillCard - Speed",
+    "type": "Skill",
+    "heroes": [],
+    "tags": [
+      "cooldown"
+    ],
+    "description": "Gain {ability.0} Speed."
+  },
+  "Bullet Time": {
+    "id": "e7488436-6835-4e5e-971c-ba0a60f58529",
+    "internal_name": "Bullet Time",
+    "name": "Bullet Time",
+    "type": "Skill",
+    "heroes": [
+      "Vanessa"
+    ],
+    "tags": [
+      "slow",
+      "ammoreference"
+    ],
+    "description": "The first {aura.9} times you use an Ammo item each fight, Slow {ability.0.targets} item(s) for {ability.0} second(s)."
+  },
+  "Artillery Spotter": {
+    "id": "f422485c-b23a-4c3f-9ad4-9d22718dc204",
+    "internal_name": "Artillery Spotter",
+    "name": "Artillery Spotter",
+    "type": "Skill",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [
+      "crit"
+    ],
+    "description": "If you have 5 or fewer items, your items have +{aura.0}% Crit Chance."
+  },
+  "Bonk": {
+    "id": "e8770458-220a-45bd-bfef-d6045b152d29",
+    "internal_name": "Bonk",
+    "name": "Bonk",
+    "type": "Skill",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Enemy cooldowns are increased by 1 second(s)."
+  }
+}

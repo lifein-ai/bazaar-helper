@@ -1,0 +1,1020 @@
+from __future__ import annotations
+
+import argparse
+import json
+from http import HTTPStatus
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from typing import Any
+from urllib.parse import parse_qs, urlparse
+import re
+
+from advisor import analyze_game_state
+from ai_advisor import analyze_with_ai, compact_recommendations
+from build_strategy import applicable_build_names, build_applies_to_day, get_game_stage_for_day
+from data_loader import load_all_data
+from game_state import GameState
+
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = BASE_DIR / "data"
+RUNTIME_DIR = BASE_DIR / "runtime"
+STATE_PATH = RUNTIME_DIR / "game_state.json"
+EXAMPLE_STATE_PATH = RUNTIME_DIR / "game_state.example.json"
+MISSING_EVENTS_PATH = RUNTIME_DIR / "missing_events.json"
+AUTO_BUILD_PREFIX = "Auto"
+STAGE_LABELS_ZH = {
+    "early": "前期",
+    "mid": "中期",
+    "late": "后期",
+}
+RARITY_LABELS_ZH = {
+    "bronze": "青铜",
+    "silver": "白银",
+    "gold": "黄金",
+    "diamond": "钻石",
+    "legendary": "传奇",
+}
+
+
+def load_runtime_payload() -> tuple[dict[str, Any], Path]:
+    path = STATE_PATH if STATE_PATH.exists() else EXAMPLE_STATE_PATH
+    return json.loads(path.read_text(encoding="utf-8-sig")), path
+
+
+def available_heroes(data: dict[str, Any]) -> list[str]:
+    return sorted(
+        {
+            hero
+            for card in data["cards"].values()
+            for hero in card.get("heroes", [])
+            if hero != "Common"
+        }
+    )
+
+
+def choose_build(
+    data: dict[str, Any],
+    hero: str,
+    day: int,
+    preferred: str | None = None,
+    owned_cards: Any = None,
+) -> str:
+    if preferred and preferred in data["builds"]:
+        return preferred
+
+    best_match = match_build_from_owned_cards(data, hero, day, owned_cards)
+    if best_match:
+        return best_match
+
+    hero_builds = [
+        name
+        for name, build_data in data["builds"].items()
+        if build_data.get("hero") in (None, hero)
+    ]
+    if hero_builds:
+        return hero_builds[0]
+
+    return ensure_auto_build(data, hero, day)
+
+
+def match_build_from_owned_cards(
+    data: dict[str, Any],
+    hero: str,
+    day: int,
+    owned_cards: Any,
+) -> str | None:
+    owned_names = extract_owned_card_names(owned_cards)
+    hero_builds = [
+        (name, build_data)
+        for name, build_data in data["builds"].items()
+        if build_data.get("hero") in (None, hero)
+    ]
+    if not hero_builds:
+        return None
+
+    scored = [
+        (
+            score_build_match(data, build_name, build_data, owned_names, day),
+            build_name,
+        )
+        for build_name, build_data in hero_builds
+    ]
+    scored.sort(key=lambda item: (-item[0], item[1]))
+    best_score, best_name = scored[0]
+    if best_score > 0:
+        return best_name
+
+    matching = applicable_build_names(data["builds"], hero, day)
+    if matching:
+        return matching[0]
+    return hero_builds[0][0]
+
+
+def extract_owned_card_names(owned_cards: Any) -> set[str]:
+    if isinstance(owned_cards, dict):
+        return {str(name) for name in owned_cards.keys() if name}
+
+    if isinstance(owned_cards, list):
+        names: set[str] = set()
+        for item in owned_cards:
+            if isinstance(item, dict) and item.get("name"):
+                names.add(str(item["name"]))
+            elif isinstance(item, str):
+                names.add(item)
+        return names
+
+    return set()
+
+
+def score_build_match(
+    data: dict[str, Any],
+    build_name: str,
+    build_data: dict[str, Any],
+    owned_names: set[str],
+    day: int,
+) -> float:
+    core = set(build_data.get("core_cards", []))
+    transition = set(build_data.get("transition_cards", []))
+    optional = set(build_data.get("optional_cards", []))
+    score = 0.0
+
+    for card_name in owned_names:
+        if card_name in core:
+            score += 5.0
+        elif card_name in transition:
+            score += 3.0
+        elif card_name in optional:
+            score += 1.0
+
+        role = data["cards"].get(card_name, {}).get("build_roles", {}).get(build_name)
+        if role == "core":
+            score += 5.0
+        elif role == "transition":
+            score += 3.0
+        elif role == "optional":
+            score += 1.0
+
+    if score and build_applies_to_day(build_data, day):
+        score += 0.25
+    return score
+
+
+def ensure_auto_build(data: dict[str, Any], hero: str, day: int) -> str:
+    build_name = f"{AUTO_BUILD_PREFIX}{hero}"
+    if build_name not in data["builds"]:
+        data["builds"][build_name] = {
+            "hero": hero,
+            "display_name": f"自动匹配 {hero}",
+            "applicable_stages": ["early", "mid", "late"],
+            "day_range": [1, None],
+            "build_summary": "没有配置英雄专属阵容时使用的自动兜底阵容。",
+            "match_notes": [
+                "在配置真实阵容前，不会把任何卡视为核心、过渡或可选。"
+            ],
+            "core_cards": [],
+            "transition_cards": [],
+            "optional_cards": [],
+            "wanted_tags": [],
+            "event_priorities": [],
+            "avoid_events": [],
+        }
+    return build_name
+
+
+def normalize_payload_for_analysis(
+    data: dict[str, Any],
+    payload: dict[str, Any],
+    build_override: str | None = None,
+) -> dict[str, Any]:
+    normalized = dict(payload)
+    normalized["event_options"] = normalize_event_options(data, normalized)
+    normalized["owned_cards"] = normalize_card_entries(data, normalized.get("owned_cards", []))
+    normalized["visible_cards"] = normalize_card_entries(data, normalized.get("visible_cards", []))
+    hero = str(normalized.get("hero", ""))
+    day = int(normalized.get("day", 1))
+    normalized.pop("build", None)
+    normalized["build"] = choose_build(
+        data,
+        hero,
+        day,
+        build_override,
+        normalized.get("owned_cards", []),
+    )
+    normalized.setdefault("source", "runtime")
+    normalized.setdefault("event_options", [])
+    return normalized
+
+
+def normalize_event_options(data: dict[str, Any], payload: dict[str, Any]) -> list[str]:
+    source_id_index = {
+        str(source_id).lower(): event_name
+        for event_name, event_data in data["events"].items()
+        for source_id in event_data.get("source_ids", [])
+    }
+    event_names = set(data["events"])
+    raw_event_options = [str(option) for option in payload.get("event_options", [])]
+    current_instance_ids = [
+        option for option in raw_event_options if option.startswith("enc_")
+    ]
+    if current_instance_ids:
+        id_to_template = {
+            str(option_id): str(template_id)
+            for option_id, template_id in zip(
+                payload.get("event_option_ids", []),
+                payload.get("event_option_template_ids", []),
+            )
+        }
+        mapped_current_options = [
+            id_to_template.get(option_id, option_id)
+            for option_id in current_instance_ids
+        ]
+        named_current_options = [
+            option for option in raw_event_options if not option.startswith("enc_")
+        ]
+        options = [*mapped_current_options, *named_current_options]
+    else:
+        options = [
+            *payload.get("event_option_template_ids", []),
+            *payload.get("event_option_ids", []),
+            *payload.get("selected_encounter_ids", []),
+            *raw_event_options,
+        ]
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for option in options:
+        option_text = str(option)
+        event_name = source_id_index.get(option_text.lower())
+        if event_name is None:
+            if option_text in event_names:
+                event_name = option_text
+            elif option_text.startswith("enc_"):
+                continue
+            elif looks_like_uuid(option_text):
+                event_name = data.get("translations", {}).get("by_id", {}).get(
+                    option_text,
+                    option_text,
+                )
+            else:
+                event_name = option_text
+        if event_name in seen:
+            continue
+        seen.add(event_name)
+        normalized.append(event_name)
+    return normalized
+
+
+def looks_like_uuid(value: str) -> bool:
+    return bool(
+        re.fullmatch(
+            r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}",
+            value,
+        )
+    )
+
+
+def normalize_card_entries(data: dict[str, Any], entries: Any) -> Any:
+    if not isinstance(entries, list):
+        return entries
+
+    card_id_index = {
+        str(card_data.get("id")).lower(): card_name
+        for card_name, card_data in data["cards"].items()
+        if card_data.get("id")
+    }
+    normalized = []
+    for entry in entries:
+        if not isinstance(entry, dict):
+            normalized.append(entry)
+            continue
+
+        item = dict(entry)
+        if not item.get("name"):
+            card_id = item.get("template_id") or item.get("id")
+            if card_id:
+                item["name"] = card_id_index.get(str(card_id).lower(), "")
+        normalized.append(item)
+    return normalized
+
+
+def zh_name(data: dict[str, Any], name: Any, template_id: Any = None) -> str:
+    translations = data.get("translations", {})
+    by_id = translations.get("by_id", {})
+    by_name = translations.get("by_name", {})
+    if template_id:
+        translated = by_id.get(str(template_id))
+        if translated:
+            return translated
+    if name:
+        return by_name.get(str(name), str(name))
+    return ""
+
+
+def zh_text(data: dict[str, Any], text: Any) -> str:
+    if not text:
+        return ""
+
+    result = str(text)
+    by_name = data.get("translations", {}).get("by_name", {})
+    for source_name in sorted(by_name, key=len, reverse=True):
+        translated = by_name.get(source_name)
+        if translated:
+            result = result.replace(source_name, translated)
+    return result
+
+
+def display_card_entry(data: dict[str, Any], card: dict[str, Any]) -> dict[str, Any]:
+    name = card.get("name") or ""
+    template_id = card.get("template_id") or card.get("id")
+    return {
+        **card,
+        "display_name": zh_name(data, name, template_id),
+    }
+
+
+def display_card_names(data: dict[str, Any], cards: dict[str, str]) -> list[dict[str, Any]]:
+    return [
+        {
+            "name": name,
+            "display_name": zh_name(data, name),
+            "rarity": RARITY_LABELS_ZH.get(str(rarity).lower(), rarity),
+        }
+        for name, rarity in sorted(cards.items())
+    ]
+
+
+def recommendation_label(label: str | None) -> str:
+    return {
+        "High Value": "优先考虑",
+        "Medium Value": "可以考虑",
+        "Low Value": "优先级低",
+    }.get(label or "", label or "")
+
+
+def role_label(role: str | None) -> str:
+    return {
+        "core": "核心",
+        "transition": "过渡",
+        "optional": "可选",
+        "unrelated": "无关",
+    }.get(role or "", role or "")
+
+
+def recommendation_label(label: str | None) -> str:
+    return {
+        "High Value": "优先选择",
+        "Medium Value": "可以考虑",
+        "Low Value": "优先级低",
+    }.get(label or "", label or "")
+
+
+def role_label(role: str | None) -> str:
+    return {
+        "core": "核心",
+        "transition": "过渡",
+        "optional": "可选",
+        "unrelated": "无关",
+    }.get(role or "", role or "")
+
+
+def tier_label(tier: Any) -> str:
+    if tier in (None, "", "Unknown"):
+        return "未评级"
+    return str(tier)
+
+
+def priority_cards(cards: list[dict[str, Any]], limit: int = 6) -> list[dict[str, Any]]:
+    roles = {"core": 0, "transition": 1, "optional": 2}
+    filtered = [card for card in cards if card.get("role") in roles]
+    filtered.sort(key=lambda card: (roles.get(card.get("role"), 9), card.get("name", "")))
+    return [
+        {
+            "name": card.get("name"),
+            "tier": tier_label(card.get("tier")),
+            "role": card.get("role"),
+            "can_upgrade": card.get("can_upgrade", False),
+        }
+        for card in filtered[:limit]
+    ]
+
+
+def summarize_recommendation(data: dict[str, Any], result: dict[str, Any]) -> dict[str, Any]:
+    pool_stats = result.get("pool_stats", {})
+    return {
+        "event_name": result.get("event_name"),
+        "event_display_name": zh_name(data, result.get("event_name")),
+        "recommendation": result.get("recommendation"),
+        "recommendation_label": recommendation_label(result.get("recommendation")),
+        "notes": "",
+        "reasons": [zh_text(data, reason) for reason in result.get("reasons", [])[:4]],
+        "priority_cards": [
+            {
+                **card,
+                "display_name": zh_name(data, card.get("name")),
+                "role_label_zh": role_label(card.get("role")),
+            }
+            for card in priority_cards(result.get("possible_cards", []))
+        ],
+        "owned_target_hits": [
+            {
+                **card,
+                "display_name": zh_name(data, card.get("name")),
+                "role_label_zh": role_label(card.get("role")),
+                "tier": tier_label(card.get("tier")),
+            }
+            for card in result.get("owned_target_hits", [])[:6]
+        ],
+        "resource_rewards": result.get("resource_rewards", {}),
+        "pool_stats": {
+            "candidate_cards": int(pool_stats.get("total_pool_count", 0)),
+            "build_relevant_cards": int(pool_stats.get("valuable_count", 0)),
+            "expected_relevant_in_shop": round(
+                float(pool_stats.get("expected_valuable_in_shop", 0.0)),
+                2,
+            ),
+            "prob_relevant_in_shop": round(
+                float(pool_stats.get("prob_valuable_in_shop", 0.0)),
+                4,
+            ),
+            "prob_core_in_shop": round(float(pool_stats.get("prob_core_in_shop", 0.0)), 4),
+            "expected_sell_gold": round(float(pool_stats.get("expected_sell_gold", 0.0)), 2),
+        },
+    }
+
+
+def analyze_payload(
+    data: dict[str, Any],
+    payload: dict[str, Any],
+    *,
+    build_override: str | None = None,
+    include_ai: bool = False,
+    top: int | None = None,
+) -> dict[str, Any]:
+    normalized = normalize_payload_for_analysis(data, payload, build_override)
+    state = GameState.from_dict(normalized)
+    missing_events = [
+        event_name
+        for event_name in state.event_options
+        if event_name not in data["events"]
+    ]
+    if missing_events:
+        record_missing_events(missing_events, state, payload)
+    result = analyze_game_state(data, state, top=top)
+
+    response: dict[str, Any] = {
+        "state": {
+            "source": state.source,
+            "hero": state.hero,
+            "build": state.build,
+            "day": state.day,
+            "game_stage": get_game_stage_for_day(state.day),
+            "game_stage_display": STAGE_LABELS_ZH.get(
+                get_game_stage_for_day(state.day),
+                get_game_stage_for_day(state.day),
+            ),
+            "event_options": state.event_options,
+            "owned_cards": state.owned_cards,
+            "owned_cards_display": display_card_names(data, state.owned_cards),
+            "owned_card_enchantments": state.owned_card_enchantments,
+            "visible_cards": state.visible_cards,
+            "visible_cards_display": [
+                {
+                    "name": name,
+                    "display_name": zh_name(data, name),
+                }
+                for name in state.visible_cards
+            ],
+            "gold": state.gold,
+            "health": state.health,
+            "event_options_display": [
+                {
+                    "name": name,
+                    "display_name": zh_name(data, name),
+                    "known": name in data["events"],
+                }
+                for name in state.event_options
+            ],
+            "missing_events": [
+                {
+                    "name": name,
+                    "display_name": zh_name(data, name),
+                }
+                for name in missing_events
+            ],
+        },
+        "warnings": result.warnings,
+        "recommendations": [
+            summarize_recommendation(data, item)
+            for item in result.recommendations
+        ],
+    }
+
+    if include_ai and result.recommendations and not result.warnings:
+        ai_payload = compact_recommendations(
+            data=data,
+            hero=state.hero,
+            build_name=state.build,
+            current_day=state.day,
+            owned_cards=state.owned_cards,
+            results=result.recommendations,
+        )
+        try:
+            response["ai_analysis"] = analyze_with_ai(ai_payload)
+        except RuntimeError as exc:
+            response["ai_error"] = str(exc)
+
+    return response
+
+
+def record_missing_events(
+    event_names: list[str],
+    state: GameState,
+    payload: dict[str, Any],
+) -> None:
+    try:
+        existing = json.loads(MISSING_EVENTS_PATH.read_text(encoding="utf-8-sig")) if MISSING_EVENTS_PATH.exists() else {}
+    except json.JSONDecodeError:
+        existing = {}
+
+    if not isinstance(existing, dict):
+        existing = {}
+
+    for name in event_names:
+        item = existing.get(name, {})
+        count = int(item.get("count", 0)) + 1 if isinstance(item, dict) else 1
+        existing[name] = {
+            "name": name,
+            "count": count,
+            "last_seen_hero": state.hero,
+            "last_seen_day": state.day,
+            "last_seen_source": state.source,
+            "raw_event_options": payload.get("event_options", []),
+            "raw_event_option_ids": payload.get("event_option_ids", []),
+            "raw_event_option_template_ids": payload.get("event_option_template_ids", []),
+        }
+
+    RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
+    MISSING_EVENTS_PATH.write_text(
+        json.dumps(existing, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+
+class BazaarHandler(BaseHTTPRequestHandler):
+    data = load_all_data(DATA_DIR)
+
+    def do_GET(self) -> None:
+        parsed = urlparse(self.path)
+        query = parse_qs(parsed.query)
+
+        try:
+            if parsed.path == "/":
+                self.send_text(HTML_PAGE, content_type="text/html; charset=utf-8")
+                return
+            if parsed.path == "/api/state":
+                payload, path = load_runtime_payload()
+                self.send_json({"path": str(path), "payload": payload})
+                return
+            if parsed.path == "/api/options":
+                self.send_json(
+                    {
+                        "heroes": available_heroes(self.data),
+                        "builds": sorted(self.data["builds"].keys()),
+                        "events": sorted(self.data["events"].keys()),
+                    }
+                )
+                return
+            if parsed.path == "/api/analysis":
+                payload, path = load_runtime_payload()
+                response = analyze_payload(
+                    self.data,
+                    payload,
+                    build_override=query.get("build", [None])[0],
+                    include_ai=query.get("ai", ["0"])[0] == "1",
+                    top=_optional_int(query.get("top", [None])[0]),
+                )
+                response["state_path"] = str(path)
+                self.send_json(response)
+                return
+
+            self.send_error(HTTPStatus.NOT_FOUND, "未找到")
+        except Exception as exc:  # noqa: BLE001 - this is a small local dev server.
+            self.send_json({"error": str(exc)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+    def do_POST(self) -> None:
+        parsed = urlparse(self.path)
+        if parsed.path != "/api/state":
+            self.send_error(HTTPStatus.NOT_FOUND, "未找到")
+            return
+
+        length = int(self.headers.get("Content-Length", "0"))
+        raw_body = self.rfile.read(length).decode("utf-8")
+        try:
+            payload = json.loads(raw_body)
+            RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
+            STATE_PATH.write_text(
+                json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+        except json.JSONDecodeError as exc:
+            self.send_json({"error": f"JSON 格式无效：{exc}"}, status=HTTPStatus.BAD_REQUEST)
+            return
+
+        self.send_json({"ok": True, "path": str(STATE_PATH)})
+
+    def send_json(self, payload: dict[str, Any], status: HTTPStatus = HTTPStatus.OK) -> None:
+        body = json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def send_text(self, text: str, content_type: str, status: HTTPStatus = HTTPStatus.OK) -> None:
+        body = text.encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def log_message(self, format: str, *args: Any) -> None:
+        return
+
+
+def _optional_int(value: str | None) -> int | None:
+    if value in (None, ""):
+        return None
+    return int(value)
+
+
+HTML_PAGE = r"""<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Bazaar AI 助手</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101214;
+      --panel: #171b1f;
+      --panel-2: #20262b;
+      --line: #343c43;
+      --text: #eef2f3;
+      --muted: #9aa6ad;
+      --accent: #78d6b5;
+      --warn: #e4b860;
+      --bad: #e07777;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 14px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--line);
+      background: #13171a;
+    }
+    h1 { margin: 0; font-size: 20px; font-weight: 650; }
+    button, select {
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 8px 11px;
+      font: inherit;
+    }
+    button { cursor: pointer; }
+    button.primary { border-color: #4aa789; background: #1f4c40; }
+    main {
+      display: grid;
+      grid-template-columns: minmax(300px, 360px) 1fr;
+      min-height: calc(100vh - 70px);
+    }
+    aside {
+      border-right: 1px solid var(--line);
+      padding: 18px;
+      background: var(--panel);
+    }
+    section { padding: 18px 22px; }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .state-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 14px 0;
+    }
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 10px;
+      background: var(--panel-2);
+      min-height: 68px;
+    }
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 3px;
+    }
+    .panel-title {
+      margin: 18px 0 8px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 650;
+    }
+    .list {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #111518;
+      padding: 9px 10px;
+      min-height: 40px;
+    }
+    .list-item small {
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .event-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+    }
+    .event {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel);
+      padding: 14px;
+    }
+    .event h2 {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 0 0 8px;
+      font-size: 17px;
+    }
+    .badge {
+      white-space: nowrap;
+      color: #08110e;
+      background: var(--accent);
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 12px;
+      font-weight: 650;
+    }
+    .badge.medium { background: var(--warn); }
+    .badge.low { background: var(--bad); color: #170808; }
+    .muted { color: var(--muted); }
+    ul { padding-left: 18px; margin: 8px 0; }
+    .ai {
+      border-left: 3px solid var(--accent);
+      background: #111b18;
+      padding: 12px;
+      margin-bottom: 14px;
+      white-space: pre-wrap;
+    }
+    .error {
+      border-left: 3px solid var(--bad);
+      background: #211414;
+      padding: 12px;
+      margin-bottom: 14px;
+      color: #ffdede;
+    }
+    @media (max-width: 860px) {
+      main { grid-template-columns: 1fr; }
+      aside { border-right: 0; border-bottom: 1px solid var(--line); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>The Bazaar AI 助手</h1>
+    <div class="toolbar">
+      <select id="buildSelect"></select>
+      <button id="refreshBtn">刷新</button>
+      <button id="aiBtn" class="primary">AI 分析</button>
+    </div>
+  </header>
+  <main>
+    <aside>
+      <div class="state-grid">
+        <div class="metric"><span>英雄</span><strong id="hero">-</strong></div>
+        <div class="metric"><span>天数</span><strong id="day">-</strong></div>
+        <div class="metric"><span>金币</span><strong id="gold">-</strong></div>
+        <div class="metric"><span>生命</span><strong id="health">-</strong></div>
+      </div>
+      <div class="metric"><span>阵容目标</span><strong id="build">-</strong><div class="muted" id="stage">-</div></div>
+      <h2 class="panel-title">当前事件</h2>
+      <div class="list" id="currentEvents"></div>
+      <h2 class="panel-title">已拥有</h2>
+      <div class="list" id="ownedCards"></div>
+      <h2 class="panel-title">当前可见卡</h2>
+      <div class="list" id="visibleCards"></div>
+    </aside>
+    <section>
+      <div id="message"></div>
+      <div id="aiBox"></div>
+      <div class="event-list" id="events"></div>
+    </section>
+  </main>
+  <script>
+    const eventsEl = document.querySelector("#events");
+    const messageEl = document.querySelector("#message");
+    const aiBox = document.querySelector("#aiBox");
+    const buildSelect = document.querySelector("#buildSelect");
+    let aiRequestInFlight = false;
+
+    function pct(value) {
+      return `${Math.round((value || 0) * 100)}%`;
+    }
+
+    function badgeClass(label) {
+      if (label === "Medium Value") return "badge medium";
+      if (label === "Low Value") return "badge low";
+      return "badge";
+    }
+
+    async function loadOptions() {
+      const res = await fetch("/api/options");
+      const data = await res.json();
+      buildSelect.innerHTML = [
+        `<option value="">自动匹配已有卡牌</option>`,
+        ...data.builds.map((name) => `<option value="${name}">${name}</option>`),
+      ].join("");
+      const savedBuild = localStorage.getItem("bazaar_selected_build");
+      if (savedBuild === "") {
+        buildSelect.value = "";
+      } else if (savedBuild && data.builds.includes(savedBuild)) {
+        buildSelect.value = savedBuild;
+      }
+    }
+
+    async function loadState() {
+      const res = await fetch("/api/state");
+      const data = await res.json();
+      return data.payload;
+    }
+
+    async function analyze(includeAi = false) {
+      if (!includeAi && aiRequestInFlight) {
+        return;
+      }
+
+      messageEl.innerHTML = "";
+      if (includeAi) {
+        aiRequestInFlight = true;
+        aiBox.innerHTML = `<div class="ai">AI 分析中...</div>`;
+      }
+
+      const selectedBuild = buildSelect.value || "";
+      const build = encodeURIComponent(selectedBuild);
+      let data;
+      try {
+        const res = await fetch(`/api/analysis?top=3&build=${build}&ai=${includeAi ? "1" : "0"}`);
+        data = await res.json();
+      } catch (error) {
+        if (includeAi) {
+          aiBox.innerHTML = `<div class="error">AI 请求失败：${error.message}</div>`;
+          aiRequestInFlight = false;
+        } else {
+          messageEl.innerHTML = `<div class="error">刷新失败：${error.message}</div>`;
+        }
+        return;
+      }
+
+      if (data.error) {
+        messageEl.innerHTML = `<div class="error">${data.error}</div>`;
+        if (includeAi) aiRequestInFlight = false;
+        return;
+      }
+
+      const state = data.state || {};
+      document.querySelector("#hero").textContent = state.hero || "-";
+      document.querySelector("#day").textContent = state.day || "-";
+      document.querySelector("#gold").textContent = state.gold ?? "-";
+      document.querySelector("#health").textContent = state.health ?? "-";
+      document.querySelector("#build").textContent = state.build || "-";
+      document.querySelector("#stage").textContent = state.game_stage_display || state.game_stage || "-";
+      if (selectedBuild && state.build) buildSelect.value = state.build;
+      renderStateLists(state);
+
+      if (data.warnings && data.warnings.length) {
+        messageEl.innerHTML = `<div class="error">${data.warnings.join("<br>")}</div>`;
+      }
+
+      if (data.ai_analysis) {
+        aiBox.innerHTML = `<div class="ai">${data.ai_analysis}</div>`;
+      } else if (data.ai_error) {
+        aiBox.innerHTML = `<div class="error">${data.ai_error}</div>`;
+      }
+      if (includeAi) {
+        aiRequestInFlight = false;
+      }
+
+      eventsEl.innerHTML = (data.recommendations || []).map((item) => {
+        const stats = item.pool_stats || {};
+        const cards = (item.priority_cards || []).map((card) =>
+          `<li>${card.display_name || card.name} <span class="muted">${card.tier || ""} ${card.role_label_zh || card.role || ""}</span></li>`
+        ).join("");
+        const ownedHits = (item.owned_target_hits || []).map((card) =>
+          `<li>${card.display_name || card.name} <span class="muted">${card.tier || ""} ${card.role_label_zh || card.role || ""}${card.can_upgrade ? " · 可升级" : ""}${card.enchantments && card.enchantments.length ? " · " + card.enchantments.join(", ") : ""}</span></li>`
+        ).join("");
+        const reasons = (item.reasons || []).map((reason) => `<li>${reason}</li>`).join("");
+        const sellGold = Number(stats.expected_sell_gold || 0);
+        const sellText = sellGold > 0 ? ` · 卖价 +${sellGold.toFixed(1)}g` : "";
+        return `
+          <article class="event">
+            <h2>${item.event_display_name || item.event_name}<span class="${badgeClass(item.recommendation)}">${item.recommendation_label || item.recommendation}</span></h2>
+            <div class="muted">${item.notes || ""}</div>
+            <p>命中率 ${pct(stats.prob_relevant_in_shop)} · 核心 ${pct(stats.prob_core_in_shop)} · 期望 ${stats.expected_relevant_in_shop}${sellText}</p>
+            <strong>关键卡</strong>
+            <ul>${cards || "<li>暂无</li>"}</ul>
+            <strong>已拥有命中</strong>
+            <ul>${ownedHits || "<li>暂无</li>"}</ul>
+            <strong>原因</strong>
+            <ul>${reasons || "<li>暂无</li>"}</ul>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function renderStateLists(state) {
+      renderList(
+        "#currentEvents",
+        state.event_options_display || [],
+        (item) => item.display_name || item.name,
+        (item) => item.known === false ? "待补充" : ""
+      );
+      renderList("#ownedCards", state.owned_cards_display || [], (item) => item.display_name || item.name, (item) => item.rarity || "");
+      renderList("#visibleCards", state.visible_cards_display || [], (item) => item.display_name || item.name);
+    }
+
+    function renderList(selector, items, titleFn, metaFn = null) {
+      const el = document.querySelector(selector);
+      if (!items.length) {
+        el.innerHTML = `<div class="muted">暂无</div>`;
+        return;
+      }
+      el.innerHTML = items.map((item) => {
+        const title = titleFn(item) || "-";
+        const meta = metaFn ? metaFn(item) : "";
+        return `<div class="list-item"><span>${title}</span>${meta ? `<small>${meta}</small>` : ""}</div>`;
+      }).join("");
+    }
+
+    document.querySelector("#refreshBtn").addEventListener("click", () => analyze(false));
+    document.querySelector("#aiBtn").addEventListener("click", () => analyze(true));
+    buildSelect.addEventListener("change", () => {
+      localStorage.setItem("bazaar_selected_build", buildSelect.value);
+      aiBox.innerHTML = "";
+      analyze(false);
+    });
+
+    loadOptions().then(loadState).then(() => analyze(false));
+    setInterval(() => analyze(false), 3000);
+  </script>
+</body>
+</html>
+"""
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Run the local The Bazaar AI helper UI.")
+    parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument("--port", type=int, default=8765)
+    return parser.parse_args()
+
+
+def main() -> None:
+    args = parse_args()
+    RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
+    server = ThreadingHTTPServer((args.host, args.port), BazaarHandler)
+    print(f"The Bazaar AI helper UI: http://{args.host}:{args.port}")
+    print(f"Runtime state file: {STATE_PATH}")
+    server.serve_forever()
+
+
+if __name__ == "__main__":
+    main()
