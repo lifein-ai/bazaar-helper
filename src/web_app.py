@@ -445,16 +445,75 @@ def priority_cards(cards: list[dict[str, Any]], limit: int = 6) -> list[dict[str
         for card in filtered[:limit]
     ]
 
+def event_has_value_rule(event_data: dict[str, Any] | None) -> bool:
+    """判断一个已识别事件是否有可计算收益规则。"""
+    if not event_data:
+        return False
+
+    if event_data.get("shop_pool"):
+        return True
+
+    card_reward = event_data.get("card_reward")
+    if isinstance(card_reward, dict) and card_reward.get("enabled"):
+        return True
+
+    if event_data.get("followup_options"):
+        return True
+
+    resource_rewards = event_data.get("resource_rewards", {})
+    if isinstance(resource_rewards, dict) and any(resource_rewards.values()):
+        return True
+
+    return False
 
 def summarize_recommendation(data: dict[str, Any], result: dict[str, Any]) -> dict[str, Any]:
+    event_name = result.get("event_name")
+    event_data = data["events"].get(event_name) if event_name else None
+
+    known = bool(event_name) and event_name in data["events"]
+    has_value_rule = event_has_value_rule(event_data) if known else False
+
+    recommendation = result.get("recommendation")
+    recommendation_label_zh = recommendation_label(recommendation)
+    event_rule_status = "normal"
+
+    base_reasons = [zh_text(data, reason) for reason in result.get("reasons", [])[:4]]
+
+    if not known:
+        event_rule_status = "missing_event"
+        recommendation = "Low Value"
+        recommendation_label_zh = "事件数据缺失"
+        base_reasons.insert(
+            0,
+            "事件数据缺失：这个事件没有在 events.json 中找到，应该已经记录到 runtime/missing_events.json，当前无法计算卡池、核心命中率或资源收益。",
+        )
+    elif not has_value_rule:
+        event_rule_status = "known_without_value_rule"
+        recommendation = "Low Value"
+        recommendation_label_zh = "已识别，暂无收益规则"
+        base_reasons.insert(
+            0,
+            "事件已识别，但当前缺少可计算收益规则：events.json 中有这个事件，但没有 shop_pool、card_reward、resource_rewards 或 followup_options，所以暂时无法计算实际收益。",
+        )
+    elif recommendation == "Low Value":
+        event_rule_status = "normal_low_value"
+        base_reasons.insert(
+            0,
+            "有可计算收益规则，但当前 Build 下命中核心卡、过渡卡或有效收益较低，所以显示为低收益事件。",
+        )
+
     pool_stats = result.get("pool_stats", {})
+
     return {
-        "event_name": result.get("event_name"),
-        "event_display_name": zh_name(data, result.get("event_name")),
-        "recommendation": result.get("recommendation"),
-        "recommendation_label": recommendation_label(result.get("recommendation")),
+        "event_name": event_name,
+        "event_display_name": zh_name(data, event_name),
+        "known": known,
+        "has_value_rule": has_value_rule,
+        "event_rule_status": event_rule_status,
+        "recommendation": recommendation,
+        "recommendation_label": recommendation_label_zh,
         "notes": "",
-        "reasons": [zh_text(data, reason) for reason in result.get("reasons", [])[:4]],
+        "reasons": base_reasons,
         "priority_cards": [
             {
                 **card,
