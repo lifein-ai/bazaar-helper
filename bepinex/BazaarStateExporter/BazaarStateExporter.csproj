@@ -8,6 +8,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <BepInExRoot Condition="'$(BepInExRoot)' == ''">D:\steam\steamapps\common\The Bazaar\BepInEx</BepInExRoot>
+    <GameManagedDir Condition="'$(GameManagedDir)' == ''">D:\steam\steamapps\common\The Bazaar\TheBazaar_Data\Managed</GameManagedDir>
     <BepInExRoot Condition="'$(BepInExRoot)' == ''">$(GameRoot)\BepInEx</BepInExRoot>
     <GameManagedDir Condition="'$(GameManagedDir)' == ''">$(GameRoot)\TheBazaar_Data\Managed</GameManagedDir>
   </PropertyGroup>
