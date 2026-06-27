@@ -963,11 +963,77 @@ def priority_cards(cards: list[dict[str, Any]], limit: int = 6) -> list[dict[str
         for card in filtered[:limit]
     ]
 
+def text_has_skill_reward(*values: Any) -> bool:
+    text = " ".join(str(value or "").lower() for value in values if value)
+
+    skill_keywords = [
+        "skill",
+        "skills",
+        "choose 1 of 2 skills",
+        "choose 1 of 3 skills",
+        "choose a skill",
+        "gain a skill",
+        "技能",
+    ]
+
+    return any(keyword in text for keyword in skill_keywords)
+
+
+def event_has_skill_reward(event_data: dict[str, Any] | None) -> bool:
+    """判断事件是否包含技能收益。用于 UI 展示层兜底。"""
+    if not isinstance(event_data, dict):
+        return False
+
+    event_category = str(event_data.get("event_category") or "").strip().lower()
+    event_type = str(event_data.get("event_type") or "").strip().lower()
+    effect = str(event_data.get("effect") or "").strip().lower()
+
+    if event_category == "skill_shops":
+        return True
+
+    if event_type in {"skill_shop", "skill_event", "skill_reward"}:
+        return True
+
+    if effect in {"gain_skill", "choose_skill", "skill_reward"}:
+        return True
+
+    qualitative_rewards = event_data.get("qualitative_rewards", [])
+    if isinstance(qualitative_rewards, list):
+        for reward in qualitative_rewards:
+            if text_has_skill_reward(reward):
+                return True
+
+    return text_has_skill_reward(
+        event_data.get("name", ""),
+        event_data.get("notes", ""),
+        event_data.get("description", ""),
+    )
+
+
+def child_option_has_skill_reward(child: dict[str, Any]) -> bool:
+    """判断运行时观察到的子选项是否包含技能收益。"""
+    if not isinstance(child, dict):
+        return False
+
+    return text_has_skill_reward(
+        child.get("name", ""),
+        child.get("description", ""),
+        child.get("card_type", ""),
+        child.get("official_type", ""),
+    )
+
+
+def child_options_have_skill_reward(child_options: list[dict[str, Any]]) -> bool:
+    return any(child_option_has_skill_reward(child) for child in child_options)
+
 def event_has_value_rule(event_data: dict[str, Any] | None) -> bool:
     """判断一个已识别事件是否有可计算收益规则。"""
     if not event_data:
         return False
-
+    
+    if event_has_skill_reward(event_data):
+        return True
+    
     if event_data.get("shop_pool"):
         return True
 
@@ -995,9 +1061,11 @@ def summarize_recommendation(data: dict[str, Any], result: dict[str, Any]) -> di
     parent_graph = observed_event_graph.get(event_name) if event_name else None
     child_options = summarize_parent_child_options(parent_graph)
     is_parent_event = bool(child_options)
+    has_skill_child_reward = child_options_have_skill_reward(child_options)
 
     known = bool(event_name) and event_name in data["events"]
     has_value_rule = event_has_value_rule(event_data) if known else False
+    has_skill_reward = (event_has_skill_reward(event_data) if known else False) or has_skill_child_reward
 
     recommendation = result.get("recommendation")
     recommendation_label_zh = recommendation_label(recommendation)
@@ -1032,15 +1100,18 @@ def summarize_recommendation(data: dict[str, Any], result: dict[str, Any]) -> di
     elif is_parent_event:
         event_rule_status = "parent_event"
 
-        # 不再强制把父事件改成 Medium Value。
-        # 推荐等级保留 recommender.py 的结果，因为它可能已经根据最佳后续提升过。
         recommendation = result.get("recommendation")
+        if has_skill_reward and recommendation == "Low Value":
+            recommendation = "Medium Value"
+
         recommendation_label_zh = recommendation_label(recommendation)
 
-        base_reasons.insert(
-            0,
-            parent_event_reason_text(child_options),
-        )
+        reason_text = parent_event_reason_text(child_options)
+        if has_skill_reward:
+            reason_text += "；检测到技能收益，最低按“可以考虑”处理。"
+
+        base_reasons.insert(0, reason_text)
+
     elif not has_value_rule:
         event_rule_status = "known_without_value_rule"
         recommendation = "Low Value"
@@ -1048,6 +1119,14 @@ def summarize_recommendation(data: dict[str, Any], result: dict[str, Any]) -> di
         base_reasons.insert(
             0,
             "事件已识别，但当前缺少可计算收益规则：events.json 中有这个事件，但没有 shop_pool、card_reward、resource_rewards 或 followup_options，所以暂时无法计算实际收益。",
+        )
+    elif has_skill_reward and recommendation == "Low Value":
+        event_rule_status = "skill_reward"
+        recommendation = "Medium Value"
+        recommendation_label_zh = recommendation_label(recommendation)
+        base_reasons.insert(
+            0,
+            "检测到技能收益事件，最低按“可以考虑”处理。",
         )
     elif recommendation == "Low Value":
         event_rule_status = "normal_low_value"
@@ -1220,13 +1299,31 @@ def analyze_payload(
     }
 
     if include_ai and response["recommendations"]:
+        ai_results: list[dict[str, Any]] = []
+
+        for raw_item, display_item in zip(result.recommendations, response["recommendations"]):
+            item = dict(raw_item)
+
+            # AI 必须吃到 UI 展示层修正后的推荐等级。
+            item["recommendation"] = display_item.get(
+                "recommendation",
+                raw_item.get("recommendation"),
+            )
+
+            # AI 也吃展示层修正后的理由，比如“检测到技能收益，最低按可以考虑处理”。
+            display_reasons = display_item.get("reasons", [])
+            if isinstance(display_reasons, list) and display_reasons:
+                item["reasons"] = display_reasons
+
+            ai_results.append(item)
+
         ai_payload = compact_recommendations(
             data=data,
             hero=state.hero,
             build_name=state.build,
             current_day=state.day,
             owned_cards=state.owned_cards,
-            results=result.recommendations,
+            results=ai_results,
         )
         try:
             response["ai_analysis"] = analyze_with_ai(ai_payload)

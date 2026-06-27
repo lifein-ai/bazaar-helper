@@ -412,6 +412,50 @@ def get_event_draw_count(event_data: dict[str, Any]) -> int:
     return max(count, 1)
 
 
+def event_has_skill_reward(event_data: dict[str, Any]) -> bool:
+    """判断事件是否包含技能收益。"""
+    if not isinstance(event_data, dict):
+        return False
+
+    event_category = normalize_text(event_data.get("event_category"))
+    event_type = normalize_text(event_data.get("event_type"))
+    effect = normalize_text(event_data.get("effect"))
+
+    if event_category == "skill_shops":
+        return True
+
+    if event_type in {"skill_shop", "skill_event", "skill_reward"}:
+        return True
+
+    if effect in {"gain_skill", "choose_skill", "skill_reward"}:
+        return True
+
+    qualitative_rewards = event_data.get("qualitative_rewards", [])
+    if isinstance(qualitative_rewards, list):
+        for reward in qualitative_rewards:
+            if "skill" in normalize_text(str(reward)) or "技能" in str(reward):
+                return True
+
+    text_fields = [
+        event_data.get("name", ""),
+        event_data.get("notes", ""),
+        event_data.get("description", ""),
+    ]
+    text = " ".join(str(value).lower() for value in text_fields if value)
+
+    skill_keywords = [
+        "skill",
+        "skills",
+        "choose 1 of 2 skills",
+        "choose 1 of 3 skills",
+        "choose a skill",
+        "gain a skill",
+        "技能",
+    ]
+
+    return any(keyword in text for keyword in skill_keywords)
+
+
 def analyze_event(
     event_name: str,
     event_data: dict[str, Any],
@@ -479,6 +523,7 @@ def analyze_event(
                 "sell_gold": expected_card_sell_gold(card_data, resolved_rarity_filter),
             }
         )
+
 
     if event_data.get("event_category") in {"item_events", "enchant_events"}:
         owned_target_hits = analyze_owned_target_hits(
@@ -786,6 +831,8 @@ def decide_recommendation(
     prob_core = pool_stats.get("prob_core_in_shop", 0.0)
     draw_count = int(pool_stats.get("draw_count", SHOP_CARD_COUNT))
 
+    has_skill_reward = event_has_skill_reward(event_data)
+
     core_count = role_counts.get("core", 0)
     transition_count = role_counts.get("transition", 0)
     owned_valuable_hits = [
@@ -828,6 +875,9 @@ def decide_recommendation(
     if has_resource_reward:
         reasons.append(f"额外提供资源：{format_resource_rewards(resource_rewards)}。")
 
+    if has_skill_reward:
+        reasons.append("包含技能收益，最低按可以考虑处理。")
+
     if expected_sell_gold > 0:
         reasons.append(
             f"无用物品也可以卖出，预期约 {expected_sell_gold:.1f} 金币。"
@@ -860,6 +910,7 @@ def decide_recommendation(
     if (
         not analyzed_cards
         and not has_resource_reward
+        and not has_skill_reward
         and not owned_target_hits
         and event_data.get("event_category") != "enchant_events"
     ):
@@ -872,6 +923,11 @@ def decide_recommendation(
     if owned_valuable_hits and event_data.get("effect") != "transform_items":
         return "High Value", reasons
     if owned_target_hits:
+        return "Medium Value", reasons
+    if has_skill_reward:
+        return "Medium Value", reasons
+
+    if has_skill_reward:
         return "Medium Value", reasons
     if event_data.get("event_category") in {"skill_shops", "enchant_events"}:
         return "Medium Value", reasons
