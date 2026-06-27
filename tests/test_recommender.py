@@ -557,6 +557,67 @@ class RecommenderTests(unittest.TestCase):
         self.assertIn("后续选项", payload["选项"][0])
         self.assertTrue(payload["选项"][0]["后续选项"])
 
+    def test_followup_options_promote_parent_pool_stats_from_best_followup(self) -> None:
+        data = load_all_data(DATA_DIR)
+        result = analyze_event(
+            event_name="Haddy",
+            event_data=data["events"]["Haddy"],
+            cards=data["cards"],
+            build_name="VanessaAquaticAmmo",
+            build_data=data["builds"]["VanessaAquaticAmmo"],
+            current_day=6,
+            rarity_rules=data["rarity_rules"],
+            current_hero="Vanessa",
+            owned_cards={},
+        )
+
+        self.assertEqual(result["best_followup"], "Enchanted Item")
+        self.assertGreater(result["pool_stats"]["total_pool_count"], 0)
+        self.assertGreater(result["pool_stats"]["expected_valuable_in_shop"], 0)
+        self.assertFalse(
+            any("暂未识别到明确的卡牌或资源收益" in reason for reason in result["reasons"])
+        )
+
+    def test_followup_resource_reward_is_reflected_in_parent_reason(self) -> None:
+        data = {
+            "cards": {},
+            "builds": {
+                "TestBuild": {
+                    "core_cards": [],
+                    "transition_cards": [],
+                    "optional_cards": [],
+                }
+            },
+            "rarity_rules": {},
+        }
+        result = analyze_event(
+            event_name="Parent Event",
+            event_data={
+                "name": "Parent Event",
+                "followup_options": [
+                    {
+                        "name": "Sell It",
+                        "event_category": "resource_events",
+                        "resource_rewards": {"gold": 4},
+                    }
+                ],
+            },
+            cards=data["cards"],
+            build_name="TestBuild",
+            build_data=data["builds"]["TestBuild"],
+            current_day=1,
+            rarity_rules=data["rarity_rules"],
+            current_hero="Vanessa",
+            owned_cards={},
+        )
+
+        self.assertEqual(result["recommendation"], "Medium Value")
+        self.assertEqual(result["best_followup"], "Sell It")
+        self.assertEqual(result["resource_rewards"], {"gold": 4})
+        self.assertTrue(
+            any("最佳后续预计可获得" in reason and "金币" in reason for reason in result["reasons"])
+        )
+
     def test_exact_item_rewards_match_named_reward_cards(self) -> None:
         data = load_all_data(DATA_DIR)
         cards, rarity_filter = infer_possible_cards_for_event(

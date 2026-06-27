@@ -297,7 +297,8 @@ def normalize_event_options(data: dict[str, Any], payload: dict[str, Any]) -> li
 
     # 旧逻辑兜底：如果没有 detailed，再用 template_id + instance_id。
     if not candidates:
-        for index, template_id in enumerate(template_ids):
+        template_limit = len(raw_event_options) if raw_event_options else len(template_ids)
+        for index, template_id in enumerate(template_ids[:template_limit]):
             instance_id = option_ids[index] if index < len(option_ids) else ""
 
             if is_non_event_runtime_id(instance_id):

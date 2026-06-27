@@ -544,6 +544,7 @@ def analyze_event(
         event_data,
     )
     followup_results: list[dict[str, Any]] = []
+    followup_value_summary: dict[str, Any] | None = None
     if include_followups:
         for option in event_data.get("followup_options", []):
             followup_results.append(
@@ -561,11 +562,33 @@ def analyze_event(
                     include_followups=False,
                 )
             )
-        recommendation, reasons = apply_followup_value(
+        recommendation, reasons, followup_value_summary = apply_followup_value(
             recommendation,
             reasons,
             followup_results,
         )
+        direct_is_empty = (
+            not total_pool_count
+            and not has_resource_reward
+            and not owned_target_hits
+            and not upgrade_hits
+            and high_tier_count == 0
+        )
+        if followup_value_summary and direct_is_empty:
+            followup_pool_stats = followup_value_summary.get("pool_stats", {})
+            if isinstance(followup_pool_stats, dict):
+                pool_stats = dict(followup_pool_stats)
+
+            followup_resource_rewards = followup_value_summary.get("resource_rewards", {})
+            if isinstance(followup_resource_rewards, dict) and followup_resource_rewards:
+                resource_rewards = dict(followup_resource_rewards)
+                has_resource_reward = True
+
+            reasons = [
+                reason
+                for reason in reasons
+                if "暂未识别到明确的卡牌或资源收益" not in reason
+            ]
 
     return {
         "event_name": event_name,
@@ -580,9 +603,52 @@ def analyze_event(
         "owned_target_hits": owned_target_hits,
         "resource_rewards": resource_rewards,
         "followup_options": summarize_followup_results(followup_results),
+        "best_followup": followup_value_summary.get("best_followup") if followup_value_summary else None,
+        "followup_recommendation_level": followup_value_summary.get("followup_recommendation_level") if followup_value_summary else None,
+        "followup_expected_value": followup_value_summary.get("followup_expected_value") if followup_value_summary else 0.0,
+        "followup_hit_chance": followup_value_summary.get("followup_hit_chance") if followup_value_summary else 0.0,
+        "followup_value_summary": followup_value_summary,
         "pool_stats": pool_stats,
         "recommendation": recommendation,
         "reasons": reasons,
+    }
+
+
+def select_best_followup_result(followup_results: list[dict[str, Any]]) -> dict[str, Any] | None:
+    if not followup_results:
+        return None
+
+    ranked = sorted(
+        followup_results,
+        key=lambda result: (
+            RECOMMENDATION_RANK.get(result.get("recommendation"), 99),
+            -float(result.get("pool_stats", {}).get("expected_valuable_in_shop", 0.0)),
+            -float(result.get("pool_stats", {}).get("expected_sell_gold", 0.0)),
+            result.get("event_name", ""),
+        ),
+    )
+    return ranked[0]
+
+
+def summarize_best_followup_value(best: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not best:
+        return None
+
+    pool_stats = best.get("pool_stats", {})
+    if not isinstance(pool_stats, dict):
+        pool_stats = {}
+
+    resource_rewards = best.get("resource_rewards", {})
+    if not isinstance(resource_rewards, dict):
+        resource_rewards = {}
+
+    return {
+        "best_followup": best.get("event_name"),
+        "followup_recommendation_level": best.get("recommendation"),
+        "followup_expected_value": float(pool_stats.get("expected_valuable_in_shop", 0.0)),
+        "followup_hit_chance": float(pool_stats.get("prob_valuable_in_shop", 0.0)),
+        "pool_stats": dict(pool_stats),
+        "resource_rewards": dict(resource_rewards),
     }
 
 
@@ -590,38 +656,47 @@ def apply_followup_value(
     recommendation: str,
     reasons: list[str],
     followup_results: list[dict[str, Any]],
-) -> tuple[str, list[str]]:
+) -> tuple[str, list[str], dict[str, Any] | None]:
     if not followup_results:
-        return recommendation, reasons
+        return recommendation, reasons, None
 
-    ranked = sorted(
-        followup_results,
-        key=lambda result: (
-            RECOMMENDATION_RANK.get(result.get("recommendation"), 99),
-            result.get("event_name", ""),
-        ),
-    )
-    best = ranked[0]
+    best = select_best_followup_result(followup_results)
+    if not best:
+        return recommendation, reasons, None
+
     best_recommendation = best.get("recommendation", "Low Value")
-    useful = [
-        result
-        for result in ranked
-        if result.get("recommendation") in {"High Value", "Medium Value"}
-    ]
-    useful_names = ", ".join(result.get("event_name", "") for result in useful[:4])
-    if useful_names:
-        reasons.append(f"后续选项里有可用收益：{useful_names}。")
-    else:
+    followup_summary = summarize_best_followup_value(best)
+
+    pool_stats = best.get("pool_stats", {})
+    if not isinstance(pool_stats, dict):
+        pool_stats = {}
+
+    resource_rewards = best.get("resource_rewards", {})
+    if not isinstance(resource_rewards, dict):
+        resource_rewards = {}
+
+    if any(value > 0 for value in resource_rewards.values() if isinstance(value, (int, float))):
+        reasons.append(
+            f"该父事件可进入后续选择，最佳后续预计可获得 {format_resource_rewards(resource_rewards)}。"
+        )
+
+    total_pool_count = int(pool_stats.get("total_pool_count", 0))
+    if total_pool_count > 0:
+        reasons.append(
+            "该父事件可进入后续选择，最佳后续 "
+            f"{best.get('event_name', '选项')} 预计命中率 {float(pool_stats.get('prob_valuable_in_shop', 0.0)):.0%}，"
+            f"核心 {float(pool_stats.get('prob_core_in_shop', 0.0)):.0%}，"
+            f"期望 {float(pool_stats.get('expected_valuable_in_shop', 0.0)):.1f}。"
+        )
+    elif not any(value > 0 for value in resource_rewards.values() if isinstance(value, (int, float))):
         reasons.append("检测到后续选项，但目前看收益有限。")
 
     current_rank = RECOMMENDATION_RANK.get(recommendation, 99)
     best_rank = RECOMMENDATION_RANK.get(best_recommendation, 99)
-    if best_rank >= current_rank:
-        return recommendation, reasons
+    if best_rank < current_rank:
+        recommendation = best_recommendation
 
-    if recommendation == "Low Value" and best_recommendation == "High Value":
-        return "Medium Value", reasons
-    return best_recommendation, reasons
+    return recommendation, reasons, followup_summary
 
 
 def summarize_followup_results(followup_results: list[dict[str, Any]]) -> list[dict[str, Any]]:
