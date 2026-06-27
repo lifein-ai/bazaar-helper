@@ -383,6 +383,35 @@ def expected_unrelated_sell_gold(
     return draw_count * total_sell_value / len(analyzed_cards)
 
 
+def get_event_draw_count(event_data: dict[str, Any]) -> int:
+    """
+    返回这个事件一次能看到/获得多少个物品。
+
+    规则：
+    - shops / skill_shops：默认看 6 张
+    - item_rewards / 带 card_reward 的 resource_events：默认获得 1 个
+    - card_reward.count 存在时，用 count
+    - count 缺失、为空、写错时，安全回退为 1
+    """
+    event_category = event_data.get("event_category")
+
+    if event_category in {"shops", "skill_shops"}:
+        return SHOP_CARD_COUNT
+
+    card_reward = event_data.get("card_reward")
+    if isinstance(card_reward, dict):
+        raw_count = card_reward.get("count", event_data.get("count", 1))
+    else:
+        raw_count = event_data.get("count", 1)
+
+    try:
+        count = int(raw_count)
+    except (TypeError, ValueError):
+        count = 1
+
+    return max(count, 1)
+
+
 def analyze_event(
     event_name: str,
     event_data: dict[str, Any],
@@ -476,7 +505,11 @@ def analyze_event(
     core_ratio = core_count / total_pool_count if total_pool_count else 0.0
     high_tier_ratio = high_tier_count / total_pool_count if total_pool_count else 0.0
 
-    draw_count = 1 if event_data.get("event_category") == "item_rewards" else SHOP_CARD_COUNT
+    card_reward = event_data.get("card_reward", {})
+    reward_count = int(card_reward.get("count", 1)) if isinstance(card_reward, dict) else 1
+
+    draw_count = get_event_draw_count(event_data)
+
     expected_sell_gold = expected_unrelated_sell_gold(
         analyzed_cards,
         event_data,

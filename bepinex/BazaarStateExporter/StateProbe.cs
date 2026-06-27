@@ -423,15 +423,6 @@ namespace BazaarStateExporter
                     continue;
                 }
 
-                if ((section.IndexOf("Hand", StringComparison.OrdinalIgnoreCase) >= 0
-                    || section.IndexOf("Stash", StringComparison.OrdinalIgnoreCase) >= 0)
-                    && ownedIds.Add(card.id))
-                {
-                    CardSnapshot owned = CloneCard(card);
-                    owned.source = "ui_scan";
-                    snapshot.owned_cards.Add(owned);
-                }
-
                 bool visibleCandidate = section.IndexOf("Shop", StringComparison.OrdinalIgnoreCase) >= 0
                     || section.IndexOf("Selection", StringComparison.OrdinalIgnoreCase) >= 0
                     || section.IndexOf("Reward", StringComparison.OrdinalIgnoreCase) >= 0

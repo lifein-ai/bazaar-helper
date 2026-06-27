@@ -357,11 +357,17 @@ def is_detailed_encounter_option(option: Any) -> bool:
     if not isinstance(option, dict):
         return False
 
-    option_id = str(option.get("id") or "")
+    option_id = str(option.get("id") or "").lower()
     kind = str(option.get("kind") or "").lower()
     card_type = str(option.get("card_type") or "").lower()
 
     if kind in {"step", "combat", "pvp"}:
+        return False
+
+    if option_id.startswith(("ste_", "com_", "pvp_")):
+        return False
+
+    if "combat" in card_type or "pvp" in card_type:
         return False
 
     if kind == "encounter":
@@ -391,22 +397,70 @@ def looks_like_uuid(value: str) -> bool:
     )
 
 
+def _coerce_observed_graph_node(node: Any) -> dict[str, Any]:
+    if not isinstance(node, dict):
+        return {}
+
+    cleaned = dict(node)
+
+    parent_source_ids = cleaned.get("parent_source_ids")
+    if isinstance(parent_source_ids, list):
+        cleaned["parent_source_ids"] = [
+            str(source_id)
+            for source_id in parent_source_ids
+            if source_id not in (None, "")
+        ]
+    else:
+        cleaned["parent_source_ids"] = []
+
+    children = cleaned.get("children")
+    if isinstance(children, list):
+        cleaned["children"] = [dict(child) for child in children if isinstance(child, dict)]
+    else:
+        cleaned["children"] = []
+
+    try:
+        cleaned["observed_count"] = int(cleaned.get("observed_count") or 0)
+    except (TypeError, ValueError):
+        cleaned["observed_count"] = 0
+
+    if "parent_event" in cleaned and cleaned["parent_event"] is not None:
+        cleaned["parent_event"] = str(cleaned["parent_event"])
+
+    return cleaned
+
+
 def load_observed_event_graph() -> dict[str, Any]:
     if not OBSERVED_EVENT_GRAPH_PATH.exists():
         return {}
 
     try:
         data = json.loads(OBSERVED_EVENT_GRAPH_PATH.read_text(encoding="utf-8-sig"))
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, OSError):
         return {}
 
-    return data if isinstance(data, dict) else {}
+    if not isinstance(data, dict):
+        return {}
+
+    cleaned: dict[str, Any] = {}
+    for name, node in data.items():
+        if not name:
+            continue
+        cleaned[str(name)] = _coerce_observed_graph_node(node)
+
+    return cleaned
 
 
 def write_observed_event_graph(graph: dict[str, Any]) -> None:
     RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
+    cleaned: dict[str, Any] = {}
+    if isinstance(graph, dict):
+        for name, node in graph.items():
+            if not name:
+                continue
+            cleaned[str(name)] = _coerce_observed_graph_node(node)
     OBSERVED_EVENT_GRAPH_PATH.write_text(
-        json.dumps(graph, ensure_ascii=False, indent=2) + "\n",
+        json.dumps(cleaned, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
 
@@ -510,6 +564,12 @@ def enrich_child_from_official_cards(
     child_item: dict[str, Any],
     official_cards: dict[str, dict[str, Any]],
 ) -> None:
+    if not isinstance(child_item, dict):
+        return
+
+    if not isinstance(official_cards, dict):
+        official_cards = {}
+
     source_id = str(child_item.get("source_id") or "").lower()
     if not source_id:
         return
@@ -535,17 +595,17 @@ def enrich_child_from_official_cards(
 
 
 def detailed_option_kind(option: dict[str, Any]) -> str:
-    option_id = str(option.get("id") or "")
+    option_id = str(option.get("id") or "").lower()
     kind = str(option.get("kind") or "").lower()
     card_type = str(option.get("card_type") or "").lower()
 
-    if option_id.startswith("ste_") or "encounterstep" in card_type:
+    if option_id.startswith("ste_") or kind == "step" or "encounterstep" in card_type:
         return "step"
 
-    if option_id.startswith("com_") or "combat" in card_type:
+    if option_id.startswith("com_") or kind == "combat" or "combat" in card_type:
         return "combat"
 
-    if option_id.startswith("pvp_"):
+    if option_id.startswith("pvp_") or kind == "pvp" or "pvp" in card_type:
         return "pvp"
 
     if option_id.startswith("enc_") or "eventencounter" in card_type:
@@ -613,7 +673,8 @@ def auto_observe_event_graph(data: dict[str, Any], payload: dict[str, Any]) -> N
     official_cards = load_official_cards_index()
     graph = load_observed_event_graph()
 
-    parent_record = graph.get(parent_name, {})
+    parent_record = _coerce_observed_graph_node(graph.get(parent_name))
+    graph[parent_name] = parent_record
     if not isinstance(parent_record, dict):
         parent_record = {}
 
@@ -656,6 +717,9 @@ def auto_observe_event_graph(data: dict[str, Any], payload: dict[str, Any]) -> N
             changed = True
 
         # 旧子选项也会补充官方 cards.json 信息，但不会被删除或覆盖成空
+        if not isinstance(child_item, dict):
+            continue
+
         before = json.dumps(child_item, ensure_ascii=False, sort_keys=True)
 
         enrich_child_from_official_cards(child_item, official_cards)
@@ -781,10 +845,19 @@ def load_observed_event_graph() -> dict[str, Any]:
 
     try:
         data = json.loads(OBSERVED_EVENT_GRAPH_PATH.read_text(encoding="utf-8-sig"))
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, OSError):
         return {}
 
-    return data if isinstance(data, dict) else {}
+    if not isinstance(data, dict):
+        return {}
+
+    cleaned: dict[str, Any] = {}
+    for name, node in data.items():
+        if not name:
+            continue
+        cleaned[str(name)] = _coerce_observed_graph_node(node)
+
+    return cleaned
 
 
 def format_resource_rewards(resource_rewards: dict[str, Any]) -> str:
@@ -1019,7 +1092,11 @@ def analyze_payload(
     include_ai: bool = False,
     top: int | None = None,
 ) -> dict[str, Any]:
-    auto_observe_event_graph(data, payload)
+    observation_warning: str | None = None
+    try:
+        auto_observe_event_graph(data, payload)
+    except Exception as exc:  # noqa: BLE001 - observation failure must not block analysis.
+        observation_warning = f"observation graph update failed: {exc}"
 
     normalized = normalize_payload_for_analysis(data, payload, build_override)
     state = GameState.from_dict(normalized)
@@ -1094,7 +1171,10 @@ def analyze_payload(
         except RuntimeError as exc:
             response["ai_error"] = str(exc)
 
-        return response
+    if observation_warning:
+        response["warnings"] = [observation_warning, *response["warnings"]]
+
+    return response
 
 
 def record_missing_events(
