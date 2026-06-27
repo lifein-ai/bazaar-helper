@@ -2324,7 +2324,7 @@
         "reward_tags": [],
         "match_mode": "any",
         "rarity_filter": {
-          "min": "diamond",
+          "min": "bronze",
           "max": "diamond"
         },
         "rarity_rule": null,
@@ -4114,14 +4114,17 @@
         "excluded_tags": [
           "legendary"
         ],
-        "hero_scope": "current"
+        "hero_scope": "current",
+        "size_filter": [
+          "medium"
+        ]
       },
       "resource_rewards": {
         "gold": 0,
         "exp": 0,
         "health": 0
       },
-      "notes": "You find an abandoned chest.",
+      "notes": "You find an abandoned chest.. Get a medium item",
       "followup_options": [
         {
           "name": "Return It",

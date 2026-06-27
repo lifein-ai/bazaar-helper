@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -171,43 +172,36 @@ def compact_recommendations(
 
 def build_ai_messages(payload: dict[str, Any]) -> list[dict[str, str]]:
     summary_json = json.dumps(payload, ensure_ascii=False, indent=2)
+
     return [
         {
             "role": "system",
             "content": (
-                "你是《The Bazaar》的事件决策分析助手。\n"
-                "你只能基于用户提供的结构化信息进行分析，不得编造任何卡牌、事件或规则。\n"
+                "你是《The Bazaar》的事件选择建议助手。\n"
+                "你只能基于用户提供的数据判断，不得编造卡牌、事件、概率或规则。\n"
                 "\n"
-                "【核心理解】\n"
-                "游戏决策核心是：阶段推进、流派成型、体系强化、资源容错。\n"
+                "你的任务不是写长篇分析，而是给玩家一个游戏中能快速看懂的选择建议。\n"
                 "\n"
-                "【决策优先级】\n"
-                "1. 是否加速当前流派成型。\n"
-                "2. 是否增强核心循环或关键卡收益。\n"
-                "3. 是否符合阵容填写人的实战 Tips。\n"
-                "4. 是否提供稳定资源、过渡能力或卖出保底金币。\n"
+                "输出规则：\n"
+                "1. 必须使用中文。\n"
+                "2. 禁止使用 Markdown。\n"
+                "3. 禁止使用 **、#、表格、代码块。\n"
+                "4. 禁止使用多层列表。\n"
+                "5. 禁止逐条展开长篇分析。\n"
+                "6. 总字数控制在 160 字以内。\n"
                 "\n"
-                "【判断标准】\n"
-                "- 能提升核心卡出现率或体系强度：优先。\n"
-                "- 和实战 Tips 冲突的选择：谨慎或降级。\n"
-                "- 只是泛用收益但不影响体系：次优。\n"
-                "- 与当前流派无关且卖价保底低：降级。\n"
-                "\n"
-                "【输出要求】\n"
-                "必须使用中文，并严格输出：\n"
-                "1. 最优选择：XXX\n"
-                "2. 次优选择：XXX（如有）\n"
-                "3. 原因分析：\n"
-                "- 是否加速体系成型\n"
-                "- 是否增强核心循环\n"
-                "- 是否符合实战 Tips\n"
-                "- 是否只是资源或卖价保底收益\n"
-                "\n"
-                "【强约束】\n"
-                "- 不允许编造信息。\n"
-                "- 不允许泛泛而谈。\n"
-                "- 必须绑定输入数据逐条分析。\n"
-                "- 信息不足时必须说明无法判断。\n\n"
+                "只允许按下面 5 行输出，不要增加其他内容：\n"
+                "推荐：事件名\n"
+                "备选：事件名或无\n"
+                "不选：事件名或无\n"
+                "理由：一句话说明推荐原因，不超过 60 字\n"
+                "操作：一句话告诉玩家怎么选，不超过 40 字\n"
+            ),
+        },
+        {
+            "role": "user",
+            "content": (
+                "下面是本次事件候选数据，只能基于这些数据判断：\n"
                 f"{summary_json}"
             ),
         },
@@ -224,6 +218,32 @@ def read_api_key_file(path: Path = DEFAULT_API_KEY_FILE) -> str | None:
 
 def resolve_api_key(api_key: str | None = None) -> str | None:
     return api_key or os.environ.get("DEEPSEEK_API_KEY") or read_api_key_file()
+
+
+def clean_ai_output(text: str) -> str:
+    """清理 AI 输出中的 Markdown 符号，避免前端直接显示 **、缩进列表等。"""
+    if not text:
+        return ""
+
+    text = text.replace("\r\n", "\n")
+
+    # 去掉常见 Markdown 强调符号
+    text = text.replace("**", "")
+    text = text.replace("__", "")
+
+    # 去掉标题符号
+    text = re.sub(r"(?m)^\s*#{1,6}\s*", "", text)
+
+    # 去掉行首项目符号
+    text = re.sub(r"(?m)^\s*[\*\-•]\s*", "", text)
+
+    # 压平过深缩进
+    text = re.sub(r"(?m)^\s{2,}", "", text)
+
+    # 压缩空行
+    text = re.sub(r"\n{3,}", "\n\n", text)
+
+    return text.strip()
 
 
 def call_deepseek(
@@ -281,9 +301,10 @@ def analyze_with_ai(
     base_url: str = DEFAULT_DEEPSEEK_BASE_URL,
     timeout: int = 30,
 ) -> str:
-    return call_deepseek(
+    raw_text = call_deepseek(
         build_ai_messages(payload),
         model=model,
         base_url=base_url,
         timeout=timeout,
     )
+    return clean_ai_output(raw_text)

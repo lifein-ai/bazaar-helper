@@ -1,0 +1,15 @@
+{
+  "Regenerative Tincture": {
+    "_override_reason": "人工修正：该事件获得再生，数值随玩家等级变化，暂不显示具体数值。",
+    "_dynamic_reward": true,
+    "resource_rewards": {},
+    "qualitative_rewards": ["regen"],
+    "notes": "获得再生，数值等于你的等级。"
+  },
+  "Midsworth": {
+        "_override_reason": "人工修正：Midsworth 不出售中型物品。",
+        "shop_pool": {
+      "size_filter": ["small", "large"]
+        }
+    }
+}

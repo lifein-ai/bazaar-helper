@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
@@ -10,8 +11,22 @@ def load_json(path: str | Path) -> dict[str, Any]:
     if not path.exists():
         raise FileNotFoundError(f"Data file not found: {path}")
 
-    with path.open("r", encoding="utf-8") as file:
+    with path.open("r", encoding="utf-8-sig") as file:
         return json.load(file)
+
+
+def load_json_if_exists(path: str | Path) -> dict[str, Any]:
+    path = Path(path)
+    if not path.exists():
+        return {}
+
+    with path.open("r", encoding="utf-8-sig") as file:
+        data = json.load(file)
+
+    if not isinstance(data, dict):
+        raise ValueError(f"Data file must be a JSON object: {path}")
+
+    return data
 
 
 def normalize_text(value: str | None) -> str | None:
@@ -121,6 +136,66 @@ def normalize_unique_values(values: list[Any]) -> list[Any]:
     return result
 
 
+def deep_merge_dict(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
+    """
+    深度合并字典。
+
+    规则：
+    - dict：递归合并
+    - list：直接替换，不做追加
+    - 普通字段：override 覆盖 base
+    """
+    result = deepcopy(base)
+
+    for key, value in override.items():
+        if isinstance(value, dict) and isinstance(result.get(key), dict):
+            result[key] = deep_merge_dict(result[key], value)
+        else:
+            result[key] = deepcopy(value)
+
+    return result
+
+
+def apply_event_overrides(
+    events: dict[str, Any],
+    overrides: dict[str, Any],
+) -> dict[str, Any]:
+    """
+    应用人工事件修正层。
+
+    event_overrides.json 的 key 使用 flatten 后的事件名。
+    例如：
+    {
+      "Midsworth": {
+        "_override_reason": "人工修正：不出售中型物品。",
+        "shop_pool": {
+          "size_filter": ["small", "large"]
+        }
+      }
+    }
+    """
+    result = deepcopy(events)
+
+    for event_name, override_data in overrides.items():
+        if not isinstance(override_data, dict):
+            continue
+
+        base_event = result.get(event_name, {})
+        if not isinstance(base_event, dict):
+            base_event = {}
+
+        merged = deep_merge_dict(base_event, override_data)
+        merged["_has_manual_override"] = True
+        merged["_override_source"] = "data/event_overrides.json"
+
+        if "_override_reason" not in merged:
+            merged["_override_reason"] = "该事件已应用人工修正规则。"
+
+        result[event_name] = merged
+
+    return result
+
+
 def build_index(data: dict[str, Any]) -> dict[int, str]:
     return {index + 1: name for index, name in enumerate(data.keys())}
 
@@ -134,6 +209,9 @@ def load_all_data(data_dir: str | Path) -> dict[str, Any]:
 
     raw_events = load_json(data_dir / "events.json")
     events = flatten_events_list(raw_events)
+
+    event_overrides = load_json_if_exists(data_dir / "event_overrides.json")
+    events = apply_event_overrides(events, event_overrides)
 
     builds = load_json(data_dir / "builds.json")
     rarity_rules = load_json(data_dir / "rarity_rules.json")

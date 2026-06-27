@@ -908,6 +908,10 @@ def event_has_value_rule(event_data: dict[str, Any] | None) -> bool:
     if isinstance(resource_rewards, dict) and any(resource_rewards.values()):
         return True
 
+    qualitative_rewards = event_data.get("qualitative_rewards", [])
+    if isinstance(qualitative_rewards, list) and qualitative_rewards:
+        return True
+    
     return False
 
 def summarize_recommendation(data: dict[str, Any], result: dict[str, Any]) -> dict[str, Any]:
@@ -1076,7 +1080,7 @@ def analyze_payload(
         ],
     }
 
-    if include_ai and result.recommendations and not result.warnings:
+    if include_ai and response["recommendations"]:
         ai_payload = compact_recommendations(
             data=data,
             hero=state.hero,
@@ -1090,7 +1094,7 @@ def analyze_payload(
         except RuntimeError as exc:
             response["ai_error"] = str(exc)
 
-    return response
+        return response
 
 
 def record_missing_events(
