@@ -431,27 +431,6 @@ def _coerce_observed_graph_node(node: Any) -> dict[str, Any]:
     return cleaned
 
 
-def load_observed_event_graph() -> dict[str, Any]:
-    if not OBSERVED_EVENT_GRAPH_PATH.exists():
-        return {}
-
-    try:
-        data = json.loads(OBSERVED_EVENT_GRAPH_PATH.read_text(encoding="utf-8-sig"))
-    except (json.JSONDecodeError, OSError):
-        return {}
-
-    if not isinstance(data, dict):
-        return {}
-
-    cleaned: dict[str, Any] = {}
-    for name, node in data.items():
-        if not name:
-            continue
-        cleaned[str(name)] = _coerce_observed_graph_node(node)
-
-    return cleaned
-
-
 def write_observed_event_graph(graph: dict[str, Any]) -> None:
     RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
     cleaned: dict[str, Any] = {}
@@ -804,14 +783,6 @@ def display_card_names(data: dict[str, Any], cards: dict[str, str]) -> list[dict
         }
         for name, rarity in sorted(cards.items())
     ]
-
-
-def recommendation_label(label: str | None) -> str:
-    return {
-        "High Value": "优先考虑",
-        "Medium Value": "可以考虑",
-        "Low Value": "优先级低",
-    }.get(label or "", label or "")
 
 
 def role_label(role: str | None) -> str:
