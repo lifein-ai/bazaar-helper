@@ -239,6 +239,8 @@ def compact_recommendations(
                     for reason in result.get("reasons", [])[:3]
                 ],
                 "关键卡": _priority_cards(data, result.get("possible_cards", [])),
+                "其他阵容核心卡数量": int(result.get("alt_core_card_count") or 0),
+                "其他阵容核心命中": result.get("alt_core_build_hits", []),
                 "已拥有命中": [
                     {
                         "名称": _zh_name(data, card.get("name")),

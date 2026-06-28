@@ -65,6 +65,16 @@ def load_runtime_payload() -> tuple[dict[str, Any], Path]:
     return json.loads(path.read_text(encoding="utf-8-sig")), path
 
 
+def runtime_state_is_plugin_owned(path: Path = STATE_PATH) -> bool:
+    if not path.exists():
+        return False
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8-sig"))
+    except (OSError, ValueError, TypeError):
+        return False
+    return isinstance(payload, dict) and payload.get("source") == "bepinex"
+
+
 def available_heroes(data: dict[str, Any]) -> list[str]:
     return sorted(
         {
@@ -649,6 +659,9 @@ def auto_observe_event_graph(data: dict[str, Any], payload: dict[str, Any]) -> N
 
     if not parent_name:
         return
+    parent_event_data = data.get("events", {}).get(parent_name, {})
+    if parent_event_data.get("event_category") in {"shops", "skill_shops"}:
+        return
 
     official_cards = load_official_cards_index()
     graph = load_observed_event_graph()
@@ -920,18 +933,19 @@ def tier_label(tier: Any) -> str:
     return str(tier)
 
 
-def priority_cards(cards: list[dict[str, Any]], limit: int = 6) -> list[dict[str, Any]]:
+def priority_cards(cards: list[dict[str, Any]]) -> list[dict[str, Any]]:
     roles = {"core": 0, "transition": 1, "optional": 2}
     filtered = [card for card in cards if card.get("role") in roles]
-    filtered.sort(key=lambda card: (roles.get(card.get("role"), 9), card.get("name", "")))
+    filtered.sort(key=lambda card: (roles[card.get("role")], card.get("name", "")))
     return [
         {
             "name": card.get("name"),
             "tier": tier_label(card.get("tier")),
             "role": card.get("role"),
             "can_upgrade": card.get("can_upgrade", False),
+            "alt_core_build_hits": card.get("alt_core_build_hits", []),
         }
-        for card in filtered[:limit]
+        for card in filtered
     ]
 
 def text_has_skill_reward(*values: Any) -> bool:
@@ -1030,6 +1044,8 @@ def summarize_recommendation(data: dict[str, Any], result: dict[str, Any]) -> di
     event_data = data["events"].get(event_name) if event_name else None
     observed_event_graph = load_observed_event_graph()
     parent_graph = observed_event_graph.get(event_name) if event_name else None
+    if event_data and event_data.get("event_category") in {"shops", "skill_shops"}:
+        parent_graph = None
     child_options = summarize_parent_child_options(parent_graph)
     is_parent_event = bool(child_options)
     has_skill_child_reward = child_options_have_skill_reward(child_options)
@@ -1138,6 +1154,14 @@ def summarize_recommendation(data: dict[str, Any], result: dict[str, Any]) -> di
                 "role_label_zh": role_label(card.get("role")),
             }
             for card in priority_cards(result.get("possible_cards", []))
+        ],
+        "alt_core_card_count": int(result.get("alt_core_card_count") or 0),
+        "alt_core_build_hits": [
+            {
+                **hit,
+                "card_display_name": zh_name(data, hit.get("card_name")),
+            }
+            for hit in result.get("alt_core_build_hits", [])
         ],
         "owned_target_hits": [
             {
@@ -1388,6 +1412,16 @@ class BazaarHandler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         if parsed.path != "/api/state":
             self.send_error(HTTPStatus.NOT_FOUND, "未找到")
+            return
+        query = parse_qs(parsed.query)
+        if query.get("force", ["0"])[0] != "1" and runtime_state_is_plugin_owned():
+            self.send_json(
+                {
+                    "error": "当前状态由 BepInEx 插件维护，网页不能覆盖。"
+                    "如需手动替换，请显式使用 /api/state?force=1。"
+                },
+                status=HTTPStatus.CONFLICT,
+            )
             return
 
         length = int(self.headers.get("Content-Length", "0"))
@@ -1731,6 +1765,12 @@ HTML_PAGE = r"""<!doctype html>
         return `<li>${child.name || "未知子选项"}${reward}${desc}${unresolved}</li>`;
         }).join("");
         const reasons = (item.reasons || []).map((reason) => `<li>${reason}</li>`).join("");
+        const altCoreHits = (item.alt_core_build_hits || []).map((hit) => {
+          const buildNames = (hit.builds || []).map((build) =>
+            build.display_name || build.build_name
+          ).filter(Boolean).join("、");
+          return `<li>${hit.card_display_name || hit.card_name}：${buildNames || "其他阵容"}核心卡</li>`;
+        }).join("");
         const sellGold = Number(stats.expected_sell_gold || 0);
         const sellText = sellGold > 0 ? ` · 卖价 +${sellGold.toFixed(1)}g` : "";
         return `
@@ -1745,6 +1785,11 @@ HTML_PAGE = r"""<!doctype html>
             ${childOptions ? `<strong>可能后续</strong><ul>${childOptions}</ul>` : ""}
             <strong>原因</strong>
             <ul>${reasons || "<li>暂无</li>"}</ul>
+            ${item.alt_core_card_count ? `
+              <strong>转型/备选阵容</strong>
+              <p class="muted">其他阵容核心命中 ${item.alt_core_card_count} 张，可作为转型或备选阵容参考。</p>
+              <ul>${altCoreHits}</ul>
+            ` : ""}
           </article>
         `;
       }).join("");

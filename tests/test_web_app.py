@@ -20,6 +20,72 @@ DATA_DIR = PROJECT_ROOT / "data"
 
 
 class WebAppResilienceTests(unittest.TestCase):
+    def test_shop_does_not_record_observed_child_options(self) -> None:
+        data = {
+            "events": {
+                "Aila": {
+                    "event_category": "shops",
+                    "source_ids": ["aila-template"],
+                }
+            }
+        }
+        payload = {
+            "event_options_detailed": [
+                {
+                    "template_id": "aila-template",
+                    "kind": "encounter",
+                    "card_type": "EventEncounter",
+                },
+                {
+                    "template_id": "combat-template",
+                    "kind": "combat",
+                    "card_type": "CombatEncounter",
+                },
+            ]
+        }
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            graph_path = Path(tmp_dir) / "observed_event_graph.json"
+            with patch.object(web_app, "OBSERVED_EVENT_GRAPH_PATH", graph_path):
+                web_app.auto_observe_event_graph(data, payload)
+
+            self.assertFalse(graph_path.exists())
+
+    def test_runtime_plugin_state_is_detected_as_owned(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            state_path = Path(tmp_dir) / "game_state.json"
+            state_path.write_text(
+                json.dumps({"source": "bepinex", "hero": "Karnok"}),
+                encoding="utf-8",
+            )
+
+            self.assertTrue(web_app.runtime_state_is_plugin_owned(state_path))
+
+    def test_priority_cards_exclude_other_build_cores_and_have_no_limit(self) -> None:
+        cards = web_app.priority_cards(
+            [
+                {
+                    "name": "Alternative Core",
+                    "tier": "A",
+                    "role": "unrelated",
+                    "alt_core_build_hits": [
+                        {"build_name": "AltBuild", "display_name": "备用阵容"}
+                    ],
+                },
+                *[
+                    {
+                        "name": f"Current Card {index}",
+                        "tier": "A",
+                        "role": "optional",
+                    }
+                    for index in range(8)
+                ],
+            ]
+        )
+
+        self.assertEqual(len(cards), 8)
+        self.assertTrue(all(card["role"] == "optional" for card in cards))
+
     def test_load_observed_event_graph_cleans_bad_nodes(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_path = Path(tmp_dir)

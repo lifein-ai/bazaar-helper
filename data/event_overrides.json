@@ -31,7 +31,7 @@
       }
     },
   "法莱": {
-    "_override_reason": "人工新增：法莱缺失。效果为获得 2 个不限制类型的当前英雄物品。",
+    "_override_reason": "人工新增：法莱缺失。效果为从当前英雄的包裹池展示 6 个包裹并选择 1 个。",
     "name": "法莱",
     "source_id": "412fb3ec-88de-40b4-a475-10e583189d8a",
     "source_ids": [
@@ -43,11 +43,15 @@
     "event_type": "item_reward",
     "event_category": "item_rewards",
     "exact_names": [],
-    "reward_tags": [],
+    "reward_tags": [
+      "package"
+    ],
     "card_reward": {
       "enabled": true,
       "exact_names": [],
-      "reward_tags": [],
+      "reward_tags": [
+        "package"
+      ],
       "match_mode": "any",
       "rarity_filter": null,
       "rarity_rule": "normal_shop_by_day",
@@ -55,13 +59,14 @@
         "legendary"
       ],
       "hero_scope": "current",
-      "count": 2
+      "offer_count": 6,
+      "choose_count": 1
     },
     "resource_rewards": {
       "gold": 0,
       "exp": 0,
       "health": 0
     },
-    "notes": "Get 2 items."
+    "notes": "Choose 1 of 6 Packages."
   }
 }

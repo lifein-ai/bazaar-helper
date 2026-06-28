@@ -47,6 +47,7 @@ def analyze_game_state(data: dict, state: GameState, top: int | None = None) -> 
                 current_hero=state.hero,
                 owned_cards=state.owned_cards,
                 owned_card_enchantments=state.owned_card_enchantments,
+                all_builds=data["builds"],
             )
         )
 

@@ -1,6 +1,9 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using BepInEx.Logging;
 using HarmonyLib;
 using UnityEngine;
@@ -11,8 +14,80 @@ namespace BazaarStateExporter
     {
         public static ManualLogSource Logger;
         public static object LatestGameStateSnapshot;
+        public static int? LatestGold;
+        public static int? LatestHealth;
+        public static float LastResourceUpdateAt;
+        public static string LastResourceSource;
+        private static readonly object ResourcesLock = new object();
         private static readonly object CapturedCardsLock = new object();
         private static readonly Dictionary<string, CapturedCardEntry> CapturedCardsByInstanceId = new Dictionary<string, CapturedCardEntry>();
+
+        public static void UpdateResources(int? gold, int? health, string source)
+        {
+            if (!gold.HasValue && !health.HasValue)
+            {
+                return;
+            }
+
+            lock (ResourcesLock)
+            {
+                // SnapshotFromGameStateDto runs repeatedly over the cached DTO. Once a live
+                // message has supplied resources, that old DTO may only fill missing values.
+                bool cachedDtoReplay = string.Equals(source, "game_state_sync", StringComparison.Ordinal)
+                    && !string.IsNullOrEmpty(LastResourceSource)
+                    && !string.Equals(LastResourceSource, "game_state_sync", StringComparison.Ordinal);
+                int? acceptedGold = cachedDtoReplay && LatestGold.HasValue ? null : gold;
+                int? acceptedHealth = cachedDtoReplay && LatestHealth.HasValue ? null : health;
+                if (!acceptedGold.HasValue && !acceptedHealth.HasValue)
+                {
+                    return;
+                }
+
+                bool changed = (acceptedGold.HasValue && LatestGold != acceptedGold)
+                    || (acceptedHealth.HasValue && LatestHealth != acceptedHealth);
+
+                if (acceptedGold.HasValue)
+                {
+                    LatestGold = acceptedGold;
+                }
+                if (acceptedHealth.HasValue)
+                {
+                    LatestHealth = acceptedHealth;
+                }
+
+                LastResourceUpdateAt = Time.unscaledTime;
+                LastResourceSource = source;
+
+                if (changed)
+                {
+                    Logger?.LogInfo(
+                        "Updated resources source="
+                        + source
+                        + " gold="
+                        + (LatestGold.HasValue ? LatestGold.Value.ToString() : "null")
+                        + " health="
+                        + (LatestHealth.HasValue ? LatestHealth.Value.ToString() : "null"));
+                }
+            }
+        }
+
+        public static void ResetForNewRun()
+        {
+            lock (ResourcesLock)
+            {
+                LatestGold = null;
+                LatestHealth = null;
+                LastResourceUpdateAt = 0f;
+                LastResourceSource = null;
+            }
+
+            lock (CapturedCardsLock)
+            {
+                CapturedCardsByInstanceId.Clear();
+            }
+
+            Logger?.LogInfo("Cleared runtime resource and UI card caches for new run.");
+        }
 
         public static bool RecordUiCard(CardSnapshot card)
         {
@@ -98,11 +173,315 @@ namespace BazaarStateExporter
             }
 
             PropertyInfo dataProperty = message.GetType().GetProperty("Data", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            object data = dataProperty == null ? null : dataProperty.GetValue(message, null);
+            object data = null;
+            try
+            {
+                data = dataProperty == null ? null : dataProperty.GetValue(message, null);
+            }
+            catch (Exception ex)
+            {
+                RuntimeStateCache.Logger?.LogDebug("Could not read NetMessageGameStateSync.Data: " + ex.Message);
+            }
             if (data != null)
             {
                 RuntimeStateCache.LatestGameStateSnapshot = data;
                 RuntimeStateCache.Logger?.LogInfo("Captured NetMessageGameStateSync via Harmony patch.");
+            }
+        }
+    }
+
+    [HarmonyPatch]
+    public static class NetMessageResourcePatch
+    {
+        public static IEnumerable<MethodBase> TargetMethods()
+        {
+            Type processorType = AccessTools.TypeByName("TheBazaar.NetMessageProcessor");
+            if (processorType == null)
+            {
+                RuntimeStateCache.Logger?.LogWarning("Could not find NetMessageProcessor for resource patching.");
+                return Enumerable.Empty<MethodBase>();
+            }
+
+            return processorType
+                .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                .Where(method =>
+                {
+                    ParameterInfo[] parameters = method.GetParameters();
+                    return method.Name == "Handle"
+                        && parameters.Length == 1
+                        && (parameters[0].ParameterType.FullName ?? "").IndexOf(
+                            "NetMessage",
+                            StringComparison.OrdinalIgnoreCase) >= 0;
+                })
+                .Cast<MethodBase>()
+                .ToArray();
+        }
+
+        public static void Prefix(object __0)
+        {
+            object message = __0;
+            try
+            {
+                int? gold;
+                int? health;
+                if (ResourceReflection.TryExtract(message, out gold, out health))
+                {
+                    RuntimeStateCache.UpdateResources(gold, health, message == null ? "net_message" : message.GetType().Name);
+                }
+
+                object data = ResourceReflection.SafeGetMember(message, "Data");
+                if (data != null && ResourceReflection.TryExtract(data, out gold, out health))
+                {
+                    RuntimeStateCache.UpdateResources(gold, health, message.GetType().Name + ".Data");
+                }
+            }
+            catch (Exception ex)
+            {
+                RuntimeStateCache.Logger?.LogDebug("Resource message capture failed: " + ex.Message);
+            }
+        }
+    }
+
+    internal static class ResourceReflection
+    {
+        private const int MaxDepth = 4;
+
+        public static bool TryExtract(object value, out int? gold, out int? health)
+        {
+            gold = null;
+            health = null;
+            HashSet<object> visited = new HashSet<object>(ReferenceComparer.Instance);
+            Extract(value, 0, visited, ref gold, ref health);
+            return gold.HasValue || health.HasValue;
+        }
+
+        public static object SafeGetMember(object target, string name)
+        {
+            if (target == null)
+            {
+                return null;
+            }
+
+            Type type = target.GetType();
+            try
+            {
+                PropertyInfo property = type.GetProperty(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                if (property != null && property.GetIndexParameters().Length == 0)
+                {
+                    return property.GetValue(target, null);
+                }
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                FieldInfo field = type.GetField(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                return field == null ? null : field.GetValue(target);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static void Extract(
+            object value,
+            int depth,
+            HashSet<object> visited,
+            ref int? gold,
+            ref int? health)
+        {
+            if (value == null || depth > MaxDepth || (gold.HasValue && health.HasValue))
+            {
+                return;
+            }
+
+            Type type = value.GetType();
+            if (!type.IsValueType && !visited.Add(value))
+            {
+                return;
+            }
+
+            // Attribute dictionaries are the canonical source and are checked before named members.
+            object attributes = SafeGetMember(value, "Attributes");
+            ExtractAttributeCollection(attributes, ref gold, ref health);
+
+            ExtractNamedValue(value, "Gold", ref gold);
+            ExtractNamedValue(value, "CurrentGold", ref gold);
+            ExtractNamedValue(value, "Health", ref health);
+            ExtractNamedValue(value, "CurrentHealth", ref health);
+
+            if (gold.HasValue && health.HasValue)
+            {
+                return;
+            }
+
+            foreach (object child in SafeChildren(value))
+            {
+                Extract(child, depth + 1, visited, ref gold, ref health);
+                if (gold.HasValue && health.HasValue)
+                {
+                    return;
+                }
+            }
+        }
+
+        private static void ExtractAttributeCollection(object attributes, ref int? gold, ref int? health)
+        {
+            IEnumerable items = attributes as IEnumerable;
+            if (items == null || attributes is string)
+            {
+                return;
+            }
+
+            try
+            {
+                foreach (object item in items)
+                {
+                    object key = SafeGetMember(item, "Key");
+                    object value = SafeGetMember(item, "Value");
+                    string keyText = SafeString(key);
+                    int parsed;
+                    if (keyText.IndexOf("Gold", StringComparison.OrdinalIgnoreCase) >= 0
+                        && TryInt(value, out parsed))
+                    {
+                        gold = parsed;
+                    }
+                    if (keyText.IndexOf("Health", StringComparison.OrdinalIgnoreCase) >= 0
+                        && TryInt(value, out parsed))
+                    {
+                        health = parsed;
+                    }
+                }
+            }
+            catch
+            {
+            }
+        }
+
+        private static void ExtractNamedValue(object target, string name, ref int? destination)
+        {
+            if (destination.HasValue)
+            {
+                return;
+            }
+
+            int parsed;
+            if (TryInt(SafeGetMember(target, name), out parsed))
+            {
+                destination = parsed;
+            }
+        }
+
+        private static IEnumerable<object> SafeChildren(object value)
+        {
+            Type type = value.GetType();
+            if (IsTerminal(type) || value is IEnumerable)
+            {
+                yield break;
+            }
+
+            BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+            FieldInfo[] fields;
+            PropertyInfo[] properties;
+            try
+            {
+                fields = type.GetFields(flags);
+                properties = type.GetProperties(flags);
+            }
+            catch
+            {
+                yield break;
+            }
+
+            foreach (FieldInfo field in fields)
+            {
+                object child = null;
+                try
+                {
+                    child = field.GetValue(value);
+                }
+                catch
+                {
+                }
+                if (child != null)
+                {
+                    yield return child;
+                }
+            }
+
+            foreach (PropertyInfo property in properties)
+            {
+                if (property.GetIndexParameters().Length != 0)
+                {
+                    continue;
+                }
+
+                object child = null;
+                try
+                {
+                    child = property.GetValue(value, null);
+                }
+                catch
+                {
+                }
+                if (child != null)
+                {
+                    yield return child;
+                }
+            }
+        }
+
+        private static bool IsTerminal(Type type)
+        {
+            return type.IsPrimitive
+                || type.IsEnum
+                || type == typeof(string)
+                || type == typeof(decimal)
+                || type == typeof(DateTime)
+                || type == typeof(Guid);
+        }
+
+        private static bool TryInt(object value, out int result)
+        {
+            try
+            {
+                result = Convert.ToInt32(value);
+                return value != null;
+            }
+            catch
+            {
+                result = 0;
+                return false;
+            }
+        }
+
+        private static string SafeString(object value)
+        {
+            try
+            {
+                return value == null ? "" : value.ToString() ?? "";
+            }
+            catch
+            {
+                return "";
+            }
+        }
+
+        private sealed class ReferenceComparer : IEqualityComparer<object>
+        {
+            public static readonly ReferenceComparer Instance = new ReferenceComparer();
+
+            public new bool Equals(object left, object right)
+            {
+                return ReferenceEquals(left, right);
+            }
+
+            public int GetHashCode(object value)
+            {
+                return RuntimeHelpers.GetHashCode(value);
             }
         }
     }

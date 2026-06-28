@@ -1,0 +1,78 @@
+{
+  "VanessaAquaticAmmo": {
+    "hero": "Vanessa",
+    "display_name": "Test Vanessa Aquatic Ammo",
+    "applicable_stages": [
+      "mid",
+      "late"
+    ],
+    "day_range": [
+      5,
+      null
+    ],
+    "build_summary": "Stable test fixture for Vanessa event analysis.",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Ballista"
+    ],
+    "transition_cards": [
+      "Coral Armor"
+    ],
+    "optional_cards": [
+      "Gunpowder"
+    ],
+    "wanted_tags": [
+      "aquatic",
+      "ammo"
+    ],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "BazaarDBPygmalienMeta": {
+    "hero": "Pygmalien",
+    "display_name": "Test Pygmalien Meta",
+    "applicable_stages": [
+      "early",
+      "mid",
+      "late"
+    ],
+    "day_range": [
+      1,
+      null
+    ],
+    "build_summary": "Stable test fixture for Pygmalien build matching.",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Belt"
+    ],
+    "transition_cards": [],
+    "optional_cards": [],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "BazaarDBVanessaMeta": {
+    "hero": "Vanessa",
+    "display_name": "Test Vanessa Override",
+    "applicable_stages": [
+      "early",
+      "mid",
+      "late"
+    ],
+    "day_range": [
+      1,
+      null
+    ],
+    "build_summary": "Stable test fixture for explicit build overrides.",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [],
+    "transition_cards": [],
+    "optional_cards": [],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  }
+}

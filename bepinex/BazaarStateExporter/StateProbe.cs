@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace BazaarStateExporter
@@ -12,6 +13,12 @@ namespace BazaarStateExporter
     {
         private readonly ManualLogSource logger;
         private bool warnedOnce;
+        private readonly HashSet<int> loggedUiResourceObjects = new HashSet<int>();
+        private int? lastLoggedUiGold;
+        private int? lastLoggedUiHealth;
+        private bool loggedUiCandidate;
+        private string lastSnapshotHero;
+        private object lastProcessorHistoryDto;
 
         public StateProbe(ManualLogSource logger)
         {
@@ -20,8 +27,41 @@ namespace BazaarStateExporter
 
         public GameStateSnapshot TryReadCurrentState()
         {
-            object dto = TryReadLatestGameStateFromProcessorHistory() 
-                ?? RuntimeStateCache.LatestGameStateSnapshot;
+            object cachedDto = RuntimeStateCache.LatestGameStateSnapshot;
+            object historyDto = TryReadLatestGameStateFromProcessorHistory();
+            if (historyDto != null && lastProcessorHistoryDto == null)
+            {
+                lastProcessorHistoryDto = historyDto;
+            }
+            else if (historyDto != null && !ReferenceEquals(historyDto, lastProcessorHistoryDto))
+            {
+                lastProcessorHistoryDto = historyDto;
+                string cachedHero = HeroFromGameStateDto(cachedDto);
+                string historyHero = HeroFromGameStateDto(historyDto);
+                int historyDay = DayFromGameStateDto(historyDto);
+                bool crossHero = !string.IsNullOrEmpty(cachedHero)
+                    && !string.IsNullOrEmpty(historyHero)
+                    && !string.Equals(cachedHero, historyHero, StringComparison.OrdinalIgnoreCase);
+
+                if (crossHero && historyDay > 1)
+                {
+                    logger.LogDebug(
+                        "Ignored cross-hero GameStateSnapshotDTO from processor history: current="
+                        + cachedHero
+                        + " candidate="
+                        + historyHero
+                        + " candidateDay="
+                        + historyDay);
+                }
+                else
+                {
+                    RuntimeStateCache.LatestGameStateSnapshot = historyDto;
+                    cachedDto = historyDto;
+                    logger.LogInfo("Refreshed GameStateSnapshotDTO from NetMessageProcessor history.");
+                }
+            }
+
+            object dto = cachedDto ?? historyDto;
 
             if (dto == null)
             {
@@ -35,6 +75,16 @@ namespace BazaarStateExporter
             }
 
             return SnapshotFromGameStateDto(dto);
+        }
+
+        private static string HeroFromGameStateDto(object dto)
+        {
+            return StringValue(GetField(GetField(dto, "Player"), "Hero"));
+        }
+
+        private static int DayFromGameStateDto(object dto)
+        {
+            return IntValue(GetField(GetField(dto, "Run"), "Day"), 0);
         }
 
         private object TryReadLatestGameStateFromProcessorHistory()
@@ -57,8 +107,6 @@ namespace BazaarStateExporter
                 object dto = TryGetDataFromGameStateMessage(lastMessage);
                 if (dto != null)
                 {
-                    RuntimeStateCache.LatestGameStateSnapshot = dto;
-                    logger.LogInfo("Recovered GameStateSnapshotDTO from NetMessageProcessor._lastMessage.");
                     return dto;
                 }
 
@@ -73,8 +121,6 @@ namespace BazaarStateExporter
                     dto = TryGetDataFromGameStateMessage(messages[index]);
                     if (dto != null)
                     {
-                        RuntimeStateCache.LatestGameStateSnapshot = dto;
-                        logger.LogInfo("Recovered GameStateSnapshotDTO from NetMessageProcessor._lastMessages.");
                         return dto;
                     }
                 }
@@ -272,11 +318,25 @@ namespace BazaarStateExporter
             object run = GetField(dto, "Run");
             object currentState = GetField(dto, "CurrentState");
             object player = GetField(dto, "Player");
+            string hero = StringValue(GetField(player, "Hero"));
+            if (!string.IsNullOrEmpty(lastSnapshotHero)
+                && !string.Equals(lastSnapshotHero, hero, StringComparison.OrdinalIgnoreCase))
+            {
+                RuntimeStateCache.ResetForNewRun();
+                loggedUiResourceObjects.Clear();
+                loggedUiCandidate = false;
+                lastLoggedUiGold = null;
+                lastLoggedUiHealth = null;
+            }
+            if (!string.IsNullOrEmpty(hero))
+            {
+                lastSnapshotHero = hero;
+            }
 
             GameStateSnapshot snapshot = new GameStateSnapshot
             {
                 source = "bepinex",
-                hero = StringValue(GetField(player, "Hero")),
+                hero = hero,
                 day = IntValue(GetField(run, "Day"), 1),
                 event_option_ids = StringList(GetField(currentState, "SelectionSet")),
             };
@@ -329,6 +389,21 @@ namespace BazaarStateExporter
             Dictionary<string, int> attributes = AttributeDictionary(GetField(player, "Attributes"));
             snapshot.gold = FindAttribute(attributes, "Gold");
             snapshot.health = FindAttribute(attributes, "Health");
+            RuntimeStateCache.UpdateResources(snapshot.gold, snapshot.health, "game_state_sync");
+
+            int? uiGold;
+            int? uiHealth;
+            TryReadUiResources(logger, out uiGold, out uiHealth);
+            RuntimeStateCache.UpdateResources(uiGold, uiHealth, "ui_text");
+
+            if (RuntimeStateCache.LatestGold.HasValue)
+            {
+                snapshot.gold = RuntimeStateCache.LatestGold;
+            }
+            if (RuntimeStateCache.LatestHealth.HasValue)
+            {
+                snapshot.health = RuntimeStateCache.LatestHealth;
+            }
 
             if (snapshot.event_option_ids.Count > 0 || snapshot.owned_cards.Count > 0)
             {
@@ -348,6 +423,407 @@ namespace BazaarStateExporter
             }
 
             return snapshot;
+        }
+
+        private void TryReadUiResources(ManualLogSource log, out int? gold, out int? health)
+        {
+            gold = null;
+            health = null;
+            int goldScore = int.MinValue;
+            int healthScore = int.MinValue;
+
+            GameObject[] objects = Resources.FindObjectsOfTypeAll<GameObject>();
+            foreach (GameObject gameObject in objects)
+            {
+                if (gameObject == null)
+                {
+                    continue;
+                }
+
+                string objectName = gameObject.name ?? "";
+                bool isGold = objectName.IndexOf("Gold_Number", StringComparison.OrdinalIgnoreCase) >= 0;
+                bool isHealth = objectName.IndexOf("Health_Value", StringComparison.OrdinalIgnoreCase) >= 0;
+                if (!isGold && !isHealth)
+                {
+                    continue;
+                }
+
+                int parsed;
+                List<string> diagnostics;
+                bool parsedSuccessfully = TryReadIntegerFromComponents(gameObject, out parsed, out diagnostics);
+                LogUiResourceObjectOnce(log, gameObject, diagnostics, parsedSuccessfully, parsed);
+                if (parsedSuccessfully)
+                {
+                    int score = ScoreUiResourceObject(gameObject);
+                    if (isGold && score > goldScore)
+                    {
+                        gold = parsed;
+                        goldScore = score;
+                    }
+                    if (isHealth && score > healthScore)
+                    {
+                        health = parsed;
+                        healthScore = score;
+                    }
+                }
+            }
+
+            if (goldScore < 1000)
+            {
+                gold = null;
+            }
+            if (healthScore < 1000)
+            {
+                health = null;
+            }
+
+            if (!gold.HasValue || !health.HasValue)
+            {
+                MonoBehaviour[] components = Resources.FindObjectsOfTypeAll<MonoBehaviour>();
+                foreach (MonoBehaviour component in components)
+                {
+                    if (component == null || component.gameObject == null)
+                    {
+                        continue;
+                    }
+
+                    GameObject gameObject = component.gameObject;
+                    bool isGold;
+                    bool isHealth;
+                    if (!TryClassifyActiveResourceText(component, out isGold, out isHealth))
+                    {
+                        continue;
+                    }
+                    int parsed;
+                    List<string> diagnostics = new List<string>();
+                    bool parsedSuccessfully = TryReadIntegerFromComponent(component, out parsed, diagnostics);
+                    LogUiResourceObjectOnce(log, gameObject, diagnostics, parsedSuccessfully, parsed);
+                    if (parsedSuccessfully)
+                    {
+                        int score = ScoreUiResourceObject(gameObject);
+                        if (isGold && score > goldScore)
+                        {
+                            gold = parsed;
+                            goldScore = score;
+                        }
+                        if (isHealth && score > healthScore)
+                        {
+                            health = parsed;
+                            healthScore = score;
+                        }
+                    }
+                }
+            }
+
+            // Inactive objects are still scanned and logged, but they are prefab/hidden
+            // copies rather than the HUD currently shown to the player.
+            if (goldScore < 1000)
+            {
+                gold = null;
+            }
+            if (healthScore < 1000)
+            {
+                health = null;
+            }
+
+            if (gold.HasValue || health.HasValue)
+            {
+                if (!loggedUiCandidate || lastLoggedUiGold != gold || lastLoggedUiHealth != health)
+                {
+                    log?.LogInfo(
+                        "UI resource candidate gold="
+                        + (gold.HasValue ? gold.Value.ToString() : "null")
+                        + " health="
+                        + (health.HasValue ? health.Value.ToString() : "null"));
+                    loggedUiCandidate = true;
+                    lastLoggedUiGold = gold;
+                    lastLoggedUiHealth = health;
+                }
+            }
+        }
+
+        private static bool TryClassifyActiveResourceText(
+            MonoBehaviour component,
+            out bool isGold,
+            out bool isHealth)
+        {
+            isGold = false;
+            isHealth = false;
+            if (!component.gameObject.activeInHierarchy)
+            {
+                return false;
+            }
+
+            string typeName = component.GetType().FullName ?? component.GetType().Name;
+            if (typeName.IndexOf("Text", StringComparison.OrdinalIgnoreCase) < 0)
+            {
+                return false;
+            }
+
+            string hierarchy = GetHierarchyPath(component.transform);
+            string lower = hierarchy.ToLowerInvariant();
+            if (lower.Contains("tooltip")
+                || lower.Contains("monster")
+                || lower.Contains("reward")
+                || lower.Contains("enemy")
+                || lower.Contains("opponent"))
+            {
+                return false;
+            }
+
+            isGold = lower.Contains("gold")
+                || lower.Contains("currency")
+                || lower.Contains("wallet")
+                || lower.Contains("coins");
+            string objectName = (component.gameObject.name ?? "").ToLowerInvariant();
+            isHealth = !objectName.Contains("regen")
+                && (objectName.Contains("hpnumber")
+                    || objectName.Contains("hp_number")
+                    || objectName.Contains("healthnumber")
+                    || objectName.Contains("health_number")
+                    || objectName.Contains("currenthealth")
+                    || objectName.Contains("current_health"));
+            return isGold || isHealth;
+        }
+
+        private static int ScoreUiResourceObject(GameObject gameObject)
+        {
+            int score = 0;
+            if (gameObject.activeInHierarchy)
+            {
+                score += 1000;
+            }
+            if (gameObject.activeSelf)
+            {
+                score += 100;
+            }
+            if (gameObject.scene.IsValid())
+            {
+                score += 50;
+            }
+            if (gameObject.scene.isLoaded)
+            {
+                score += 50;
+            }
+
+            Component[] components;
+            try
+            {
+                components = gameObject.GetComponents<Component>();
+            }
+            catch
+            {
+                return score;
+            }
+
+            foreach (Component component in components)
+            {
+                Behaviour behaviour = component as Behaviour;
+                if (behaviour != null && behaviour.enabled)
+                {
+                    score += 10;
+                }
+            }
+
+            return score;
+        }
+
+        private static bool TryReadIntegerFromComponents(
+            GameObject gameObject,
+            out int value,
+            out List<string> diagnostics)
+        {
+            value = 0;
+            diagnostics = new List<string>();
+            Component[] components;
+            try
+            {
+                components = gameObject.GetComponents<Component>();
+            }
+            catch
+            {
+                return false;
+            }
+
+            bool found = false;
+            foreach (Component component in components)
+            {
+                if (component == null)
+                {
+                    continue;
+                }
+
+                int parsed;
+                if (TryReadIntegerFromComponent(component, out parsed, diagnostics) && !found)
+                {
+                    value = parsed;
+                    found = true;
+                }
+            }
+
+            return found;
+        }
+
+        private static bool TryReadIntegerFromComponent(
+            Component component,
+            out int value,
+            List<string> diagnostics)
+        {
+            value = 0;
+            Type type = component.GetType();
+            diagnostics.Add("component=" + (type.FullName ?? type.Name));
+
+            bool parsedAny = false;
+            foreach (string memberName in new[] { "text", "Text", "m_text" })
+            {
+                string text;
+                bool found;
+                SafeTextMember(component, memberName, out text, out found);
+                if (!found)
+                {
+                    continue;
+                }
+
+                int parsed;
+                bool parsedSuccessfully = TryParseFirstInteger(text, out parsed);
+                diagnostics.Add(
+                    memberName
+                    + "=\""
+                    + (text ?? "null")
+                    + "\" parse="
+                    + (parsedSuccessfully ? parsed.ToString() : "failed"));
+                if (parsedSuccessfully && !parsedAny)
+                {
+                    value = parsed;
+                    parsedAny = true;
+                }
+            }
+
+            return parsedAny;
+        }
+
+        private void LogUiResourceObjectOnce(
+            ManualLogSource log,
+            GameObject gameObject,
+            List<string> diagnostics,
+            bool parsed,
+            int parsedValue)
+        {
+            int instanceId = gameObject.GetInstanceID();
+            if (!loggedUiResourceObjects.Add(instanceId))
+            {
+                return;
+            }
+
+            Component[] components;
+            try
+            {
+                components = gameObject.GetComponents<Component>();
+            }
+            catch
+            {
+                components = new Component[0];
+            }
+
+            string componentTypes = string.Join(
+                ",",
+                components
+                    .Where(component => component != null)
+                    .Select(component => component.GetType().FullName ?? component.GetType().Name)
+                    .ToArray());
+            log?.LogInfo(
+                "UI resource object name="
+                + gameObject.name
+                + " activeSelf="
+                + gameObject.activeSelf
+                + " activeInHierarchy="
+                + gameObject.activeInHierarchy
+                + " scene="
+                + gameObject.scene.name
+                + " sceneValid="
+                + gameObject.scene.IsValid()
+                + " sceneLoaded="
+                + gameObject.scene.isLoaded
+                + " hierarchy="
+                + GetHierarchyPath(gameObject.transform)
+                + " components=["
+                + componentTypes
+                + "] values=["
+                + string.Join("; ", diagnostics.ToArray())
+                + "] parse="
+                + (parsed ? parsedValue.ToString() : "failed"));
+        }
+
+        private static string GetHierarchyPath(Transform transform)
+        {
+            List<string> names = new List<string>();
+            Transform current = transform;
+            while (current != null && names.Count < 16)
+            {
+                names.Add(current.name);
+                current = current.parent;
+            }
+            names.Reverse();
+            return string.Join("/", names.ToArray());
+        }
+
+        private static void SafeTextMember(
+            object target,
+            string name,
+            out string text,
+            out bool found)
+        {
+            text = null;
+            found = false;
+            if (target == null)
+            {
+                return;
+            }
+
+            Type type = target.GetType();
+            try
+            {
+                PropertyInfo property = type.GetProperty(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                if (property != null && property.GetIndexParameters().Length == 0)
+                {
+                    found = true;
+                    object value = property.GetValue(target, null);
+                    text = value as string;
+                    return;
+                }
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                FieldInfo field = type.GetField(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                if (field == null)
+                {
+                    return;
+                }
+
+                found = true;
+                object value = field == null ? null : field.GetValue(target);
+                text = value as string;
+            }
+            catch
+            {
+            }
+        }
+
+        private static bool TryParseFirstInteger(string text, out int value)
+        {
+            value = 0;
+            if (string.IsNullOrEmpty(text))
+            {
+                return false;
+            }
+
+            Match match = Regex.Match(text, @"[-+]?\d[\d,]*");
+            return match.Success
+                && int.TryParse(match.Value.Replace(",", ""), out value);
         }
 
         private static void MergeCapturedUiCards(

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from build_strategy import build_applies_to_day
+
 
 RARITY_ORDER = {
     "bronze": 1,
@@ -181,7 +183,22 @@ def resolve_event_rarity_filter(
 def get_event_card_pool_rule(event_data: dict[str, Any]) -> dict[str, Any] | None:
     event_category = event_data.get("event_category")
 
-    if event_category in {"shops", "skill_shops"}:
+    if event_category == "skill_shops":
+        shop_pool = event_data.get("shop_pool")
+        if shop_pool is not None:
+            return shop_pool
+
+        # Older generated event files stored skill filters at the event level.
+        return {
+            "reward_tags": event_data.get("skill_tags", []),
+            "match_mode": "any",
+            "rarity_filter": event_data.get("rarity_filter"),
+            "rarity_rule": event_data.get("rarity_rule") or "normal_shop_by_day",
+            "excluded_tags": ["legendary"],
+            "hero_scope": "current",
+        }
+
+    if event_category == "shops":
         return event_data.get("shop_pool")
 
     if event_category == "resource_events":
@@ -217,6 +234,8 @@ def infer_possible_cards_for_event(
     )
     hero_scope = normalize_text(pool_rule.get("hero_scope") or "current")
     current_hero = normalize_text(current_hero)
+    event_name = normalize_text(event_data.get("name"))
+    allows_packages = event_name in {"farai", "法莱"}
     expected_card_type = "skill" if event_has_skill_reward(event_data) else "item"
 
     rarity_filter = resolve_event_rarity_filter(pool_rule, current_day, rarity_rules)
@@ -233,6 +252,8 @@ def infer_possible_cards_for_event(
             continue
 
         card_tags = normalize_text_list(card_data.get("tags", []))
+        if "package" in card_tags and not allows_packages:
+            continue
         card_min = normalize_text(card_data.get("min_rarity"))
         card_max = normalize_text(card_data.get("max_rarity"))
 
@@ -314,6 +335,38 @@ def get_card_role_for_build(
         return "unrelated" if role == "trap" else role
 
     return "unrelated"
+
+
+def get_alt_core_build_hits(
+    card_name: str,
+    *,
+    current_build_name: str,
+    current_hero: str | None,
+    current_day: int,
+    all_builds: dict[str, Any] | None,
+) -> list[dict[str, str]]:
+    if not all_builds or not current_hero:
+        return []
+
+    hits: list[dict[str, str]] = []
+    for build_name, candidate in all_builds.items():
+        if build_name == current_build_name or candidate.get("hero") != current_hero:
+            continue
+        if (
+            ("day_range" in candidate or "applicable_stages" in candidate)
+            and not build_applies_to_day(candidate, current_day)
+        ):
+            continue
+        if card_name not in candidate.get("core_cards", []):
+            continue
+        hits.append(
+            {
+                "build_name": build_name,
+                "display_name": candidate.get("display_name") or build_name,
+            }
+        )
+
+    return hits
 
 
 def probability_at_least_one(hit_ratio: float, draws: int = SHOP_CARD_COUNT) -> float:
@@ -407,10 +460,30 @@ def get_event_draw_count(event_data: dict[str, Any]) -> int:
 
     card_reward = event_data.get("card_reward")
     if isinstance(card_reward, dict):
-        raw_count = card_reward.get("count", event_data.get("count", 1))
+        raw_count = card_reward.get(
+            "offer_count",
+            card_reward.get("count", event_data.get("count", 1)),
+        )
     else:
         raw_count = event_data.get("count", 1)
 
+    try:
+        count = int(raw_count)
+    except (TypeError, ValueError):
+        count = 1
+
+    return max(count, 1)
+
+
+def get_event_selection_count(event_data: dict[str, Any]) -> int:
+    card_reward = event_data.get("card_reward")
+    if not isinstance(card_reward, dict):
+        return get_event_draw_count(event_data)
+
+    raw_count = card_reward.get(
+        "choose_count",
+        card_reward.get("count", event_data.get("count", 1)),
+    )
     try:
         count = int(raw_count)
     except (TypeError, ValueError):
@@ -475,6 +548,7 @@ def analyze_event(
     owned_cards: dict[str, str] | None = None,
     owned_card_enchantments: dict[str, list[str]] | None = None,
     include_followups: bool = True,
+    all_builds: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     owned_cards = owned_cards or {}
     owned_card_enchantments = owned_card_enchantments or {}
@@ -497,6 +571,17 @@ def analyze_event(
         card_data = card["raw"]
         tier = card.get("tier", "Unknown")
         role = get_card_role_for_build(card_name, card_data, build_name, build_data)
+        alt_core_build_hits = (
+            []
+            if role == "core"
+            else get_alt_core_build_hits(
+                card_name,
+                current_build_name=build_name,
+                current_hero=current_hero,
+                current_day=current_day,
+                all_builds=all_builds,
+            )
+        )
         if (
             role == "unrelated"
             and event_data.get("event_category") == "item_rewards"
@@ -528,6 +613,7 @@ def analyze_event(
                 "owned_rarity": owned_rarity,
                 "tags": card.get("tags", []),
                 "sell_gold": expected_card_sell_gold(card_data, resolved_rarity_filter),
+                "alt_core_build_hits": alt_core_build_hits,
             }
         )
 
@@ -552,21 +638,27 @@ def analyze_event(
         + role_counts.get("optional", 0)
     )
     core_count = role_counts.get("core", 0)
+    alt_core_cards = [
+        card for card in analyzed_cards if card.get("alt_core_build_hits")
+    ]
+    alt_core_card_count = len(alt_core_cards)
 
     valuable_ratio = valuable_count / total_pool_count if total_pool_count else 0.0
     core_ratio = core_count / total_pool_count if total_pool_count else 0.0
     high_tier_ratio = high_tier_count / total_pool_count if total_pool_count else 0.0
 
     draw_count = get_event_draw_count(event_data)
+    selection_count = get_event_selection_count(event_data)
 
     expected_sell_gold = expected_unrelated_sell_gold(
         analyzed_cards,
         event_data,
-        draw_count,
+        selection_count,
     )
 
     pool_stats = {
         "draw_count": draw_count,
+        "selection_count": selection_count,
         "total_pool_count": total_pool_count,
         "valuable_count": valuable_count,
         "valuable_ratio": valuable_ratio,
@@ -592,6 +684,22 @@ def analyze_event(
         owned_target_hits,
         event_data,
     )
+    for card in alt_core_cards:
+        build_labels = "、".join(
+            (
+                f"{hit['display_name']}核心卡"
+                if hit["display_name"].endswith("阵容")
+                else f"{hit['display_name']}阵容核心卡"
+            )
+            for hit in card["alt_core_build_hits"]
+        )
+        reasons.append(f"{card['name']}：这是{build_labels}。")
+    if alt_core_card_count >= 2:
+        reasons.append(
+            f"卡池中有 {alt_core_card_count} 张其他阵容核心卡，具有转型/备选阵容价值。"
+        )
+        if recommendation == "Low Value":
+            recommendation = "Medium Value"
     followup_results: list[dict[str, Any]] = []
     followup_value_summary: dict[str, Any] | None = None
     if include_followups:
@@ -609,6 +717,7 @@ def analyze_event(
                     owned_cards=owned_cards,
                     owned_card_enchantments=owned_card_enchantments,
                     include_followups=False,
+                    all_builds=all_builds,
                 )
             )
 
@@ -625,6 +734,21 @@ def analyze_event(
                 if "暂未识别到明确的卡牌或资源收益" not in reason
             ]
 
+    if followup_value_summary:
+        followup_pool_stats = followup_value_summary.get("pool_stats", {})
+        if (
+            not pool_stats.get("total_pool_count")
+            and followup_pool_stats.get("total_pool_count")
+        ):
+            pool_stats = dict(followup_pool_stats)
+
+        followup_resources = followup_value_summary.get("resource_rewards", {})
+        if not has_resource_reward and any(
+            isinstance(value, (int, float)) and value > 0
+            for value in followup_resources.values()
+        ):
+            resource_rewards = dict(followup_resources)
+
     return {
         "event_name": event_name,
         "event_type": event_data.get("event_category", "unknown"),
@@ -632,6 +756,14 @@ def analyze_event(
         "current_day": current_day,
         "resolved_rarity_filter": resolved_rarity_filter,
         "possible_cards": analyzed_cards,
+        "alt_core_build_hits": [
+            {
+                "card_name": card["name"],
+                "builds": card["alt_core_build_hits"],
+            }
+            for card in alt_core_cards
+        ],
+        "alt_core_card_count": alt_core_card_count,
         "role_counts": role_counts,
         "high_tier_count": high_tier_count,
         "upgrade_hits": upgrade_hits,
@@ -837,6 +969,7 @@ def decide_recommendation(
     prob_valuable = pool_stats.get("prob_valuable_in_shop", 0.0)
     prob_core = pool_stats.get("prob_core_in_shop", 0.0)
     draw_count = int(pool_stats.get("draw_count", SHOP_CARD_COUNT))
+    selection_count = int(pool_stats.get("selection_count", draw_count))
 
     has_skill_reward = event_has_skill_reward(event_data)
 
@@ -902,7 +1035,13 @@ def decide_recommendation(
             f"候选池共有 {total_pool_count} 张卡，其中 {valuable_count} 张与当前构筑相关"
             f"（{valuable_ratio:.0%}）。"
         )
-        if draw_count == SHOP_CARD_COUNT:
+        if selection_count < draw_count:
+            reasons.append(
+                f"该奖励展示 {draw_count} 张卡并选择 {selection_count} 张，"
+                f"预期看到 {expected_valuable:.1f} 张构筑相关卡，"
+                f"至少看到一张的概率为 {prob_valuable:.0%}。"
+            )
+        elif draw_count == SHOP_CARD_COUNT:
             reasons.append(
                 f"商店展示 {SHOP_CARD_COUNT} 张卡，预期命中 {expected_valuable:.1f} 张构筑相关卡；"
                 f"至少看到一张的概率为 {prob_valuable:.0%}。"

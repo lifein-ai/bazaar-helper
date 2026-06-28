@@ -23,24 +23,22 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Vehicles"
+      "notes": "Sells Vehicles or Drones"
     },
     {
       "name": "Aila",
-      "source_id": "dc12f4bd-6c33-41f0-b7ad-d62a0be09a47",
+      "source_id": "0cb20108-dcbb-48e2-8294-519d09c60b3e",
       "source_ids": [
-        "dc12f4bd-6c33-41f0-b7ad-d62a0be09a47",
-        "abf614d4-4700-41f3-a05a-68c7e843cb1a",
+        "0cb20108-dcbb-48e2-8294-519d09c60b3e",
         "3155d09b-1440-4a95-a64e-68243735421d",
-        "97b6aca1-f1f5-492b-afd8-fcab7752ef7c"
+        "3e22799f-87df-4c9f-bd45-769e14753caa",
+        "47a149e6-a8e2-4e33-aa88-e76246c45696",
+        "97b6aca1-f1f5-492b-afd8-fcab7752ef7c",
+        "9cac2384-2020-4ae9-8375-15c5d07da446",
+        "abf614d4-4700-41f3-a05a-68c7e843cb1a",
+        "dc12f4bd-6c33-41f0-b7ad-d62a0be09a47"
       ],
       "event_heroes": [
-        "Dooley",
-        "Vanessa",
-        "Mak",
-        "Pygmalien",
-        "Jules",
-        "Stelle",
         "Common"
       ],
       "shop_type": "weapon",
@@ -57,23 +55,48 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells weapons"
+      "notes": "Sells Weapons"
+    },
+    {
+      "name": "Aimbot",
+      "source_id": "f22fd14f-7e00-40cb-9e44-a46f34d64764",
+      "source_ids": [
+        "f22fd14f-7e00-40cb-9e44-a46f34d64764"
+      ],
+      "event_heroes": [
+        "Vanessa",
+        "Dooley",
+        "Mak",
+        "Jules",
+        "Karnok",
+        "Stelle"
+      ],
+      "shop_type": "normal",
+      "hero_filter": null,
+      "shop_pool": {
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "any"
+      },
+      "notes": "Sells Crit items from any Hero"
     },
     {
       "name": "Ande",
-      "source_id": "70915950-ad96-47c8-a139-48b913b80750",
+      "source_id": "60e67364-7aab-4ffa-9751-db5ec0caf452",
       "source_ids": [
+        "60e67364-7aab-4ffa-9751-db5ec0caf452",
+        "705c0d8e-8513-49ce-82e8-81782cdac316",
         "70915950-ad96-47c8-a139-48b913b80750",
-        "705c0d8e-8513-49ce-82e8-81782cdac316"
+        "b649cc9a-9ea4-46d3-9ee5-8d57626260cf",
+        "e3bbe96b-7108-4343-9584-3bade7f004a5"
       ],
       "event_heroes": [
-        "Common",
-        "Dooley",
-        "Vanessa",
-        "Mak",
-        "Pygmalien",
-        "Jules",
-        "Stelle"
+        "Common"
       ],
       "shop_type": "small",
       "hero_filter": null,
@@ -90,7 +113,7 @@
           "small"
         ]
       },
-      "notes": "Sells small items"
+      "notes": "Sells Small items"
     },
     {
       "name": "Barkun",
@@ -99,14 +122,9 @@
         "8f0aea10-9894-4ded-a726-72b23142589c"
       ],
       "event_heroes": [
-        "Dooley",
-        "Vanessa",
-        "Mak",
-        "Pygmalien",
-        "Jules",
-        "Stelle"
+        "Common"
       ],
-      "shop_type": "medium+large",
+      "shop_type": "small+medium+large",
       "hero_filter": null,
       "shop_pool": {
         "reward_tags": [],
@@ -118,50 +136,22 @@
         ],
         "hero_scope": "current",
         "size_filter": [
+          "small",
           "medium",
           "large"
         ]
       },
-      "notes": "Sells medium and large items. Buys your Small items at +{aura.0} Value."
-    },
-    {
-      "name": "Bex",
-      "source_id": "34dc624d-1046-4e2d-906d-1fd8d19647d8",
-      "source_ids": [
-        "34dc624d-1046-4e2d-906d-1fd8d19647d8"
-      ],
-      "event_heroes": [
-        "Common"
-      ],
-      "shop_type": "weapon",
-      "hero_filter": null,
-      "shop_pool": {
-        "reward_tags": [
-          "weapon"
-        ],
-        "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
-        "excluded_tags": [
-          "legendary"
-        ],
-        "hero_scope": "current"
-      },
-      "notes": "Sells sports equipment."
+      "notes": "Sells Medium and Large items. Buys your Small items at +{aura.3} Value"
     },
     {
       "name": "Chronos",
-      "source_id": "b1288f12-2cf9-4473-a43e-4dd521703990",
+      "source_id": "3346b0d5-20a0-4aa4-a7d4-b86ad0109e59",
       "source_ids": [
+        "3346b0d5-20a0-4aa4-a7d4-b86ad0109e59",
         "b1288f12-2cf9-4473-a43e-4dd521703990"
       ],
       "event_heroes": [
-        "Dooley",
-        "Vanessa",
-        "Mak",
-        "Pygmalien",
-        "Jules",
-        "Stelle"
+        "Common"
       ],
       "shop_type": "haste",
       "hero_filter": null,
@@ -181,17 +171,13 @@
     },
     {
       "name": "Cobweb",
-      "source_id": "ef25f92c-484a-48de-b6de-8fc6429823ca",
+      "source_id": "b10f79af-da26-4b27-88da-3e7fea49a3b9",
       "source_ids": [
+        "b10f79af-da26-4b27-88da-3e7fea49a3b9",
         "ef25f92c-484a-48de-b6de-8fc6429823ca"
       ],
       "event_heroes": [
-        "Dooley",
-        "Vanessa",
-        "Mak",
-        "Pygmalien",
-        "Jules",
-        "Stelle"
+        "Common"
       ],
       "shop_type": "slow",
       "hero_filter": null,
@@ -213,11 +199,13 @@
       "name": "Colt",
       "source_id": "816e6ba0-8f5f-412e-9756-8e1901dd9d49",
       "source_ids": [
-        "816e6ba0-8f5f-412e-9756-8e1901dd9d49"
+        "816e6ba0-8f5f-412e-9756-8e1901dd9d49",
+        "91586550-41b0-4bc0-8739-d2268f04b703",
+        "db0dbc04-7652-46e6-84bf-a616f4a8e384"
       ],
       "event_heroes": [
         "Vanessa",
-        "Stelle"
+        "Common"
       ],
       "shop_type": "ammo",
       "hero_filter": null,
@@ -242,12 +230,7 @@
         "c6cffe25-8e94-4a7b-a821-3e3c7093333b"
       ],
       "event_heroes": [
-        "Dooley",
-        "Vanessa",
-        "Mak",
-        "Pygmalien",
-        "Jules",
-        "Stelle"
+        "Common"
       ],
       "shop_type": "hero",
       "hero_filter": "Common",
@@ -265,7 +248,7 @@
         "hero_scope": "fixed",
         "hero_filter": "Common"
       },
-      "notes": "Sells bronze-tier Neutral items."
+      "notes": "Sells Bronze-tier Neutral items"
     },
     {
       "name": "Dooley",
@@ -278,10 +261,11 @@
         "Vanessa",
         "Mak",
         "Pygmalien",
-        "Jules"
+        "Jules",
+        "Karnok"
       ],
-      "shop_type": "hero",
-      "hero_filter": "Dooley",
+      "shop_type": "normal",
+      "hero_filter": null,
       "shop_pool": {
         "reward_tags": [],
         "match_mode": "any",
@@ -290,10 +274,9 @@
         "excluded_tags": [
           "legendary"
         ],
-        "hero_scope": "fixed",
-        "hero_filter": "Dooley"
+        "hero_scope": "current"
       },
-      "notes": "Purchase an item from this Hero"
+      "notes": "Sells items from this Hero"
     },
     {
       "name": "Eli",
@@ -327,7 +310,8 @@
         "7bd967dd-4631-4252-bdff-ee0bd5e3ddb7"
       ],
       "event_heroes": [
-        "Pygmalien"
+        "Pygmalien",
+        "Karnok"
       ],
       "shop_type": "heal+health",
       "hero_filter": null,
@@ -344,7 +328,7 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Max Health items."
+      "notes": "Sells Max Health items"
     },
     {
       "name": "Freiya",
@@ -353,12 +337,7 @@
         "c246ee53-51ea-40c1-ac2f-71435e179531"
       ],
       "event_heroes": [
-        "Dooley",
-        "Vanessa",
-        "Mak",
-        "Pygmalien",
-        "Jules",
-        "Stelle"
+        "Common"
       ],
       "shop_type": "freeze",
       "hero_filter": null,
@@ -374,7 +353,7 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Freeze items."
+      "notes": "Sells Freeze items"
     },
     {
       "name": "Gaseo",
@@ -430,15 +409,11 @@
       "name": "Goldie",
       "source_id": "1f72700a-fe11-4792-8a47-9e52b9387f29",
       "source_ids": [
-        "1f72700a-fe11-4792-8a47-9e52b9387f29"
+        "1f72700a-fe11-4792-8a47-9e52b9387f29",
+        "50292930-5e68-47a2-8cc5-fde69aadc5aa"
       ],
       "event_heroes": [
-        "Dooley",
-        "Vanessa",
-        "Mak",
-        "Pygmalien",
-        "Jules",
-        "Stelle"
+        "Common"
       ],
       "shop_type": "gold",
       "hero_filter": null,
@@ -461,15 +436,11 @@
       "name": "Hef",
       "source_id": "43dbd6ed-6989-4ae4-acdc-f8bfcb8a008f",
       "source_ids": [
-        "43dbd6ed-6989-4ae4-acdc-f8bfcb8a008f"
+        "43dbd6ed-6989-4ae4-acdc-f8bfcb8a008f",
+        "55e0f929-071a-4e51-b60e-51fcc792f0b9"
       ],
       "event_heroes": [
-        "Dooley",
-        "Vanessa",
-        "Mak",
-        "Pygmalien",
-        "Jules",
-        "Stelle"
+        "Common"
       ],
       "shop_type": "burn",
       "hero_filter": null,
@@ -485,7 +456,7 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Burn items."
+      "notes": "Sells Burn items"
     },
     {
       "name": "Herma",
@@ -495,7 +466,9 @@
       ],
       "event_heroes": [
         "Pygmalien",
-        "Mak"
+        "Mak",
+        "Jules",
+        "Karnok"
       ],
       "shop_type": "heal+regen",
       "hero_filter": null,
@@ -516,17 +489,74 @@
     },
     {
       "name": "Jay Jay",
-      "source_id": "2f885e4a-bbb5-4233-8798-7224dd126f6e",
+      "source_id": "00b9bc97-b751-48c3-b3ae-6d96adf7a929",
       "source_ids": [
+        "00b9bc97-b751-48c3-b3ae-6d96adf7a929",
         "2f885e4a-bbb5-4233-8798-7224dd126f6e",
+        "5406f2e4-d22e-4aca-84c5-87fc81883d6e",
         "74d81658-9f44-45e6-8f7c-fd6ced634e63",
+        "85db60ee-3619-4e39-bfb2-2f4ac56f172b",
         "89d7bbcd-bf3e-48e5-a2ab-013d23452378",
-        "85db60ee-3619-4e39-bfb2-2f4ac56f172b"
+        "96cf61f6-9b9b-453c-9fc0-ea9268a0b71d",
+        "e25617c8-7366-428d-a3c2-b721fb9aa722",
+        "e34024e3-4380-4689-b9c6-b3db7faeaec5",
+        "eb1453e4-2307-4b6f-9a15-f8f30c849eb4",
+        "fa533c05-c89a-4849-8562-b560532f1431"
       ],
       "event_heroes": [
-        "Common",
+        "Common"
+      ],
+      "shop_type": "normal",
+      "hero_filter": null,
+      "shop_pool": {
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
+      "notes": "Sells items"
+    },
+    {
+      "name": "Jules",
+      "source_id": "7fdc233f-b81f-4216-a646-4c807c2240da",
+      "source_ids": [
+        "7fdc233f-b81f-4216-a646-4c807c2240da"
+      ],
+      "event_heroes": [
+        "Stelle",
         "Dooley",
+        "Mak",
+        "Pygmalien",
         "Vanessa",
+        "Karnok"
+      ],
+      "shop_type": "normal",
+      "hero_filter": null,
+      "shop_pool": {
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
+      "notes": "Sells items from this Hero"
+    },
+    {
+      "name": "Karnok",
+      "source_id": "379d881b-4524-4db9-a606-47bd35749f44",
+      "source_ids": [
+        "379d881b-4524-4db9-a606-47bd35749f44"
+      ],
+      "event_heroes": [
+        "Vanessa",
+        "Dooley",
         "Mak",
         "Pygmalien",
         "Jules",
@@ -544,35 +574,7 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells items."
-    },
-    {
-      "name": "Jules",
-      "source_id": "7fdc233f-b81f-4216-a646-4c807c2240da",
-      "source_ids": [
-        "7fdc233f-b81f-4216-a646-4c807c2240da"
-      ],
-      "event_heroes": [
-        "Stelle",
-        "Dooley",
-        "Mak",
-        "Pygmalien",
-        "Vanessa"
-      ],
-      "shop_type": "hero",
-      "hero_filter": "Jules",
-      "shop_pool": {
-        "reward_tags": [],
-        "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
-        "excluded_tags": [
-          "legendary"
-        ],
-        "hero_scope": "fixed",
-        "hero_filter": "Jules"
-      },
-      "notes": "Purchase an item from this Hero"
+      "notes": "Sells items from this Hero"
     },
     {
       "name": "Kev's Armory",
@@ -585,7 +587,8 @@
         "Vanessa",
         "Pygmalien",
         "Jules",
-        "Stelle"
+        "Stelle",
+        "Karnok"
       ],
       "shop_type": "heal+health+shield",
       "hero_filter": null,
@@ -610,16 +613,12 @@
       "source_id": "3ab184ce-bdb8-4dee-9169-8b383a25eae6",
       "source_ids": [
         "3ab184ce-bdb8-4dee-9169-8b383a25eae6",
-        "5b7c5fc4-c942-44fe-9ca8-726dc36a2ad6"
+        "5b7c5fc4-c942-44fe-9ca8-726dc36a2ad6",
+        "79fe1693-1e6d-4ed6-b376-794baca19262",
+        "7b598c89-fdf2-4e83-bc4c-6f16d86fbe04"
       ],
       "event_heroes": [
-        "Common",
-        "Dooley",
-        "Vanessa",
-        "Mak",
-        "Pygmalien",
-        "Jules",
-        "Stelle"
+        "Common"
       ],
       "shop_type": "normal",
       "hero_filter": null,
@@ -634,21 +633,17 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells non-weapon items."
+      "notes": "Sells non-Weapon items"
     },
     {
       "name": "Knightshade",
       "source_id": "2745a661-095c-44a5-bb6e-8dc76e07bda2",
       "source_ids": [
-        "2745a661-095c-44a5-bb6e-8dc76e07bda2"
+        "2745a661-095c-44a5-bb6e-8dc76e07bda2",
+        "d86e22d9-b54d-4be9-8b5b-f3fe93d4c133"
       ],
       "event_heroes": [
-        "Dooley",
-        "Vanessa",
-        "Mak",
-        "Pygmalien",
-        "Jules",
-        "Stelle"
+        "Common"
       ],
       "shop_type": "poison",
       "hero_filter": null,
@@ -664,7 +659,7 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Poison items."
+      "notes": "Sells Poison items"
     },
     {
       "name": "Luxe",
@@ -673,12 +668,7 @@
         "892de564-d894-4e07-ab21-959e16e8cdf8"
       ],
       "event_heroes": [
-        "Dooley",
-        "Vanessa",
-        "Mak",
-        "Pygmalien",
-        "Jules",
-        "Stelle"
+        "Common"
       ],
       "shop_type": "diamond",
       "hero_filter": null,
@@ -708,10 +698,11 @@
         "Dooley",
         "Vanessa",
         "Pygmalien",
-        "Jules"
+        "Jules",
+        "Karnok"
       ],
-      "shop_type": "hero",
-      "hero_filter": "Mak",
+      "shop_type": "normal",
+      "hero_filter": null,
       "shop_pool": {
         "reward_tags": [],
         "match_mode": "any",
@@ -720,10 +711,9 @@
         "excluded_tags": [
           "legendary"
         ],
-        "hero_scope": "fixed",
-        "hero_filter": "Mak"
+        "hero_scope": "current"
       },
-      "notes": "Purchase an item from this Hero"
+      "notes": "Sells items from this Hero"
     },
     {
       "name": "Maximus",
@@ -753,17 +743,14 @@
     },
     {
       "name": "Midsworth",
-      "source_id": "b8f55bb0-536e-4d5f-a328-d38f88c6d479",
+      "source_id": "0e5caade-789e-4184-92dc-d1ab03fcf926",
       "source_ids": [
+        "0e5caade-789e-4184-92dc-d1ab03fcf926",
+        "214fe1d5-c583-4766-99c5-c621598c83ce",
         "b8f55bb0-536e-4d5f-a328-d38f88c6d479"
       ],
       "event_heroes": [
-        "Dooley",
-        "Vanessa",
-        "Mak",
-        "Pygmalien",
-        "Jules",
-        "Stelle"
+        "Common"
       ],
       "shop_type": "small+large",
       "hero_filter": null,
@@ -781,23 +768,19 @@
           "large"
         ]
       },
-      "notes": "Sells small and large items. Buys your medium items at +{aura.0} value."
+      "notes": "Sells Small and Large items"
     },
     {
       "name": "Mittel",
-      "source_id": "cca9281a-d259-4771-9747-ea7af6de8dcf",
+      "source_id": "912c8b09-3b76-4aa1-8e21-245e0dfb5046",
       "source_ids": [
+        "912c8b09-3b76-4aa1-8e21-245e0dfb5046",
+        "ab14e395-2bef-42f1-a5ad-9947e56bb3f2",
         "cca9281a-d259-4771-9747-ea7af6de8dcf",
-        "912c8b09-3b76-4aa1-8e21-245e0dfb5046"
+        "e1e3e229-9806-4d2d-99e7-d25592fe14b6"
       ],
       "event_heroes": [
-        "Common",
-        "Dooley",
-        "Vanessa",
-        "Mak",
-        "Pygmalien",
-        "Jules",
-        "Stelle"
+        "Common"
       ],
       "shop_type": "medium",
       "hero_filter": null,
@@ -814,7 +797,7 @@
           "medium"
         ]
       },
-      "notes": "Sells medium items"
+      "notes": "Sells Medium items"
     },
     {
       "name": "Mr. Morland",
@@ -845,10 +828,12 @@
       "name": "Nautica",
       "source_id": "1a21931f-6183-4251-914b-c8f83dc58a30",
       "source_ids": [
-        "1a21931f-6183-4251-914b-c8f83dc58a30"
+        "1a21931f-6183-4251-914b-c8f83dc58a30",
+        "2e2f894d-209c-47e0-905a-63b3b59c8aa8"
       ],
       "event_heroes": [
-        "Vanessa"
+        "Vanessa",
+        "Common"
       ],
       "shop_type": "aquatic",
       "hero_filter": null,
@@ -870,15 +855,11 @@
       "name": "Orion",
       "source_id": "d3727a3a-3dd2-4ea7-a396-515e2c41c1b0",
       "source_ids": [
-        "d3727a3a-3dd2-4ea7-a396-515e2c41c1b0"
+        "d3727a3a-3dd2-4ea7-a396-515e2c41c1b0",
+        "d61f942a-6da4-48bd-a4db-1bde45174aba"
       ],
       "event_heroes": [
-        "Dooley",
-        "Vanessa",
-        "Mak",
-        "Pygmalien",
-        "Jules",
-        "Stelle"
+        "Common"
       ],
       "shop_type": "tool",
       "hero_filter": null,
@@ -897,18 +878,41 @@
       "notes": "Sells Tools"
     },
     {
+      "name": "Pinfeather",
+      "source_id": "7066e72e-40b7-4104-b521-159de457f2d0",
+      "source_ids": [
+        "7066e72e-40b7-4104-b521-159de457f2d0"
+      ],
+      "event_heroes": [
+        "Stelle",
+        "Mak",
+        "Pygmalien",
+        "Karnok",
+        "Vanessa",
+        "Dooley"
+      ],
+      "shop_type": "normal",
+      "hero_filter": null,
+      "shop_pool": {
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "any"
+      },
+      "notes": "Sells Flying items from any Hero"
+    },
+    {
       "name": "Pol",
       "source_id": "065f6793-8607-4f02-abfe-db6afb221ab2",
       "source_ids": [
         "065f6793-8607-4f02-abfe-db6afb221ab2"
       ],
       "event_heroes": [
-        "Dooley",
-        "Vanessa",
-        "Mak",
-        "Pygmalien",
-        "Jules",
-        "Stelle"
+        "Common"
       ],
       "shop_type": "large",
       "hero_filter": null,
@@ -925,7 +929,7 @@
           "large"
         ]
       },
-      "notes": "Sells large items"
+      "notes": "Sells Large items"
     },
     {
       "name": "Prospero",
@@ -936,11 +940,11 @@
       "event_heroes": [
         "Pygmalien"
       ],
-      "shop_type": "EconomyReference",
+      "shop_type": "gold",
       "hero_filter": null,
       "shop_pool": {
         "reward_tags": [
-          "EconomyReference"
+          "gold"
         ],
         "match_mode": "any",
         "rarity_filter": null,
@@ -948,9 +952,9 @@
         "excluded_tags": [
           "legendary"
         ],
-        "hero_scope": "current"
+        "hero_scope": "any"
       },
-      "notes": "Sells Economic items"
+      "notes": "Sells Economic items from any hero"
     },
     {
       "name": "Proteus",
@@ -988,69 +992,8 @@
         "Dooley",
         "Mak",
         "Vanessa",
-        "Jules"
-      ],
-      "shop_type": "hero",
-      "hero_filter": "Pygmalien",
-      "shop_pool": {
-        "reward_tags": [],
-        "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
-        "excluded_tags": [
-          "legendary"
-        ],
-        "hero_scope": "fixed",
-        "hero_filter": "Pygmalien"
-      },
-      "notes": "Purchase an item from this Hero"
-    },
-    {
-      "name": "Quixel",
-      "source_id": "323e2c05-f077-4774-84a5-9e89d8d1c9b9",
-      "source_ids": [
-        "323e2c05-f077-4774-84a5-9e89d8d1c9b9",
-        "e7cac33d-864c-45c9-8a3e-c3218aa0febe"
-      ],
-      "event_heroes": [
-        "Dooley",
-        "Vanessa",
-        "Mak",
-        "Pygmalien",
         "Jules",
-        "Stelle"
-      ],
-      "shop_type": "small+medium",
-      "hero_filter": null,
-      "shop_pool": {
-        "reward_tags": [],
-        "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
-        "excluded_tags": [
-          "legendary"
-        ],
-        "hero_scope": "current",
-        "size_filter": [
-          "small",
-          "medium"
-        ]
-      },
-      "notes": "Sells small and medium items. Buys your Large items at +{aura.0} value."
-    },
-    {
-      "name": "Serafina",
-      "source_id": "b690812d-108b-49ce-82f3-e1a41379022c",
-      "source_ids": [
-        "b690812d-108b-49ce-82f3-e1a41379022c"
-      ],
-      "event_heroes": [
-        "Dooley",
-        "Vanessa",
-        "Mak",
-        "Pygmalien",
-        "Jules",
-        "Stelle"
+        "Karnok"
       ],
       "shop_type": "normal",
       "hero_filter": null,
@@ -1064,7 +1007,60 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Enchanted Items"
+      "notes": "Sells items from this Hero"
+    },
+    {
+      "name": "Quixel",
+      "source_id": "323e2c05-f077-4774-84a5-9e89d8d1c9b9",
+      "source_ids": [
+        "323e2c05-f077-4774-84a5-9e89d8d1c9b9",
+        "342fcc56-26a4-479b-8707-46ddfb5adef2",
+        "e7cac33d-864c-45c9-8a3e-c3218aa0febe"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "shop_type": "small+medium+large",
+      "hero_filter": null,
+      "shop_pool": {
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current",
+        "size_filter": [
+          "small",
+          "medium",
+          "large"
+        ]
+      },
+      "notes": "Sells Small and Medium items. Buys your Large items at +{aura.3} value"
+    },
+    {
+      "name": "Serafina",
+      "source_id": "b690812d-108b-49ce-82f3-e1a41379022c",
+      "source_ids": [
+        "b690812d-108b-49ce-82f3-e1a41379022c"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "shop_type": "normal",
+      "hero_filter": null,
+      "shop_pool": {
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
+      "notes": "Sells Enchanted items"
     },
     {
       "name": "Seraphim",
@@ -1073,12 +1069,7 @@
         "ee6887f7-4bde-4a54-a7ab-540eb43d46a1"
       ],
       "event_heroes": [
-        "Dooley",
-        "Vanessa",
-        "Pygmalien",
-        "Mak",
-        "Jules",
-        "Stelle"
+        "Common"
       ],
       "shop_type": "heal+shield",
       "hero_filter": null,
@@ -1098,18 +1089,40 @@
       "notes": "Sells Heal or Shield items"
     },
     {
-      "name": "Silvia",
-      "source_id": "ec81a27c-590c-43a1-a353-804a23b5e5d9",
+      "name": "Shelter Shelby",
+      "source_id": "9459a01b-edf5-432b-81cd-1fd2cacfadad",
       "source_ids": [
+        "9459a01b-edf5-432b-81cd-1fd2cacfadad"
+      ],
+      "event_heroes": [
+        "Karnok",
+        "Vanessa"
+      ],
+      "shop_type": "friend",
+      "hero_filter": null,
+      "shop_pool": {
+        "reward_tags": [
+          "friend"
+        ],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
+      "notes": "Sells Friend items"
+    },
+    {
+      "name": "Silvia",
+      "source_id": "5fcd3081-0daa-4e50-b749-c884b405ef9c",
+      "source_ids": [
+        "5fcd3081-0daa-4e50-b749-c884b405ef9c",
         "ec81a27c-590c-43a1-a353-804a23b5e5d9"
       ],
       "event_heroes": [
-        "Dooley",
-        "Vanessa",
-        "Mak",
-        "Pygmalien",
-        "Jules",
-        "Stelle"
+        "Common"
       ],
       "shop_type": "silver",
       "hero_filter": null,
@@ -1126,7 +1139,7 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Silver-tier items"
+      "notes": "Sells Silver-tier items."
     },
     {
       "name": "Stelle",
@@ -1139,10 +1152,11 @@
         "Dooley",
         "Mak",
         "Pygmalien",
-        "Jules"
+        "Jules",
+        "Karnok"
       ],
-      "shop_type": "hero",
-      "hero_filter": "Stelle",
+      "shop_type": "normal",
+      "hero_filter": null,
       "shop_pool": {
         "reward_tags": [],
         "match_mode": "any",
@@ -1151,26 +1165,41 @@
         "excluded_tags": [
           "legendary"
         ],
-        "hero_scope": "fixed",
-        "hero_filter": "Stelle"
+        "hero_scope": "current"
       },
-      "notes": "Purchase an item from this Hero"
+      "notes": "Sells items from this Hero"
+    },
+    {
+      "name": "Stickybeans",
+      "source_id": "d0276b47-be8a-4bbc-ab55-9f92b352480a",
+      "source_ids": [
+        "d0276b47-be8a-4bbc-ab55-9f92b352480a"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "shop_type": "normal",
+      "hero_filter": null,
+      "shop_pool": {
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
+      "notes": "Sells items from other Heroes"
     },
     {
       "name": "Street Festival",
-      "source_id": "2ee65e2b-c679-41b6-812d-5dd59a5cb27a",
+      "source_id": "48e598a5-5e37-4ffc-ac66-b80f08a5af62",
       "source_ids": [
-        "2ee65e2b-c679-41b6-812d-5dd59a5cb27a",
-        "9209f028-8de7-45ba-9cd6-11ab53ec1ec6",
         "48e598a5-5e37-4ffc-ac66-b80f08a5af62"
       ],
       "event_heroes": [
-        "Vanessa",
-        "Dooley",
-        "Jules",
-        "Stelle",
-        "Mak",
-        "Pygmalien"
+        "Dooley"
       ],
       "shop_type": "normal",
       "hero_filter": null,
@@ -1212,6 +1241,85 @@
       "notes": "Sells Toys from any Hero"
     },
     {
+      "name": "The Antiquarian",
+      "source_id": "e840f7a3-0a04-455d-852c-286dc5011efc",
+      "source_ids": [
+        "e840f7a3-0a04-455d-852c-286dc5011efc"
+      ],
+      "event_heroes": [
+        "Vanessa",
+        "Pygmalien",
+        "Dooley",
+        "Mak",
+        "Karnok"
+      ],
+      "shop_type": "relic",
+      "hero_filter": null,
+      "shop_pool": {
+        "reward_tags": [
+          "relic"
+        ],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "any"
+      },
+      "notes": "Sells Relics from any Hero"
+    },
+    {
+      "name": "The Tester",
+      "source_id": "41cdf4ee-7790-4da1-96f8-a46d3391a0d9",
+      "source_ids": [
+        "41cdf4ee-7790-4da1-96f8-a46d3391a0d9"
+      ],
+      "event_heroes": [
+        "Dooley",
+        "Vanessa",
+        "Stelle"
+      ],
+      "shop_type": "tech",
+      "hero_filter": null,
+      "shop_pool": {
+        "reward_tags": [
+          "tech"
+        ],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "any"
+      },
+      "notes": "Sells Tech items from any Hero"
+    },
+    {
+      "name": "The Travel Agent",
+      "source_id": "002d8f6d-0e36-4921-89ed-3f0f28682d7b",
+      "source_ids": [
+        "002d8f6d-0e36-4921-89ed-3f0f28682d7b"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "shop_type": "normal",
+      "hero_filter": null,
+      "shop_pool": {
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
+      "notes": "Sells Expedition Tickets"
+    },
+    {
       "name": "Tinker",
       "source_id": "b1b1f445-e625-4397-b4e2-ee4feeb729fa",
       "source_ids": [
@@ -1247,7 +1355,8 @@
         "Vanessa",
         "Mak",
         "Jules",
-        "Stelle"
+        "Stelle",
+        "Karnok"
       ],
       "shop_type": "cooldown+haste+slow",
       "hero_filter": null,
@@ -1265,38 +1374,31 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Haste, Slow and Cooldown items."
+      "notes": "Sells Haste, Slow and Cooldown items"
     },
     {
       "name": "Valpak",
-      "source_id": "e3b894b0-a078-4b1d-8793-ac6459a8361a",
+      "source_id": "42bd0dae-7215-48cf-a526-437289e7f8d1",
       "source_ids": [
+        "42bd0dae-7215-48cf-a526-437289e7f8d1",
         "e3b894b0-a078-4b1d-8793-ac6459a8361a"
       ],
       "event_heroes": [
-        "Dooley",
-        "Vanessa",
-        "Mak",
-        "Pygmalien",
-        "Jules",
-        "Stelle"
+        "Common"
       ],
-      "shop_type": "bronze",
+      "shop_type": "normal",
       "hero_filter": null,
       "shop_pool": {
         "reward_tags": [],
         "match_mode": "any",
-        "rarity_filter": {
-          "min": "bronze",
-          "max": "bronze"
-        },
-        "rarity_rule": null,
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
         "excluded_tags": [
           "legendary"
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells items. Buys your Bronze-tier items at +{aura.0} Gold."
+      "notes": "Sells items"
     },
     {
       "name": "Vanessa",
@@ -1309,10 +1411,11 @@
         "Dooley",
         "Mak",
         "Pygmalien",
-        "Jules"
+        "Jules",
+        "Karnok"
       ],
-      "shop_type": "hero",
-      "hero_filter": "Vanessa",
+      "shop_type": "normal",
+      "hero_filter": null,
       "shop_pool": {
         "reward_tags": [],
         "match_mode": "any",
@@ -1321,10 +1424,9 @@
         "excluded_tags": [
           "legendary"
         ],
-        "hero_scope": "fixed",
-        "hero_filter": "Vanessa"
+        "hero_scope": "current"
       },
-      "notes": "Purchase an item from this Hero"
+      "notes": "Sells items from this Hero"
     },
     {
       "name": "Vox",
@@ -1353,6 +1455,312 @@
         "hero_scope": "current"
       },
       "notes": "Sells Burn, Poison, Freeze, and Slow items"
+    },
+    {
+      "name": "[DEBUG] Burn Merchant",
+      "source_id": "2f80f1fe-462b-4a8d-8819-d211d11904d1",
+      "source_ids": [
+        "2f80f1fe-462b-4a8d-8819-d211d11904d1"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "shop_type": "burn",
+      "hero_filter": null,
+      "shop_pool": {
+        "reward_tags": [
+          "burn"
+        ],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "any"
+      },
+      "notes": "Sells Burn items from any Hero"
+    },
+    {
+      "name": "[DEBUG] Crit Merchant",
+      "source_id": "3f99df7b-5c30-4da5-98e4-89ff5409a777",
+      "source_ids": [
+        "3f99df7b-5c30-4da5-98e4-89ff5409a777"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "shop_type": "normal",
+      "hero_filter": null,
+      "shop_pool": {
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "any"
+      },
+      "notes": "Sells Crit items from any Hero"
+    },
+    {
+      "name": "[DEBUG] Economic Merchant",
+      "source_id": "fe0aff36-c0d4-46ba-81dd-51881891b958",
+      "source_ids": [
+        "fe0aff36-c0d4-46ba-81dd-51881891b958"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "shop_type": "gold",
+      "hero_filter": null,
+      "shop_pool": {
+        "reward_tags": [
+          "gold"
+        ],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "any"
+      },
+      "notes": "Sells Economic items from any Hero"
+    },
+    {
+      "name": "[DEBUG] Flying Merchant",
+      "source_id": "ba7960c6-9352-4795-9844-bdecc25fdb9f",
+      "source_ids": [
+        "ba7960c6-9352-4795-9844-bdecc25fdb9f"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "shop_type": "normal",
+      "hero_filter": null,
+      "shop_pool": {
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "any"
+      },
+      "notes": "Sells Flying items from any Hero"
+    },
+    {
+      "name": "[DEBUG] Freeze Merchant",
+      "source_id": "4657a8ab-6f39-4ec9-97d3-cfc7d193dabb",
+      "source_ids": [
+        "4657a8ab-6f39-4ec9-97d3-cfc7d193dabb"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "shop_type": "freeze",
+      "hero_filter": null,
+      "shop_pool": {
+        "reward_tags": [
+          "freeze"
+        ],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "any"
+      },
+      "notes": "Sells Freeze items from any Hero"
+    },
+    {
+      "name": "[DEBUG] Haste, Slow and Cooldown Merchant",
+      "source_id": "b2de7a98-b63a-4c53-81aa-b5e09efc245a",
+      "source_ids": [
+        "b2de7a98-b63a-4c53-81aa-b5e09efc245a"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "shop_type": "cooldown+haste+slow",
+      "hero_filter": null,
+      "shop_pool": {
+        "reward_tags": [
+          "cooldown",
+          "haste",
+          "slow"
+        ],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "any"
+      },
+      "notes": "Sells Haste, Slow and Cooldown items from any Hero"
+    },
+    {
+      "name": "[DEBUG] Heal or Regen Merchant",
+      "source_id": "cffe0e90-ea71-4ab8-94af-c7c8edb4c4fa",
+      "source_ids": [
+        "cffe0e90-ea71-4ab8-94af-c7c8edb4c4fa"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "shop_type": "heal+regen",
+      "hero_filter": null,
+      "shop_pool": {
+        "reward_tags": [
+          "heal",
+          "regen"
+        ],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "any"
+      },
+      "notes": "Sells Heal or Regen items from any Hero"
+    },
+    {
+      "name": "[DEBUG] Merchant All Item Cost increase",
+      "source_id": "673b01a4-da04-47ea-8ee5-ef18c9d8dedf",
+      "source_ids": [
+        "673b01a4-da04-47ea-8ee5-ef18c9d8dedf"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "shop_type": "medium+large",
+      "hero_filter": null,
+      "shop_pool": {
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current",
+        "size_filter": [
+          "medium",
+          "large"
+        ]
+      },
+      "notes": "Sells Medium and Large items. It's items are 50% off"
+    },
+    {
+      "name": "[DEBUG] Merchant Discount",
+      "source_id": "c00377f2-0683-42b4-94a5-db9b9a1eef86",
+      "source_ids": [
+        "c00377f2-0683-42b4-94a5-db9b9a1eef86"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "shop_type": "medium+large",
+      "hero_filter": null,
+      "shop_pool": {
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current",
+        "size_filter": [
+          "medium",
+          "large"
+        ]
+      },
+      "notes": "Sells Medium and Large items - when an item is sold, an item's cost is halved"
+    },
+    {
+      "name": "[DEBUG] Poison Merchant",
+      "source_id": "b072d8ae-ee3e-44cb-b047-4608e77e3174",
+      "source_ids": [
+        "b072d8ae-ee3e-44cb-b047-4608e77e3174"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "shop_type": "poison",
+      "hero_filter": null,
+      "shop_pool": {
+        "reward_tags": [
+          "poison"
+        ],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "any"
+      },
+      "notes": "Sells Poison items from any Hero"
+    },
+    {
+      "name": "[DEBUG] Shield and Heakth Merchant",
+      "source_id": "81ad4a6f-a953-4a10-bdb9-f9a857579aa4",
+      "source_ids": [
+        "81ad4a6f-a953-4a10-bdb9-f9a857579aa4"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "shop_type": "heal+health+shield",
+      "hero_filter": null,
+      "shop_pool": {
+        "reward_tags": [
+          "heal",
+          "health",
+          "shield"
+        ],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "any"
+      },
+      "notes": "Sells Shield and Health items from any Hero"
+    },
+    {
+      "name": "[DEBUG] Weapon and Damage Merchant",
+      "source_id": "634ad92f-a1b4-43c6-8e15-3031ffe7dd16",
+      "source_ids": [
+        "634ad92f-a1b4-43c6-8e15-3031ffe7dd16"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "shop_type": "damage+weapon",
+      "hero_filter": null,
+      "shop_pool": {
+        "reward_tags": [
+          "damage",
+          "weapon"
+        ],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "any"
+      },
+      "notes": "Sells Weapon and Damage items from any Hero"
     }
   ],
   "skill_shops": [
@@ -1367,6 +1775,19 @@
       ],
       "event_type": "skill_event",
       "skill_tags": [],
+      "shop_pool": {
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": {
+          "min": "diamond",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
       "resource_rewards": {
         "gold": 0,
         "exp": 0,
@@ -1378,13 +1799,27 @@
       "name": "Argenta",
       "source_id": "4c3d4b9d-e5b7-469c-be91-67b213c5a975",
       "source_ids": [
-        "4c3d4b9d-e5b7-469c-be91-67b213c5a975"
+        "4c3d4b9d-e5b7-469c-be91-67b213c5a975",
+        "8d5c8a08-45cf-43d2-b1ec-a37d3bd5542b"
       ],
       "event_heroes": [
         "Common"
       ],
       "event_type": "skill_event",
       "skill_tags": [],
+      "shop_pool": {
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": {
+          "min": "silver",
+          "max": "silver"
+        },
+        "rarity_rule": null,
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
       "resource_rewards": {
         "gold": 0,
         "exp": 0,
@@ -1401,12 +1836,25 @@
       "event_heroes": [
         "Dooley",
         "Vanessa",
-        "Mak"
+        "Mak",
+        "Jules"
       ],
       "event_type": "skill_event",
       "skill_tags": [
         "freeze"
       ],
+      "shop_pool": {
+        "reward_tags": [
+          "freeze"
+        ],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
       "resource_rewards": {
         "gold": 0,
         "exp": 0,
@@ -1421,37 +1869,30 @@
         "54e27892-1eb3-4b1d-9824-51f9fa0bf51a"
       ],
       "event_heroes": [
-        "Vanessa",
-        "Mak"
+        "Vanessa"
       ],
       "event_type": "skill_event",
       "skill_tags": [
         "ammo"
       ],
+      "shop_pool": {
+        "reward_tags": [
+          "ammo"
+        ],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
       "resource_rewards": {
         "gold": 0,
         "exp": 0,
         "health": 0
       },
       "notes": "Teaches Ammo skills"
-    },
-    {
-      "name": "Chef Brolin",
-      "source_id": "4b9c8dd5-fa9c-47a1-bd26-3f043faa5e2a",
-      "source_ids": [
-        "4b9c8dd5-fa9c-47a1-bd26-3f043faa5e2a"
-      ],
-      "event_heroes": [
-        "Jules"
-      ],
-      "event_type": "skill_event",
-      "skill_tags": [],
-      "resource_rewards": {
-        "gold": 0,
-        "exp": 0,
-        "health": 0
-      },
-      "notes": "Teaches Joy skills"
     },
     {
       "name": "Cymon",
@@ -1464,12 +1905,22 @@
       ],
       "event_type": "skill_event",
       "skill_tags": [],
+      "shop_pool": {
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
       "resource_rewards": {
         "gold": 0,
         "exp": 0,
         "health": 0
       },
-      "notes": "Sells skills unique to Dooley"
+      "notes": "Teaches skills unique to Dooley"
     },
     {
       "name": "Fortis",
@@ -1480,12 +1931,26 @@
       "event_heroes": [
         "Pygmalien",
         "Dooley",
-        "Stelle"
+        "Stelle",
+        "Jules",
+        "Karnok"
       ],
       "event_type": "skill_event",
       "skill_tags": [
         "shield"
       ],
+      "shop_pool": {
+        "reward_tags": [
+          "shield"
+        ],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
       "resource_rewards": {
         "gold": 0,
         "exp": 0,
@@ -1504,12 +1969,50 @@
       ],
       "event_type": "skill_event",
       "skill_tags": [],
+      "shop_pool": {
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
       "resource_rewards": {
         "gold": 0,
         "exp": 0,
         "health": 0
       },
       "notes": "Sells Skill upgrades"
+    },
+    {
+      "name": "Kelsa",
+      "source_id": "de175e34-df34-4581-a13a-46767e1c7c6b",
+      "source_ids": [
+        "de175e34-df34-4581-a13a-46767e1c7c6b"
+      ],
+      "event_heroes": [
+        "Karnok"
+      ],
+      "event_type": "skill_event",
+      "skill_tags": [],
+      "shop_pool": {
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Teaches skills unique to Karnok"
     },
     {
       "name": "Malafang",
@@ -1522,12 +2025,26 @@
         "Stelle",
         "Jules",
         "Dooley",
-        "Mak"
+        "Mak",
+        "Pygmalien",
+        "Karnok"
       ],
       "event_type": "skill_event",
       "skill_tags": [
         "burn"
       ],
+      "shop_pool": {
+        "reward_tags": [
+          "burn"
+        ],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
       "resource_rewards": {
         "gold": 0,
         "exp": 0,
@@ -1546,12 +2063,22 @@
       ],
       "event_type": "skill_event",
       "skill_tags": [],
+      "shop_pool": {
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
       "resource_rewards": {
         "gold": 0,
         "exp": 0,
         "health": 0
       },
-      "notes": "Sells skills unique to Pygmalien"
+      "notes": "Teaches skills unique to Pygmalien"
     },
     {
       "name": "Nonna",
@@ -1564,6 +2091,16 @@
       ],
       "event_type": "skill_event",
       "skill_tags": [],
+      "shop_pool": {
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
       "resource_rewards": {
         "gold": 0,
         "exp": 0,
@@ -1573,17 +2110,27 @@
     },
     {
       "name": "Nufu",
-      "source_id": "8d6dadfa-6517-4eca-8c79-5f7c3fc7e116",
+      "source_id": "210003fa-a20d-4ad1-9ada-d5fad5bf9f89",
       "source_ids": [
-        "8d6dadfa-6517-4eca-8c79-5f7c3fc7e116",
-        "210003fa-a20d-4ad1-9ada-d5fad5bf9f89"
+        "210003fa-a20d-4ad1-9ada-d5fad5bf9f89",
+        "8d6dadfa-6517-4eca-8c79-5f7c3fc7e116"
       ],
       "event_heroes": [
-        "Pygmalien",
-        "Common"
+        "Common",
+        "Pygmalien"
       ],
       "event_type": "skill_event",
       "skill_tags": [],
+      "shop_pool": {
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
       "resource_rewards": {
         "gold": 0,
         "exp": 0,
@@ -1602,12 +2149,22 @@
       ],
       "event_type": "skill_event",
       "skill_tags": [],
+      "shop_pool": {
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
       "resource_rewards": {
         "gold": 0,
         "exp": 0,
         "health": 0
       },
-      "notes": "Sells skills unique to Vanessa"
+      "notes": "Teaches skills unique to Vanessa"
     },
     {
       "name": "Orlin",
@@ -1620,6 +2177,19 @@
       ],
       "event_type": "skill_event",
       "skill_tags": [],
+      "shop_pool": {
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": {
+          "min": "gold",
+          "max": "gold"
+        },
+        "rarity_rule": null,
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
       "resource_rewards": {
         "gold": 0,
         "exp": 0,
@@ -1629,8 +2199,10 @@
     },
     {
       "name": "Pip",
-      "source_id": "e2fc8bd4-b97d-485b-8bb6-5c966d336c4a",
+      "source_id": "61be3473-6546-427f-ac13-9dee4c43d23c",
       "source_ids": [
+        "61be3473-6546-427f-ac13-9dee4c43d23c",
+        "bc75676c-032f-441a-a6a2-35b1ccc2eb80",
         "e2fc8bd4-b97d-485b-8bb6-5c966d336c4a"
       ],
       "event_heroes": [
@@ -1638,12 +2210,25 @@
       ],
       "event_type": "skill_event",
       "skill_tags": [],
+      "shop_pool": {
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "bronze"
+        },
+        "rarity_rule": null,
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
       "resource_rewards": {
         "gold": 0,
         "exp": 0,
         "health": 0
       },
-      "notes": "Teaches Bronze-tier Skills"
+      "notes": "Gives you {ability.0} Gold and teaches Bronze-tier Skills"
     },
     {
       "name": "Praeteria",
@@ -1656,6 +2241,16 @@
       ],
       "event_type": "skill_event",
       "skill_tags": [],
+      "shop_pool": {
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
       "resource_rewards": {
         "gold": 0,
         "exp": 0,
@@ -1672,12 +2267,25 @@
       "event_heroes": [
         "Vanessa",
         "Dooley",
-        "Mak"
+        "Mak",
+        "Karnok"
       ],
       "event_type": "skill_event",
       "skill_tags": [
         "poison"
       ],
+      "shop_pool": {
+        "reward_tags": [
+          "poison"
+        ],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
       "resource_rewards": {
         "gold": 0,
         "exp": 0,
@@ -1696,6 +2304,16 @@
       ],
       "event_type": "skill_event",
       "skill_tags": [],
+      "shop_pool": {
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
       "resource_rewards": {
         "gold": 0,
         "exp": 0,
@@ -1711,19 +2329,36 @@
       ],
       "event_heroes": [
         "Pygmalien",
-        "Mak"
+        "Mak",
+        "Jules",
+        "Karnok"
       ],
       "event_type": "skill_event",
       "skill_tags": [
         "heal",
+        "health",
         "regen"
       ],
+      "shop_pool": {
+        "reward_tags": [
+          "heal",
+          "health",
+          "regen"
+        ],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
       "resource_rewards": {
         "gold": 0,
         "exp": 0,
         "health": 0
       },
-      "notes": "Teaches Heal and Regen skills"
+      "notes": "Teaches Health, Heal and Regen skills"
     },
     {
       "name": "Ryukon",
@@ -1738,6 +2373,18 @@
       "skill_tags": [
         "weapon"
       ],
+      "shop_pool": {
+        "reward_tags": [
+          "weapon"
+        ],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
       "resource_rewards": {
         "gold": 0,
         "exp": 0,
@@ -1754,13 +2401,27 @@
       "event_heroes": [
         "Vanessa",
         "Dooley",
+        "Jules",
+        "Stelle",
         "Mak",
-        "Stelle"
+        "Karnok"
       ],
       "event_type": "skill_event",
       "skill_tags": [
         "slow"
       ],
+      "shop_pool": {
+        "reward_tags": [
+          "slow"
+        ],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
       "resource_rewards": {
         "gold": 0,
         "exp": 0,
@@ -1769,7 +2430,7 @@
       "notes": "Teaches Slow skills"
     },
     {
-      "name": "StelleTrainer",
+      "name": "Uncle Odi",
       "source_id": "3e0f0266-e92b-4a9a-b0b8-dba816e51647",
       "source_ids": [
         "3e0f0266-e92b-4a9a-b0b8-dba816e51647"
@@ -1779,12 +2440,22 @@
       ],
       "event_type": "skill_event",
       "skill_tags": [],
+      "shop_pool": {
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
       "resource_rewards": {
         "gold": 0,
         "exp": 0,
         "health": 0
       },
-      "notes": "Teaches Stelle Skills"
+      "notes": "Teaches skills unique to Stelle"
     },
     {
       "name": "Vermir",
@@ -1795,10 +2466,22 @@
       "event_heroes": [
         "Vanessa",
         "Dooley",
-        "Mak"
+        "Mak",
+        "Jules",
+        "Karnok"
       ],
       "event_type": "skill_event",
       "skill_tags": [],
+      "shop_pool": {
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
       "resource_rewards": {
         "gold": 0,
         "exp": 0,
@@ -1817,12 +2500,25 @@
         "Dooley",
         "Mak",
         "Stelle",
-        "Jules"
+        "Jules",
+        "Karnok"
       ],
       "event_type": "skill_event",
       "skill_tags": [
         "haste"
       ],
+      "shop_pool": {
+        "reward_tags": [
+          "haste"
+        ],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
       "resource_rewards": {
         "gold": 0,
         "exp": 0,
@@ -1841,12 +2537,22 @@
       ],
       "event_type": "skill_event",
       "skill_tags": [],
+      "shop_pool": {
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
       "resource_rewards": {
         "gold": 0,
         "exp": 0,
         "health": 0
       },
-      "notes": "Teaches Mak Skills"
+      "notes": "Teaches skills unique to Mak"
     },
     {
       "name": "Zurphin's Safari",
@@ -1859,6 +2565,16 @@
       ],
       "event_type": "skill_event",
       "skill_tags": [],
+      "shop_pool": {
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
       "resource_rewards": {
         "gold": 0,
         "exp": 0,
@@ -1875,7 +2591,8 @@
         "fed8adb8-8fc6-49be-88da-a6fa8496ad2f"
       ],
       "event_heroes": [
-        "Pygmalien"
+        "Pygmalien",
+        "Karnok"
       ],
       "event_type": "item_reward",
       "exact_names": [],
@@ -1901,7 +2618,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Property."
+      "notes": "Get a Property"
     },
     {
       "name": "Alchemy Lab",
@@ -1936,15 +2653,15 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Potion."
+      "notes": "Get a Potion"
     },
     {
       "name": "Ammo Cache",
-      "source_id": "ba2f4ad0-ff5b-4959-9acb-224cb3b66898",
+      "source_id": "33ff7845-b3c5-43f6-b9b9-dfbff4729ce9",
       "source_ids": [
-        "ba2f4ad0-ff5b-4959-9acb-224cb3b66898",
         "33ff7845-b3c5-43f6-b9b9-dfbff4729ce9",
-        "8ae41204-4071-42be-9d6f-4aff260851b0"
+        "8ae41204-4071-42be-9d6f-4aff260851b0",
+        "ba2f4ad0-ff5b-4959-9acb-224cb3b66898"
       ],
       "event_heroes": [
         "Vanessa"
@@ -1966,8 +2683,8 @@
         ],
         "match_mode": "any",
         "rarity_filter": {
-          "min": "gold",
-          "max": "gold"
+          "min": "silver",
+          "max": "silver"
         },
         "rarity_rule": null,
         "excluded_tags": [
@@ -1980,21 +2697,17 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Gold-tier Gunpowder (+Ammo)."
+      "notes": "Get a Silver-tier Gunpowder (+Ammo)"
     },
     {
       "name": "Armory",
       "source_id": "7c179f37-5845-4041-b123-0c7da0fdabbd",
       "source_ids": [
-        "7c179f37-5845-4041-b123-0c7da0fdabbd"
+        "7c179f37-5845-4041-b123-0c7da0fdabbd",
+        "c9fe4d57-1e5e-40dc-b878-9243ac41d130"
       ],
       "event_heroes": [
-        "Pygmalien",
-        "Vanessa",
-        "Dooley",
-        "Jules",
-        "Stelle",
-        "Mak"
+        "Common"
       ],
       "event_type": "item_reward",
       "exact_names": [],
@@ -2020,20 +2733,23 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Weapon."
+      "notes": "Get a Weapon"
     },
     {
       "name": "Arms Locker",
-      "source_id": "a7686c79-a56c-4286-86ca-edb8eca85fee",
+      "source_id": "0174f95a-8aae-4074-84d2-124ea0dcfb96",
       "source_ids": [
-        "a7686c79-a56c-4286-86ca-edb8eca85fee",
-        "16065716-b9f7-49db-931c-55f6097ff562",
         "0174f95a-8aae-4074-84d2-124ea0dcfb96",
-        "a38bfa3d-2e09-4785-a2ec-0c73dac5cc91"
+        "16065716-b9f7-49db-931c-55f6097ff562",
+        "a38bfa3d-2e09-4785-a2ec-0c73dac5cc91",
+        "a7686c79-a56c-4286-86ca-edb8eca85fee"
       ],
       "event_heroes": [
         "Vanessa",
-        "Mak"
+        "Mak",
+        "Stelle",
+        "Jules",
+        "Karnok"
       ],
       "event_type": "item_reward",
       "exact_names": [],
@@ -2048,8 +2764,8 @@
         ],
         "match_mode": "any",
         "rarity_filter": {
-          "min": "diamond",
-          "max": "diamond"
+          "min": "silver",
+          "max": "silver"
         },
         "rarity_rule": null,
         "excluded_tags": [
@@ -2062,7 +2778,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Diamond-tier Weapon."
+      "notes": "Get a Silver-tier Weapon"
     },
     {
       "name": "Battlefield",
@@ -2071,12 +2787,7 @@
         "9ba94af3-54c6-4e34-99eb-32d4309118ec"
       ],
       "event_heroes": [
-        "Pygmalien",
-        "Vanessa",
-        "Dooley",
-        "Jules",
-        "Stelle",
-        "Mak"
+        "Common"
       ],
       "event_type": "item_reward",
       "exact_names": [],
@@ -2105,19 +2816,21 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a small Weapon."
+      "notes": "Get a Small Weapon"
     },
     {
-      "name": "Befriend",
-      "source_id": "da05e5ef-63b3-4306-adbb-75d67dfc60d4",
+      "name": "BeFriend",
+      "source_id": "bace3077-4de8-4f45-874d-c515e5327c64",
       "source_ids": [
-        "da05e5ef-63b3-4306-adbb-75d67dfc60d4",
         "bace3077-4de8-4f45-874d-c515e5327c64",
         "bb166ad8-bd42-4ddc-9055-3ba3d9ff2faa",
-        "cbc4c504-73e7-43ad-b00a-2318e7e4c271"
+        "cbc4c504-73e7-43ad-b00a-2318e7e4c271",
+        "da05e5ef-63b3-4306-adbb-75d67dfc60d4"
       ],
       "event_heroes": [
-        "Dooley"
+        "Dooley",
+        "Karnok",
+        "Vanessa"
       ],
       "event_type": "item_reward",
       "exact_names": [],
@@ -2132,8 +2845,8 @@
         ],
         "match_mode": "any",
         "rarity_filter": {
-          "min": "diamond",
-          "max": "diamond"
+          "min": "gold",
+          "max": "gold"
         },
         "rarity_rule": null,
         "excluded_tags": [
@@ -2146,7 +2859,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Diamond-tier Friend."
+      "notes": "Get a Gold-tier Friend"
     },
     {
       "name": "Block Party",
@@ -2156,7 +2869,8 @@
       ],
       "event_heroes": [
         "Vanessa",
-        "Dooley"
+        "Dooley",
+        "Karnok"
       ],
       "event_type": "item_reward",
       "exact_names": [],
@@ -2182,7 +2896,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Friend."
+      "notes": "Get a Friend"
     },
     {
       "name": "Botanical Gardens",
@@ -2218,7 +2932,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Poison item."
+      "notes": "Get a Poison item"
     },
     {
       "name": "Cabin Fishing",
@@ -2256,16 +2970,16 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Small aquatic item."
+      "notes": "Get a Small Aquatic item"
     },
     {
       "name": "Candy Stash",
-      "source_id": "e6e09e6a-ebe0-46f8-bfbb-716b74f78bc6",
+      "source_id": "33a881fa-66fc-4a98-8744-de38c1d44baf",
       "source_ids": [
-        "e6e09e6a-ebe0-46f8-bfbb-716b74f78bc6",
-        "384bd291-99b1-4736-8cbc-ebdac4d11d63",
         "33a881fa-66fc-4a98-8744-de38c1d44baf",
-        "cbcb84f9-631a-4d85-bed3-cfd2f86fb8d6"
+        "384bd291-99b1-4736-8cbc-ebdac4d11d63",
+        "cbcb84f9-631a-4d85-bed3-cfd2f86fb8d6",
+        "e6e09e6a-ebe0-46f8-bfbb-716b74f78bc6"
       ],
       "event_heroes": [
         "Common"
@@ -2283,8 +2997,8 @@
         "reward_tags": [],
         "match_mode": "any",
         "rarity_filter": {
-          "min": "bronze",
-          "max": "bronze"
+          "min": "silver",
+          "max": "silver"
         },
         "rarity_rule": null,
         "excluded_tags": [
@@ -2297,16 +3011,16 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get {ability.0} Bronze-tier Chocolate Bars."
+      "notes": "Get {ability.0} Silver-tier Chocolate Bars"
     },
     {
       "name": "Cinder Chase",
-      "source_id": "66cb2add-3b1a-47d9-99a9-07123eee28f3",
+      "source_id": "168a04a9-d761-4df4-b9d9-0be88fe90f53",
       "source_ids": [
-        "66cb2add-3b1a-47d9-99a9-07123eee28f3",
-        "e394b35f-0ab3-4947-a7f8-67bfda70153e",
         "168a04a9-d761-4df4-b9d9-0be88fe90f53",
-        "5f5d089d-28f1-4d87-afff-37b23f98c819"
+        "5f5d089d-28f1-4d87-afff-37b23f98c819",
+        "66cb2add-3b1a-47d9-99a9-07123eee28f3",
+        "e394b35f-0ab3-4947-a7f8-67bfda70153e"
       ],
       "event_heroes": [
         "Common"
@@ -2315,19 +3029,20 @@
       "exact_names": [
         "Cinders"
       ],
-      "reward_tags": [],
+      "reward_tags": [
+        "burn"
+      ],
       "card_reward": {
         "enabled": true,
         "exact_names": [
           "Cinders"
         ],
-        "reward_tags": [],
+        "reward_tags": [
+          "burn"
+        ],
         "match_mode": "any",
-        "rarity_filter": {
-          "min": "bronze",
-          "max": "diamond"
-        },
-        "rarity_rule": null,
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
         "excluded_tags": [
           "legendary"
         ],
@@ -2338,7 +3053,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Diamond-tier Cinders."
+      "notes": "Get a Cinders (+Burn)"
     },
     {
       "name": "Core Initialization",
@@ -2369,7 +3084,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Choose 1 of 5 Cores."
+      "notes": "Choose a Core"
     },
     {
       "name": "Deep Sea Fishing",
@@ -2404,7 +3119,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get an Aquatic item."
+      "notes": "Get an Aquatic item"
     },
     {
       "name": "Eating Contest",
@@ -2439,7 +3154,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get some Chocolate Bars."
+      "notes": "Get some Chocolate Bars"
     },
     {
       "name": "Extract Extract",
@@ -2448,7 +3163,10 @@
         "d896d88c-91e8-4950-9670-0c42f9fd5a92"
       ],
       "event_heroes": [
-        "Common"
+        "Mak",
+        "Dooley",
+        "Vanessa",
+        "Karnok"
       ],
       "event_type": "item_reward",
       "exact_names": [
@@ -2478,7 +3196,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get an Extract (+Poison)."
+      "notes": "Get an Extract (+Poison)"
     },
     {
       "name": "Freezer",
@@ -2515,7 +3233,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Freeze item."
+      "notes": "Get a Freeze item"
     },
     {
       "name": "Furnace",
@@ -2557,7 +3275,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a small Burn item."
+      "notes": "Get a Small Burn item"
     },
     {
       "name": "Get Bronze Loot",
@@ -2595,7 +3313,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get {ability.0} Gold and a Bronze-tier Loot item."
+      "notes": "Get {ability.0} Gold and a Bronze-tier Loot item"
     },
     {
       "name": "Get Bronze item",
@@ -2633,7 +3351,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Bronze-tier item."
+      "notes": "Get a Bronze-tier item"
     },
     {
       "name": "Get Diamond Loot",
@@ -2667,7 +3385,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get {ability.0} Gold and a Diamond-tier Loot item."
+      "notes": "Get {ability.0} Gold and a Diamond-tier Loot item"
     },
     {
       "name": "Get Diamond item",
@@ -2701,7 +3419,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Diamond-tier item."
+      "notes": "Get a Diamond-tier item"
     },
     {
       "name": "Get Gold Loot",
@@ -2735,7 +3453,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get {ability.0} Gold and a Gold-tier Loot item."
+      "notes": "Get {ability.0} Gold and a Gold-tier Loot item"
     },
     {
       "name": "Get Gold item",
@@ -2769,7 +3487,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Gold-tier item."
+      "notes": "Get a Gold-tier item"
     },
     {
       "name": "Get Gold or Diamond Loot",
@@ -2803,7 +3521,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get {ability.0} Gold and a Gold-tier or Diamond-tier Loot item."
+      "notes": "Get {ability.0} Gold and a Gold-tier or Diamond-tier Loot item"
     },
     {
       "name": "Get Silver Loot",
@@ -2837,7 +3555,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get {ability.0} Gold and a Silver-tier Loot item."
+      "notes": "Get {ability.0} Gold and a Silver-tier Loot item"
     },
     {
       "name": "Get Silver item",
@@ -2871,19 +3589,21 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Silver-tier item."
+      "notes": "Get a Silver-tier item"
     },
     {
       "name": "Go Fishing",
-      "source_id": "5ab62b4c-ab63-4ced-b2c2-0abec4814fc2",
+      "source_id": "0615ce02-f9d9-44a8-8323-4feec73692fb",
       "source_ids": [
-        "5ab62b4c-ab63-4ced-b2c2-0abec4814fc2",
-        "c8722e2b-0f4f-4532-8915-3b9fb9bbc105",
         "0615ce02-f9d9-44a8-8323-4feec73692fb",
-        "a4fbd0a5-9078-4c9f-9888-961cfd9eaf24"
+        "5ab62b4c-ab63-4ced-b2c2-0abec4814fc2",
+        "a4fbd0a5-9078-4c9f-9888-961cfd9eaf24",
+        "c8722e2b-0f4f-4532-8915-3b9fb9bbc105",
+        "fd017aa9-d8b9-4327-8832-2fbc56901f34"
       ],
       "event_heroes": [
-        "Vanessa"
+        "Vanessa",
+        "Common"
       ],
       "event_type": "item_reward",
       "exact_names": [],
@@ -2898,8 +3618,8 @@
         ],
         "match_mode": "any",
         "rarity_filter": {
-          "min": "diamond",
-          "max": "diamond"
+          "min": "bronze",
+          "max": "bronze"
         },
         "rarity_rule": null,
         "excluded_tags": [
@@ -2912,7 +3632,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Diamond-tier Aquatic item."
+      "notes": "Get a Bronze-tier Aquatic item"
     },
     {
       "name": "Gold or Diamond item",
@@ -2946,7 +3666,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Gold or Diamond-tier item."
+      "notes": "Get a Gold or Diamond-tier item"
     },
     {
       "name": "Guard Locker",
@@ -2959,7 +3679,8 @@
         "Vanessa",
         "Dooley",
         "Jules",
-        "Stelle"
+        "Stelle",
+        "Karnok"
       ],
       "event_type": "item_reward",
       "exact_names": [],
@@ -2988,7 +3709,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a small Shield item."
+      "notes": "Get a Small Shield item"
     },
     {
       "name": "Gumball Machine",
@@ -3032,24 +3753,30 @@
       "notes": "Get gumballs"
     },
     {
-      "name": "Help",
-      "source_id": "f7997a51-e2e1-4957-9098-87fd3f8ab4c6",
+      "name": "Gunpowder Cache",
+      "source_id": "acaf7c4f-ecd4-4af1-a79c-c5b0b20ee21f",
       "source_ids": [
-        "f7997a51-e2e1-4957-9098-87fd3f8ab4c6"
+        "acaf7c4f-ecd4-4af1-a79c-c5b0b20ee21f"
       ],
       "event_heroes": [
-        "Common"
+        "Mak",
+        "Vanessa",
+        "Karnok"
       ],
       "event_type": "item_reward",
-      "exact_names": [],
+      "exact_names": [
+        "Gunpowder"
+      ],
       "reward_tags": [
-        "reagent"
+        "ammo"
       ],
       "card_reward": {
         "enabled": true,
-        "exact_names": [],
+        "exact_names": [
+          "Gunpowder"
+        ],
         "reward_tags": [
-          "reagent"
+          "ammo"
         ],
         "match_mode": "any",
         "rarity_filter": null,
@@ -3064,7 +3791,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "You found the reagents!"
+      "notes": "Get a Gunpowder (+Ammo)"
     },
     {
       "name": "Hospital",
@@ -3074,7 +3801,8 @@
       ],
       "event_heroes": [
         "Pygmalien",
-        "Mak"
+        "Mak",
+        "Karnok"
       ],
       "event_type": "item_reward",
       "exact_names": [],
@@ -3102,7 +3830,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Heal or Regen item."
+      "notes": "Get a Heal or Regen item"
     },
     {
       "name": "House Party",
@@ -3112,7 +3840,8 @@
       ],
       "event_heroes": [
         "Vanessa",
-        "Dooley"
+        "Dooley",
+        "Karnok"
       ],
       "event_type": "item_reward",
       "exact_names": [],
@@ -3141,7 +3870,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a small Friend."
+      "notes": "Get a Small Friend"
     },
     {
       "name": "Ifrit",
@@ -3172,16 +3901,16 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a diamond item."
+      "notes": "Get a Diamond item"
     },
     {
       "name": "Inheritance",
-      "source_id": "fcac9b2d-acea-403e-99cc-c5e706fbe9b3",
+      "source_id": "08685a09-f7d6-4963-8537-f979ff17d94b",
       "source_ids": [
-        "fcac9b2d-acea-403e-99cc-c5e706fbe9b3",
-        "6caf92fe-048e-4362-b34b-55f06802a32e",
         "08685a09-f7d6-4963-8537-f979ff17d94b",
-        "a8e09b36-65b5-4a32-8a66-b3a369176163"
+        "6caf92fe-048e-4362-b34b-55f06802a32e",
+        "a8e09b36-65b5-4a32-8a66-b3a369176163",
+        "fcac9b2d-acea-403e-99cc-c5e706fbe9b3"
       ],
       "event_heroes": [
         "Pygmalien"
@@ -3199,8 +3928,8 @@
         ],
         "match_mode": "any",
         "rarity_filter": {
-          "min": "diamond",
-          "max": "diamond"
+          "min": "silver",
+          "max": "silver"
         },
         "rarity_rule": null,
         "excluded_tags": [
@@ -3213,7 +3942,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Diamond-tier Property."
+      "notes": "Get a Silver-tier Property"
     },
     {
       "name": "Load Up",
@@ -3254,16 +3983,16 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Silver-tier Ammo item."
+      "notes": "Get a Silver-tier Ammo item"
     },
     {
       "name": "Look for Spare Change",
-      "source_id": "cbe0d294-09db-47ea-a7e8-8127605c1173",
+      "source_id": "39961216-13c2-4013-8da5-6435a86e0e76",
       "source_ids": [
-        "cbe0d294-09db-47ea-a7e8-8127605c1173",
-        "ef60b13f-35cb-49ef-bf9c-55847e3ab9ce",
         "39961216-13c2-4013-8da5-6435a86e0e76",
-        "b3f47a45-98bd-4200-9e94-5ddbc32e60cf"
+        "b3f47a45-98bd-4200-9e94-5ddbc32e60cf",
+        "cbe0d294-09db-47ea-a7e8-8127605c1173",
+        "ef60b13f-35cb-49ef-bf9c-55847e3ab9ce"
       ],
       "event_heroes": [
         "Common"
@@ -3281,8 +4010,8 @@
         "reward_tags": [],
         "match_mode": "any",
         "rarity_filter": {
-          "min": "bronze",
-          "max": "bronze"
+          "min": "silver",
+          "max": "silver"
         },
         "rarity_rule": null,
         "excluded_tags": [
@@ -3295,39 +4024,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get {ability.0} Bronze-tier Spare Change."
-    },
-    {
-      "name": "Loot!",
-      "source_id": "23e65340-6dbc-4208-9d1b-a3c4ffe49440",
-      "source_ids": [
-        "23e65340-6dbc-4208-9d1b-a3c4ffe49440",
-        "e70a7d40-4674-406b-a301-2f508673b144"
-      ],
-      "event_heroes": [
-        "Common"
-      ],
-      "event_type": "item_reward",
-      "exact_names": [],
-      "reward_tags": [],
-      "card_reward": {
-        "enabled": true,
-        "exact_names": [],
-        "reward_tags": [],
-        "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
-        "excluded_tags": [
-          "legendary"
-        ],
-        "hero_scope": "current"
-      },
-      "resource_rewards": {
-        "gold": 0,
-        "exp": 0,
-        "health": 0
-      },
-      "notes": "You find an abandoned item."
+      "notes": "Get {ability.0} Silver-tier Spare Change"
     },
     {
       "name": "Lost and Found",
@@ -3336,12 +4033,7 @@
         "ff66c76e-34aa-42fa-99b7-cbd0fba31ecb"
       ],
       "event_heroes": [
-        "Pygmalien",
-        "Vanessa",
-        "Dooley",
-        "Jules",
-        "Stelle",
-        "Mak"
+        "Common"
       ],
       "event_type": "item_reward",
       "exact_names": [],
@@ -3367,7 +4059,73 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a small non-Weapon item."
+      "notes": "Get a Small non-Weapon item"
+    },
+    {
+      "name": "Mag Storage",
+      "source_id": "045c8751-0395-4b3b-b703-b11bc96a1944",
+      "source_ids": [
+        "045c8751-0395-4b3b-b703-b11bc96a1944"
+      ],
+      "event_heroes": [
+        "Dooley"
+      ],
+      "event_type": "item_reward",
+      "exact_names": [],
+      "reward_tags": [
+        "tech"
+      ],
+      "card_reward": {
+        "enabled": true,
+        "exact_names": [],
+        "reward_tags": [
+          "tech"
+        ],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Get a Tech item"
+    },
+    {
+      "name": "Magic Mirror",
+      "source_id": "3e07a32a-c304-4086-825b-8465436e9246",
+      "source_ids": [
+        "3e07a32a-c304-4086-825b-8465436e9246"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "item_reward",
+      "exact_names": [],
+      "reward_tags": [],
+      "card_reward": {
+        "enabled": true,
+        "exact_names": [],
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Get a copy of any item on your board"
     },
     {
       "name": "Medicine Cabinet",
@@ -3377,7 +4135,8 @@
       ],
       "event_heroes": [
         "Pygmalien",
-        "Mak"
+        "Mak",
+        "Karnok"
       ],
       "event_type": "item_reward",
       "exact_names": [],
@@ -3408,7 +4167,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a small Heal or Regen item."
+      "notes": "Get a Small Heal or Regen item"
     },
     {
       "name": "Monster Ranch",
@@ -3442,16 +4201,52 @@
       "notes": "Choose a free Loot item"
     },
     {
+      "name": "Mystery Box",
+      "source_id": "e78da732-de3f-443f-8e3e-94d0dcfb63dd",
+      "source_ids": [
+        "e78da732-de3f-443f-8e3e-94d0dcfb63dd"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "item_reward",
+      "exact_names": [],
+      "reward_tags": [],
+      "card_reward": {
+        "enabled": true,
+        "exact_names": [],
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current",
+        "size_filter": [
+          "small"
+        ]
+      },
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Get an small enchanted item from another Hero"
+    },
+    {
       "name": "Obstacle Course",
       "source_id": "3bb35f2f-3474-4edb-98a7-d7588fb20f74",
       "source_ids": [
-        "3bb35f2f-3474-4edb-98a7-d7588fb20f74"
+        "3bb35f2f-3474-4edb-98a7-d7588fb20f74",
+        "7077c578-f19e-483b-bc2c-db65b5e47e7c"
       ],
       "event_heroes": [
         "Vanessa",
         "Dooley",
-        "Stelle",
-        "Mak"
+        "Jules",
+        "Karnok",
+        "Common"
       ],
       "event_type": "item_reward",
       "exact_names": [],
@@ -3477,7 +4272,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Slow item."
+      "notes": "Get a Slow item"
     },
     {
       "name": "Pearl's Dig Site",
@@ -3486,12 +4281,7 @@
         "dbdf69f8-9bea-40e7-9098-209c8c475971"
       ],
       "event_heroes": [
-        "Dooley",
-        "Vanessa",
-        "Mak",
-        "Pygmalien",
-        "Jules",
-        "Stelle"
+        "Common"
       ],
       "event_type": "item_reward",
       "exact_names": [],
@@ -3520,9 +4310,9 @@
       "source_id": "11681158-9f70-4ed3-8bd4-dce4571b9fa6",
       "source_ids": [
         "11681158-9f70-4ed3-8bd4-dce4571b9fa6",
-        "e66a00c2-c34c-4b92-97ce-30bb488ed4a6",
+        "6d6ae43f-fa0b-424b-b2dc-d70aa57273fa",
         "a287f26a-5145-4665-a97b-8bfd07b98f82",
-        "6d6ae43f-fa0b-424b-b2dc-d70aa57273fa"
+        "e66a00c2-c34c-4b92-97ce-30bb488ed4a6"
       ],
       "event_heroes": [
         "Mak"
@@ -3554,7 +4344,49 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Silver-tier Potion."
+      "notes": "Get a Silver-tier Potion"
+    },
+    {
+      "name": "Power Up",
+      "source_id": "6c0c352b-255d-4e07-b58a-9233c7d1e2d4",
+      "source_ids": [
+        "6c0c352b-255d-4e07-b58a-9233c7d1e2d4",
+        "a5c6d5b9-fd6d-4036-9513-a43c0aade6e7",
+        "a97dce09-c242-44be-8488-bbf18d48421e",
+        "cace10a4-6073-429d-a345-ec3a9de31df1"
+      ],
+      "event_heroes": [
+        "Dooley",
+        "Stelle"
+      ],
+      "event_type": "item_reward",
+      "exact_names": [],
+      "reward_tags": [
+        "tech"
+      ],
+      "card_reward": {
+        "enabled": true,
+        "exact_names": [],
+        "reward_tags": [
+          "tech"
+        ],
+        "match_mode": "any",
+        "rarity_filter": {
+          "min": "silver",
+          "max": "silver"
+        },
+        "rarity_rule": null,
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Get a Silver-tier Tech item"
     },
     {
       "name": "Procure Medkit",
@@ -3563,7 +4395,9 @@
         "9f7cbbaf-aeed-4170-9400-e1da445fe101"
       ],
       "event_heroes": [
-        "Common"
+        "Pygmalien",
+        "Vanessa",
+        "Karnok"
       ],
       "event_type": "item_reward",
       "exact_names": [
@@ -3593,20 +4427,22 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Medkit (+Heal)."
+      "notes": "Get a Medkit (+Heal)"
     },
     {
       "name": "Pyre",
       "source_id": "1005cb9f-87f3-4087-a695-a54b7315d586",
       "source_ids": [
-        "1005cb9f-87f3-4087-a695-a54b7315d586"
+        "1005cb9f-87f3-4087-a695-a54b7315d586",
+        "733355b4-4e6e-4255-9e62-b60eef2f9864"
       ],
       "event_heroes": [
         "Vanessa",
         "Dooley",
         "Jules",
         "Stelle",
-        "Mak"
+        "Mak",
+        "Common"
       ],
       "event_type": "item_reward",
       "exact_names": [],
@@ -3632,20 +4468,22 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Burn item."
+      "notes": "Get a Burn item"
     },
     {
       "name": "Racetrack",
-      "source_id": "bfc22038-04da-41a1-97c9-7cb8c3608747",
+      "source_id": "31ba6532-0fea-47ba-8102-96560740206a",
       "source_ids": [
+        "31ba6532-0fea-47ba-8102-96560740206a",
         "bfc22038-04da-41a1-97c9-7cb8c3608747"
       ],
       "event_heroes": [
+        "Common",
         "Vanessa",
         "Dooley",
         "Jules",
         "Stelle",
-        "Mak"
+        "Karnok"
       ],
       "event_type": "item_reward",
       "exact_names": [],
@@ -3674,13 +4512,85 @@
       "notes": "Get a Haste item."
     },
     {
-      "name": "Reagent Shelf",
-      "source_id": "c5dae6cf-f294-4658-b538-752b06860373",
+      "name": "Rageforge",
+      "source_id": "1f2bb7f7-16d1-4138-9729-6b5ec8e03851",
       "source_ids": [
-        "c5dae6cf-f294-4658-b538-752b06860373",
-        "e9f2758a-2751-4de7-aceb-2511ad78e05f",
+        "1f2bb7f7-16d1-4138-9729-6b5ec8e03851",
+        "38aa9f76-d287-4c45-a591-87c5a0b82f34",
+        "58c0b58e-2179-4c54-91cf-ac43b317ef73",
+        "f85a7e3e-1a0b-41cc-b8ea-f7068d68ccb0"
+      ],
+      "event_heroes": [
+        "Karnok"
+      ],
+      "event_type": "item_reward",
+      "exact_names": [],
+      "reward_tags": [],
+      "card_reward": {
+        "enabled": true,
+        "exact_names": [],
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": {
+          "min": "gold",
+          "max": "gold"
+        },
+        "rarity_rule": null,
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Get a Gold-tier Rage item"
+    },
+    {
+      "name": "Reagent Harvesting",
+      "source_id": "d637adc9-3b1d-4aef-b238-07c3bafe057f",
+      "source_ids": [
+        "d637adc9-3b1d-4aef-b238-07c3bafe057f"
+      ],
+      "event_heroes": [
+        "Mak"
+      ],
+      "event_type": "item_reward",
+      "exact_names": [],
+      "reward_tags": [
+        "reagent"
+      ],
+      "card_reward": {
+        "enabled": true,
+        "exact_names": [],
+        "reward_tags": [
+          "reagent"
+        ],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Get a Reagent"
+    },
+    {
+      "name": "Reagent Shelf",
+      "source_id": "27215a21-0c15-4476-bb8c-25b50b8fd7d3",
+      "source_ids": [
         "27215a21-0c15-4476-bb8c-25b50b8fd7d3",
-        "c7cb78a1-744e-4636-bce5-bf13340be11e"
+        "c5dae6cf-f294-4658-b538-752b06860373",
+        "c7cb78a1-744e-4636-bce5-bf13340be11e",
+        "e9f2758a-2751-4de7-aceb-2511ad78e05f"
       ],
       "event_heroes": [
         "Mak"
@@ -3698,8 +4608,8 @@
         ],
         "match_mode": "any",
         "rarity_filter": {
-          "min": "silver",
-          "max": "silver"
+          "min": "diamond",
+          "max": "diamond"
         },
         "rarity_rule": null,
         "excluded_tags": [
@@ -3712,7 +4622,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Silver-tier Reagent."
+      "notes": "Get a Diamond-tier Reagent"
     },
     {
       "name": "Recycling Center",
@@ -3721,12 +4631,7 @@
         "12a50b2d-340f-4603-a5a4-a3d63d80c504"
       ],
       "event_heroes": [
-        "Pygmalien",
-        "Vanessa",
-        "Dooley",
-        "Jules",
-        "Stelle",
-        "Mak"
+        "Common"
       ],
       "event_type": "item_reward",
       "exact_names": [],
@@ -3749,38 +4654,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a non-Weapon item."
-    },
-    {
-      "name": "Rob",
-      "source_id": "5770ddc7-45c5-406d-9e16-4e9850e87a24",
-      "source_ids": [
-        "5770ddc7-45c5-406d-9e16-4e9850e87a24"
-      ],
-      "event_heroes": [
-        "Common"
-      ],
-      "event_type": "item_reward",
-      "exact_names": [],
-      "reward_tags": [],
-      "card_reward": {
-        "enabled": true,
-        "exact_names": [],
-        "reward_tags": [],
-        "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
-        "excluded_tags": [
-          "legendary"
-        ],
-        "hero_scope": "current"
-      },
-      "resource_rewards": {
-        "gold": 0,
-        "exp": 0,
-        "health": 0
-      },
-      "notes": "You easily take one of their items."
+      "notes": "Get a non-Weapon item"
     },
     {
       "name": "Scrap Salvage",
@@ -3789,7 +4663,11 @@
         "3db126be-6a4f-48b7-81e0-793287e9eeeb"
       ],
       "event_heroes": [
-        "Common"
+        "Pygmalien",
+        "Stelle",
+        "Dooley",
+        "Karnok",
+        "Jules"
       ],
       "event_type": "item_reward",
       "exact_names": [
@@ -3819,20 +4697,23 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Scrap (+Shield)."
+      "notes": "Get a Scrap (+Shield)"
     },
     {
       "name": "Security Center",
       "source_id": "0370b2b5-e856-457e-a8dc-b7fd0ab098fc",
       "source_ids": [
-        "0370b2b5-e856-457e-a8dc-b7fd0ab098fc"
+        "0370b2b5-e856-457e-a8dc-b7fd0ab098fc",
+        "ea510bb8-0ded-48ee-b0e2-750d26bf1587"
       ],
       "event_heroes": [
         "Pygmalien",
         "Vanessa",
         "Dooley",
         "Jules",
-        "Stelle"
+        "Stelle",
+        "Karnok",
+        "Common"
       ],
       "event_type": "item_reward",
       "exact_names": [],
@@ -3858,7 +4739,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Shield item."
+      "notes": "Get a Shield item"
     },
     {
       "name": "Seminar",
@@ -3932,7 +4813,40 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Sharpening Stone (+Damage)."
+      "notes": "Get a Sharpening Stone (+Damage)"
+    },
+    {
+      "name": "Shrouded Figure's Chest",
+      "source_id": "56eb7fa9-5a5f-4056-8e75-ec2a5a5c3433",
+      "source_ids": [
+        "56eb7fa9-5a5f-4056-8e75-ec2a5a5c3433",
+        "62376974-7a34-4d47-a34a-6611f58230d0",
+        "d81bae8a-4322-4314-ac3d-c2c1313445fb"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "item_reward",
+      "exact_names": [],
+      "reward_tags": [],
+      "card_reward": {
+        "enabled": true,
+        "exact_names": [],
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Choose this Chest"
     },
     {
       "name": "Star Chart Treasure",
@@ -3998,16 +4912,16 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Gain a Weapon skill."
+      "notes": "Gain a Weapon skill"
     },
     {
       "name": "Supply Drop",
       "source_id": "1ce9bfd6-77a7-44c7-827a-252a9dbe5ab9",
       "source_ids": [
         "1ce9bfd6-77a7-44c7-827a-252a9dbe5ab9",
-        "dc6691fe-78d9-4f7d-94bd-4a9ba175744a",
+        "8c9e7731-42bf-4c22-8839-8ec7cc4277e5",
         "c2f2e526-dd0b-443f-a6e2-411fb06afab8",
-        "8c9e7731-42bf-4c22-8839-8ec7cc4277e5"
+        "dc6691fe-78d9-4f7d-94bd-4a9ba175744a"
       ],
       "event_heroes": [
         "Vanessa"
@@ -4051,7 +4965,82 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Bronze-tier Sharpening Stone (+Damage), Extract (+Poison) and Cinders (+Burn)."
+      "notes": "Get a Bronze-tier Sharpening Stone (+Damage), Extract (+Poison) and Cinders (+Burn)"
+    },
+    {
+      "name": "Take Flight",
+      "source_id": "01939fcd-bf53-4516-a50d-0800677252a3",
+      "source_ids": [
+        "01939fcd-bf53-4516-a50d-0800677252a3",
+        "6a20972e-3477-45a7-a417-eccb6eff8375",
+        "6afa0d17-bae9-4622-9441-424916b39693",
+        "ee531c7a-a92a-4646-9f3d-2ddb83b3fe14"
+      ],
+      "event_heroes": [
+        "Stelle"
+      ],
+      "event_type": "item_reward",
+      "exact_names": [],
+      "reward_tags": [],
+      "card_reward": {
+        "enabled": true,
+        "exact_names": [],
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": {
+          "min": "diamond",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Get a Diamond-tier Flying item"
+    },
+    {
+      "name": "Tech Salvage",
+      "source_id": "a8c7d852-f117-43d2-b7a6-76d78866321e",
+      "source_ids": [
+        "a8c7d852-f117-43d2-b7a6-76d78866321e"
+      ],
+      "event_heroes": [
+        "Dooley"
+      ],
+      "event_type": "item_reward",
+      "exact_names": [],
+      "reward_tags": [
+        "tech"
+      ],
+      "card_reward": {
+        "enabled": true,
+        "exact_names": [],
+        "reward_tags": [
+          "tech"
+        ],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current",
+        "size_filter": [
+          "small"
+        ]
+      },
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Get a Small Tech item"
     },
     {
       "name": "Thanks",
@@ -4090,7 +5079,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Gain a small or medium weapon"
+      "notes": "Gain a Small or Medium Weapon"
     },
     {
       "name": "The Lost Crate",
@@ -4114,17 +5103,14 @@
         "excluded_tags": [
           "legendary"
         ],
-        "hero_scope": "current",
-        "size_filter": [
-          "medium"
-        ]
+        "hero_scope": "current"
       },
       "resource_rewards": {
         "gold": 0,
         "exp": 0,
         "health": 0
       },
-      "notes": "You find an abandoned chest.. Get a medium item",
+      "notes": "You find an abandoned chest",
       "followup_options": [
         {
           "name": "Return It",
@@ -4137,6 +5123,16 @@
           ],
           "event_type": "skill_event",
           "skill_tags": [],
+          "shop_pool": {
+            "reward_tags": [],
+            "match_mode": "any",
+            "rarity_filter": null,
+            "rarity_rule": "normal_shop_by_day",
+            "excluded_tags": [
+              "legendary"
+            ],
+            "hero_scope": "current"
+          },
           "resource_rewards": {
             "gold": 0,
             "exp": 0,
@@ -4165,7 +5161,7 @@
             "gold": 1,
             "exp": 1
           },
-          "notes": "Gain gold and XP",
+          "notes": "Gain Gold and XP",
           "event_category": "resource_events",
           "parent_event": "The Lost Crate",
           "source_internal_name": "The Lost Crate (Return It)"
@@ -4174,16 +5170,19 @@
     },
     {
       "name": "Tool Up",
-      "source_id": "96b8e48d-1717-49d0-9acb-3b906b65928b",
+      "source_id": "246054ea-2c7f-4e04-943d-0397c75abc8a",
       "source_ids": [
-        "96b8e48d-1717-49d0-9acb-3b906b65928b",
-        "c7d1e360-836e-4c80-992f-6dbbe4640364",
         "246054ea-2c7f-4e04-943d-0397c75abc8a",
-        "3b6964e3-1ff3-40ec-8bb9-f780a3c01172"
+        "3b6964e3-1ff3-40ec-8bb9-f780a3c01172",
+        "96b8e48d-1717-49d0-9acb-3b906b65928b",
+        "c7d1e360-836e-4c80-992f-6dbbe4640364"
       ],
       "event_heroes": [
         "Dooley",
-        "Mak"
+        "Mak",
+        "Stelle",
+        "Jules",
+        "Karnok"
       ],
       "event_type": "item_reward",
       "exact_names": [],
@@ -4198,8 +5197,8 @@
         ],
         "match_mode": "any",
         "rarity_filter": {
-          "min": "gold",
-          "max": "gold"
+          "min": "diamond",
+          "max": "diamond"
         },
         "rarity_rule": null,
         "excluded_tags": [
@@ -4212,16 +5211,16 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Gold-tier Tool item."
+      "notes": "Get a Diamond-tier Tool"
     },
     {
       "name": "Toxic Spoils",
-      "source_id": "fb1ec259-1dd0-4dff-8a07-cd9d60df26bb",
+      "source_id": "41a161c7-c4a2-4f4c-bfbf-ca395b682c0f",
       "source_ids": [
-        "fb1ec259-1dd0-4dff-8a07-cd9d60df26bb",
-        "9a090e87-4791-4b16-9e7b-c00d7e4427de",
         "41a161c7-c4a2-4f4c-bfbf-ca395b682c0f",
-        "57468447-1384-46e8-bd8b-5822f6620ebc"
+        "57468447-1384-46e8-bd8b-5822f6620ebc",
+        "9a090e87-4791-4b16-9e7b-c00d7e4427de",
+        "fb1ec259-1dd0-4dff-8a07-cd9d60df26bb"
       ],
       "event_heroes": [
         "Common"
@@ -4239,8 +5238,8 @@
         "reward_tags": [],
         "match_mode": "any",
         "rarity_filter": {
-          "min": "bronze",
-          "max": "bronze"
+          "min": "gold",
+          "max": "gold"
         },
         "rarity_rule": null,
         "excluded_tags": [
@@ -4253,15 +5252,15 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Bronze-tier Extract."
+      "notes": "Get a Gold-tier Extract"
     },
     {
       "name": "Treasure Chest",
-      "source_id": "988b8aae-6b68-44ab-acd8-50b941dc4592",
+      "source_id": "71e387b6-bcb5-4c39-aa65-957ee5f6fbec",
       "source_ids": [
+        "71e387b6-bcb5-4c39-aa65-957ee5f6fbec",
         "988b8aae-6b68-44ab-acd8-50b941dc4592",
-        "a8500ea3-2235-410e-bc51-bb0355857408",
-        "71e387b6-bcb5-4c39-aa65-957ee5f6fbec"
+        "a8500ea3-2235-410e-bc51-bb0355857408"
       ],
       "event_heroes": [
         "Common"
@@ -4286,15 +5285,15 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get an item."
+      "notes": "Get an item"
     },
     {
       "name": "Trophy Hunt",
-      "source_id": "9ddb3457-d4a5-45ec-913e-ae52fce9cb22",
+      "source_id": "58e800bd-a2ae-4135-a8c3-2eca839c17d2",
       "source_ids": [
-        "9ddb3457-d4a5-45ec-913e-ae52fce9cb22",
         "58e800bd-a2ae-4135-a8c3-2eca839c17d2",
         "754ff658-3032-46ab-91f3-a2ce3a1cb1da",
+        "9ddb3457-d4a5-45ec-913e-ae52fce9cb22",
         "d6030236-2a1b-4209-9e61-1a00ac236b0b"
       ],
       "event_heroes": [
@@ -4309,8 +5308,8 @@
         "reward_tags": [],
         "match_mode": "any",
         "rarity_filter": {
-          "min": "bronze",
-          "max": "bronze"
+          "min": "silver",
+          "max": "silver"
         },
         "rarity_rule": null,
         "excluded_tags": [
@@ -4323,7 +5322,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get {ability.0} Bronze-tier Monster Loot."
+      "notes": "Get {ability.0} Silver-tier Monster Loot"
     },
     {
       "name": "Utility Box",
@@ -4332,12 +5331,7 @@
         "e016221d-cc17-4a93-aabb-00155bbbeb46"
       ],
       "event_heroes": [
-        "Pygmalien",
-        "Vanessa",
-        "Dooley",
-        "Jules",
-        "Stelle",
-        "Mak"
+        "Common"
       ],
       "event_type": "item_reward",
       "exact_names": [],
@@ -4366,7 +5360,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a small Tool."
+      "notes": "Get a Small Tool"
     },
     {
       "name": "Watch",
@@ -4400,7 +5394,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a small item"
+      "notes": "Get a Small item"
     },
     {
       "name": "Workshop",
@@ -4409,12 +5403,7 @@
         "08111534-157d-4603-b157-03ac0f6d02cf"
       ],
       "event_heroes": [
-        "Pygmalien",
-        "Vanessa",
-        "Dooley",
-        "Jules",
-        "Stelle",
-        "Mak"
+        "Common"
       ],
       "event_type": "item_reward",
       "exact_names": [],
@@ -4440,7 +5429,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Tool."
+      "notes": "Get a Tool"
     }
   ],
   "item_events": [
@@ -4452,7 +5441,9 @@
       ],
       "event_heroes": [
         "Pygmalien",
-        "Mak"
+        "Mak",
+        "Jules",
+        "Karnok"
       ],
       "event_type": "item_event",
       "effect": "improve_items",
@@ -4468,7 +5459,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Improve your Heal and Regen items."
+      "notes": "Improve your Heal and Regen items"
     },
     {
       "name": "Artisan Dunes",
@@ -4490,21 +5481,17 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "The craftsman at the Artisan Dunes offers a variety of ways to enchance your offensive items."
+      "notes": "The craftsman at the Artisan Dunes offers a variety of ways to enchance your offensive items"
     },
     {
       "name": "B1&B2",
-      "source_id": "2e1e5a86-3ace-4f78-8b73-6641ca59e834",
+      "source_id": "0c410bf1-d560-4bc3-80db-ee06e882a447",
       "source_ids": [
+        "0c410bf1-d560-4bc3-80db-ee06e882a447",
         "2e1e5a86-3ace-4f78-8b73-6641ca59e834"
       ],
       "event_heroes": [
-        "Dooley",
-        "Vanessa",
-        "Mak",
-        "Pygmalien",
-        "Jules",
-        "Stelle"
+        "Common"
       ],
       "event_type": "item_event",
       "effect": "upgrade_items",
@@ -4517,7 +5504,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Upgrade a Bronze item"
+      "notes": "Upgrade a Bronze-tier item"
     },
     {
       "name": "Botul",
@@ -4528,7 +5515,8 @@
       "event_heroes": [
         "Vanessa",
         "Dooley",
-        "Mak"
+        "Mak",
+        "Karnok"
       ],
       "event_type": "item_event",
       "effect": "improve_items",
@@ -4543,17 +5531,20 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Improve your Poison items."
+      "notes": "Improve your Poison items"
     },
     {
-      "name": "D'fleck",
+      "name": "D'flek",
       "source_id": "bea81fd6-ae81-49b2-b733-40246d8e825f",
       "source_ids": [
         "bea81fd6-ae81-49b2-b733-40246d8e825f"
       ],
       "event_heroes": [
         "Dooley",
-        "Pygmalien"
+        "Pygmalien",
+        "Stelle",
+        "Jules",
+        "Karnok"
       ],
       "event_type": "item_event",
       "effect": "improve_items",
@@ -4568,7 +5559,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Improve your Shield items."
+      "notes": "Improve your Shield items"
     },
     {
       "name": "Flambe",
@@ -4592,12 +5583,13 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Improve your Burn items."
+      "notes": "Improve your Burn items"
     },
     {
       "name": "Forja",
-      "source_id": "693af45b-6d85-497f-ba32-b2f2d01b8aa3",
+      "source_id": "586ebd2d-a1c2-4274-875b-c3aeb29ab1ef",
       "source_ids": [
+        "586ebd2d-a1c2-4274-875b-c3aeb29ab1ef",
         "693af45b-6d85-497f-ba32-b2f2d01b8aa3"
       ],
       "event_heroes": [
@@ -4638,7 +5630,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Improve your weapons.",
+      "notes": "Improve your Weapons",
       "followup_options": [
         {
           "name": "Enchant Shiny",
@@ -4663,7 +5655,7 @@
             "exp": 0,
             "health": 0
           },
-          "notes": "Enchant your leftmost Weapon with Shiny.",
+          "notes": "Enchant your leftmost Weapon with Shiny",
           "event_category": "enchant_events",
           "parent_event": "Form",
           "source_internal_name": "Form - Enchant Shiny"
@@ -4678,7 +5670,8 @@
       ],
       "event_heroes": [
         "Vanessa",
-        "Mak"
+        "Mak",
+        "Karnok"
       ],
       "event_type": "item_event",
       "effect": "improve_items",
@@ -4693,7 +5686,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Improve your Ammo items."
+      "notes": "Improve your Ammo items"
     },
     {
       "name": "Mandala",
@@ -4715,7 +5708,30 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Transform your items into something new."
+      "notes": "Transform your items into something new"
+    },
+    {
+      "name": "Sterling",
+      "source_id": "8b811b0f-15ba-4282-9732-6ddccb26da9f",
+      "source_ids": [
+        "8b811b0f-15ba-4282-9732-6ddccb26da9f",
+        "aae21c92-ae49-439a-812b-2c45c84e6b64"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "item_event",
+      "effect": "upgrade_items",
+      "target_tags": [],
+      "match_mode": "any",
+      "rarity_filter": null,
+      "rarity_rule": null,
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Upgrade a Silver or lower tier item"
     },
     {
       "name": "Thanks!",
@@ -4738,163 +5754,16 @@
         "health": 0
       },
       "notes": "Upgrade item"
-    },
-    {
-      "name": "Upgrade a Bronze-tier Item",
-      "source_id": "0c410bf1-d560-4bc3-80db-ee06e882a447",
-      "source_ids": [
-        "0c410bf1-d560-4bc3-80db-ee06e882a447"
-      ],
-      "event_heroes": [
-        "Common"
-      ],
-      "event_type": "item_event",
-      "effect": "upgrade_items",
-      "target_tags": [],
-      "match_mode": "any",
-      "rarity_filter": null,
-      "rarity_rule": null,
-      "resource_rewards": {
-        "gold": 0,
-        "exp": 0,
-        "health": 0
-      },
-      "notes": "Upgrade a Bronze-tier item."
-    },
-    {
-      "name": "Upgrade a Silver or lower-tier Item",
-      "source_id": "aae21c92-ae49-439a-812b-2c45c84e6b64",
-      "source_ids": [
-        "aae21c92-ae49-439a-812b-2c45c84e6b64"
-      ],
-      "event_heroes": [
-        "Common"
-      ],
-      "event_type": "item_event",
-      "effect": "upgrade_items",
-      "target_tags": [],
-      "match_mode": "any",
-      "rarity_filter": null,
-      "rarity_rule": null,
-      "resource_rewards": {
-        "gold": 0,
-        "exp": 0,
-        "health": 0
-      },
-      "notes": "Upgrade a Silver or lower-tier Item"
-    },
-    {
-      "name": "Upgrade an item",
-      "source_id": "586ebd2d-a1c2-4274-875b-c3aeb29ab1ef",
-      "source_ids": [
-        "586ebd2d-a1c2-4274-875b-c3aeb29ab1ef"
-      ],
-      "event_heroes": [
-        "Common"
-      ],
-      "event_type": "item_event",
-      "effect": "upgrade_items",
-      "target_tags": [],
-      "match_mode": "any",
-      "rarity_filter": null,
-      "rarity_rule": null,
-      "resource_rewards": {
-        "gold": 0,
-        "exp": 0,
-        "health": 0
-      },
-      "notes": "Upgrade an item",
-      "followup_options": [
-        {
-          "name": "Upgrade an Item",
-          "source_id": "7ac16571-b3cf-41d9-a0e4-8acf36ed5721",
-          "source_ids": [
-            "7ac16571-b3cf-41d9-a0e4-8acf36ed5721"
-          ],
-          "event_heroes": [
-            "Common"
-          ],
-          "event_type": "item_event",
-          "effect": "upgrade_items",
-          "target_tags": [
-            "weapon"
-          ],
-          "match_mode": "any",
-          "rarity_filter": null,
-          "rarity_rule": null,
-          "resource_rewards": {
-            "gold": 0,
-            "exp": 0,
-            "health": 0
-          },
-          "notes": "Upgrade your leftmost Weapon.",
-          "event_category": "item_events",
-          "parent_event": "Upgrade an item",
-          "source_internal_name": "Upgrade an item - Form $10"
-        },
-        {
-          "name": "Upgrade an item",
-          "source_id": "b39a2b7d-04da-4e16-9869-ec90e07b11cd",
-          "source_ids": [
-            "b39a2b7d-04da-4e16-9869-ec90e07b11cd"
-          ],
-          "event_heroes": [
-            "Common"
-          ],
-          "event_type": "item_event",
-          "effect": "upgrade_items",
-          "target_tags": [],
-          "match_mode": "any",
-          "rarity_filter": null,
-          "rarity_rule": null,
-          "resource_rewards": {
-            "gold": 0,
-            "exp": 0,
-            "health": 0
-          },
-          "notes": "Upgrade an item.",
-          "event_category": "item_events",
-          "parent_event": "Upgrade an item",
-          "source_internal_name": "Upgrade an item - Form $5"
-        },
-        {
-          "name": "Upgrade an item",
-          "source_id": "6c93da83-44d1-4f06-893d-0a23428c9b6c",
-          "source_ids": [
-            "6c93da83-44d1-4f06-893d-0a23428c9b6c"
-          ],
-          "event_heroes": [
-            "Common"
-          ],
-          "event_type": "item_event",
-          "effect": "upgrade_items",
-          "target_tags": [
-            "weapon"
-          ],
-          "match_mode": "any",
-          "rarity_filter": null,
-          "rarity_rule": null,
-          "resource_rewards": {
-            "gold": 0,
-            "exp": 0,
-            "health": 0
-          },
-          "notes": "Upgrade your leftmost Weapon.",
-          "event_category": "item_events",
-          "parent_event": "Upgrade an item",
-          "source_internal_name": "Upgrade an item ($15)"
-        }
-      ]
     }
   ],
   "resource_events": [
     {
       "name": "Borrow",
-      "source_id": "f32d036c-8468-4b4d-aecb-49d3e1302ba7",
+      "source_id": "036ce025-fc8a-4924-b1bd-a4f6f470ebc7",
       "source_ids": [
-        "f32d036c-8468-4b4d-aecb-49d3e1302ba7",
+        "036ce025-fc8a-4924-b1bd-a4f6f470ebc7",
         "41dbae7b-38ec-4e27-9964-92ff0b0ee4d1",
-        "036ce025-fc8a-4924-b1bd-a4f6f470ebc7"
+        "f32d036c-8468-4b4d-aecb-49d3e1302ba7"
       ],
       "event_heroes": [
         "Common"
@@ -4912,11 +5781,11 @@
     },
     {
       "name": "Cache of Riches",
-      "source_id": "937489c5-22bf-4190-89b1-f396894c85f1",
+      "source_id": "7d832f18-dd4c-4d67-8e4f-573618f7fa38",
       "source_ids": [
+        "7d832f18-dd4c-4d67-8e4f-573618f7fa38",
         "937489c5-22bf-4190-89b1-f396894c85f1",
-        "af188bbf-4e10-42c8-803c-12594f4d80d7",
-        "7d832f18-dd4c-4d67-8e4f-573618f7fa38"
+        "af188bbf-4e10-42c8-803c-12594f4d80d7"
       ],
       "event_heroes": [
         "Common"
@@ -4928,16 +5797,16 @@
       "resource_rewards": {
         "gold": 1
       },
-      "notes": "Gain {ability.0} Gold."
+      "notes": "Gain {ability.0} Gold"
     },
     {
-      "name": "Cache!",
-      "source_id": "d0b71507-2ca0-40ef-9377-bd39cbe950e4",
+      "name": "Catalyst",
+      "source_id": "c0733dee-bc0e-46ec-a1ac-291284444c36",
       "source_ids": [
-        "d0b71507-2ca0-40ef-9377-bd39cbe950e4"
+        "c0733dee-bc0e-46ec-a1ac-291284444c36"
       ],
       "event_heroes": [
-        "Common"
+        "Mak"
       ],
       "event_type": "resource_event",
       "resource_types": [
@@ -4946,7 +5815,7 @@
       "resource_rewards": {
         "gold": 1
       },
-      "notes": "You find an abandoned cache of gold."
+      "notes": "Get {ability.0} Gold and a Catalyst"
     },
     {
       "name": "Craftsmanship",
@@ -4960,25 +5829,7 @@
       "event_type": "resource_event",
       "resource_types": [],
       "resource_rewards": {},
-      "notes": "Study the blacksmith working silently in the back of their shop."
-    },
-    {
-      "name": "Dabora",
-      "source_id": "5ea96339-6c5e-42b4-bc5f-028b780348e0",
-      "source_ids": [
-        "5ea96339-6c5e-42b4-bc5f-028b780348e0"
-      ],
-      "event_heroes": [
-        "Common"
-      ],
-      "event_type": "resource_event",
-      "resource_types": [
-        "exp"
-      ],
-      "resource_rewards": {
-        "exp": 1
-      },
-      "notes": "Buy experience for the right price."
+      "notes": "Study the blacksmith working silently in the back of their shop"
     },
     {
       "name": "Economic Seminar",
@@ -5024,14 +5875,14 @@
             "excluded_tags": [
               "legendary"
             ],
-            "hero_scope": "current"
+            "hero_scope": "any"
           },
           "resource_rewards": {
             "gold": 0,
             "exp": 0,
             "health": 0
           },
-          "notes": "Get an Economic item or skill.",
+          "notes": "Get an Economic item or skill from any Hero",
           "event_category": "item_rewards",
           "parent_event": "Economic Seminar",
           "source_internal_name": "The Financial District - Economic Seminar - Basic Pass"
@@ -5062,14 +5913,14 @@
             "excluded_tags": [
               "legendary"
             ],
-            "hero_scope": "current"
+            "hero_scope": "any"
           },
           "resource_rewards": {
             "gold": 0,
             "exp": 0,
             "health": 0
           },
-          "notes": "Get 2 Economic items or skills",
+          "notes": "Get {ability.0} Economic items or skills from any Hero",
           "event_category": "item_rewards",
           "parent_event": "Economic Seminar",
           "source_internal_name": "The Financial District - Economic Seminar - Premium Pass"
@@ -5083,12 +5934,7 @@
         "0623cedd-f24b-4117-a6b8-5fc41064a00d"
       ],
       "event_heroes": [
-        "Pygmalien",
-        "Vanessa",
-        "Dooley",
-        "Jules",
-        "Stelle",
-        "Mak"
+        "Common"
       ],
       "event_type": "resource_event",
       "resource_types": [
@@ -5097,7 +5943,7 @@
       "resource_rewards": {
         "health": 1
       },
-      "notes": "Eat at Finn's to get Max Health."
+      "notes": "Eat at Finn's to get Max Health"
     },
     {
       "name": "Invest in Yourself",
@@ -5137,24 +5983,6 @@
       "notes": "Make a pitch for a financial boost"
     },
     {
-      "name": "Jules' Cafe",
-      "source_id": "185a03bc-2fb2-4366-bbe8-1b1c6f7d39fd",
-      "source_ids": [
-        "185a03bc-2fb2-4366-bbe8-1b1c6f7d39fd"
-      ],
-      "event_heroes": [
-        "Common"
-      ],
-      "event_type": "resource_event",
-      "resource_types": [
-        "health"
-      ],
-      "resource_rewards": {
-        "health": 1
-      },
-      "notes": "Gain a temporary boost"
-    },
-    {
       "name": "Likit",
       "source_id": "c28b6e9c-dd6d-4bb7-97e7-14aee53e528b",
       "source_ids": [
@@ -5170,7 +5998,7 @@
       "resource_rewards": {
         "health": 1
       },
-      "notes": "Boost your stats with tasty treats."
+      "notes": "Boost your stats with tasty treats"
     },
     {
       "name": "Lost Wallet",
@@ -5188,16 +6016,35 @@
       "resource_rewards": {
         "gold": 1
       },
-      "notes": "The wallet was full of gold."
+      "notes": "The wallet was full of Gold"
     },
     {
-      "name": "Regenerative Tincture",
-      "source_id": "fe756e73-bedb-4700-901f-07ef13b3c512",
+      "name": "Meal Prep",
+      "source_id": "e3aac200-f30f-404f-83cf-27732bb6f927",
       "source_ids": [
-        "fe756e73-bedb-4700-901f-07ef13b3c512"
+        "e3aac200-f30f-404f-83cf-27732bb6f927"
       ],
       "event_heroes": [
-        "Common"
+        "Jules"
+      ],
+      "event_type": "resource_event",
+      "resource_types": [
+        "gold"
+      ],
+      "resource_rewards": {
+        "gold": 1
+      },
+      "notes": "Get a Gold-tier Food"
+    },
+    {
+      "name": "Moonlit Meadow",
+      "source_id": "8d1dda63-1fb9-44e5-9ed6-e8050d4d65d7",
+      "source_ids": [
+        "8d1dda63-1fb9-44e5-9ed6-e8050d4d65d7"
+      ],
+      "event_heroes": [
+        "Mak",
+        "Jules"
       ],
       "event_type": "resource_event",
       "resource_types": [
@@ -5206,26 +6053,26 @@
       "resource_rewards": {
         "regen": 1
       },
-      "notes": "Gain Regen equal to your level. [{ability.0}]"
+      "notes": "Get a Moon Lily (+Regen)"
     },
     {
       "name": "Run",
-      "source_id": "c67a8619-a0de-4953-ac6c-94a2ed15f090",
+      "source_id": "8d037166-d665-4260-aabd-e73f146e3f7f",
       "source_ids": [
-        "c67a8619-a0de-4953-ac6c-94a2ed15f090",
-        "8d037166-d665-4260-aabd-e73f146e3f7f"
+        "8d037166-d665-4260-aabd-e73f146e3f7f",
+        "c67a8619-a0de-4953-ac6c-94a2ed15f090"
       ],
       "event_heroes": [
         "Common"
       ],
       "event_type": "resource_event",
       "resource_types": [
-        "speed"
+        "gold"
       ],
       "resource_rewards": {
-        "speed": 1
+        "gold": 1
       },
-      "notes": "Gain Speed"
+      "notes": "Gain Gold"
     },
     {
       "name": "Run a Race",
@@ -5243,25 +6090,7 @@
       "resource_rewards": {
         "speed": 1
       },
-      "notes": "Gain {ability.0} Speed."
-    },
-    {
-      "name": "Run away",
-      "source_id": "3aef1b02-458b-45f1-9152-2d3619d50547",
-      "source_ids": [
-        "3aef1b02-458b-45f1-9152-2d3619d50547"
-      ],
-      "event_heroes": [
-        "Common"
-      ],
-      "event_type": "resource_event",
-      "resource_types": [
-        "gold"
-      ],
-      "resource_rewards": {
-        "gold": 1
-      },
-      "notes": "On your way out you find some gold."
+      "notes": "Gain {ability.0} Speed"
     },
     {
       "name": "Salesmanship",
@@ -5276,7 +6105,7 @@
       "event_type": "resource_event",
       "resource_types": [],
       "resource_rewards": {},
-      "notes": "Study the merchant in the front of his shop, mingling with the customers."
+      "notes": "Study the Merchant in the front of his shop, mingling with the customers"
     },
     {
       "name": "Seminar",
@@ -5294,300 +6123,7 @@
       "resource_rewards": {
         "exp": 1
       },
-      "notes": "You learned a lot in your seminar."
-    },
-    {
-      "name": "Shrouded Figure",
-      "source_id": "818fcd1d-4cfd-4629-b83f-8d5e753dd8f4",
-      "source_ids": [
-        "818fcd1d-4cfd-4629-b83f-8d5e753dd8f4"
-      ],
-      "event_heroes": [
-        "Common"
-      ],
-      "event_type": "resource_event",
-      "resource_types": [
-        "gold"
-      ],
-      "resource_rewards": {
-        "gold": 1
-      },
-      "notes": "Dare to risk some coin?",
-      "followup_options": [
-        {
-          "name": "Gain 10 Gold",
-          "source_id": "a38b86cb-a66a-4f49-9d8c-0edd3744890e",
-          "source_ids": [
-            "a38b86cb-a66a-4f49-9d8c-0edd3744890e"
-          ],
-          "event_heroes": [
-            "Common"
-          ],
-          "event_type": "resource_event",
-          "resource_types": [
-            "gold"
-          ],
-          "resource_rewards": {
-            "gold": 1
-          },
-          "notes": "Gain {ability.0} gold",
-          "event_category": "resource_events",
-          "parent_event": "Shrouded Figure",
-          "source_internal_name": "Shrouded Figure - Seek Wealth - Gain 10 Gold"
-        },
-        {
-          "name": "Gain 5 Gold",
-          "source_id": "1f7c4cf7-b951-4a97-aa99-f4a5685133e2",
-          "source_ids": [
-            "1f7c4cf7-b951-4a97-aa99-f4a5685133e2"
-          ],
-          "event_heroes": [
-            "Common"
-          ],
-          "event_type": "resource_event",
-          "resource_types": [
-            "gold"
-          ],
-          "resource_rewards": {
-            "gold": 1
-          },
-          "notes": "Gain {ability.0} gold",
-          "event_category": "resource_events",
-          "parent_event": "Shrouded Figure",
-          "source_internal_name": "Shrouded Figure - Seek Wealth - Gain 5 Gold"
-        },
-        {
-          "name": "Gain 6 Gold",
-          "source_id": "9232936b-66c7-4370-9102-3e49b76ee066",
-          "source_ids": [
-            "9232936b-66c7-4370-9102-3e49b76ee066"
-          ],
-          "event_heroes": [
-            "Common"
-          ],
-          "event_type": "resource_event",
-          "resource_types": [
-            "gold"
-          ],
-          "resource_rewards": {
-            "gold": 1
-          },
-          "notes": "Gain {ability.0} gold",
-          "event_category": "resource_events",
-          "parent_event": "Shrouded Figure",
-          "source_internal_name": "Shrouded Figure - Seek Wealth - Gain 6 Gold"
-        },
-        {
-          "name": "Gain 7 Gold",
-          "source_id": "c8e5a4ef-ffca-43ba-b751-b1de722d8cf1",
-          "source_ids": [
-            "c8e5a4ef-ffca-43ba-b751-b1de722d8cf1"
-          ],
-          "event_heroes": [
-            "Common"
-          ],
-          "event_type": "resource_event",
-          "resource_types": [
-            "gold"
-          ],
-          "resource_rewards": {
-            "gold": 1
-          },
-          "notes": "Gain {ability.0} gold",
-          "event_category": "resource_events",
-          "parent_event": "Shrouded Figure",
-          "source_internal_name": "Shrouded Figure - Seek Wealth - Gain 7 Gold"
-        },
-        {
-          "name": "Gain 8 Gold",
-          "source_id": "cd29686f-7207-448a-9a1d-ae59dd73c975",
-          "source_ids": [
-            "cd29686f-7207-448a-9a1d-ae59dd73c975"
-          ],
-          "event_heroes": [
-            "Common"
-          ],
-          "event_type": "resource_event",
-          "resource_types": [
-            "gold"
-          ],
-          "resource_rewards": {
-            "gold": 1
-          },
-          "notes": "Gain {ability.0} gold",
-          "event_category": "resource_events",
-          "parent_event": "Shrouded Figure",
-          "source_internal_name": "Shrouded Figure - Seek Wealth - Gain 8 Gold"
-        },
-        {
-          "name": "Gain 9 Gold",
-          "source_id": "f6495c83-fb34-4d52-aa7c-b6d85cab284e",
-          "source_ids": [
-            "f6495c83-fb34-4d52-aa7c-b6d85cab284e"
-          ],
-          "event_heroes": [
-            "Common"
-          ],
-          "event_type": "resource_event",
-          "resource_types": [
-            "gold"
-          ],
-          "resource_rewards": {
-            "gold": 1
-          },
-          "notes": "Gain {ability.0} gold",
-          "event_category": "resource_events",
-          "parent_event": "Shrouded Figure",
-          "source_internal_name": "Shrouded Figure - Seek Wealth - Gain 9 Gold"
-        },
-        {
-          "name": "Glimpse of Insight",
-          "source_id": "bb24b2a2-65e4-453d-a5da-38a65d1f07af",
-          "source_ids": [
-            "bb24b2a2-65e4-453d-a5da-38a65d1f07af"
-          ],
-          "event_heroes": [
-            "Common"
-          ],
-          "event_type": "resource_event",
-          "resource_types": [
-            "exp"
-          ],
-          "resource_rewards": {
-            "exp": 1
-          },
-          "notes": "Gain {ability.0} XP",
-          "event_category": "resource_events",
-          "parent_event": "Shrouded Figure",
-          "source_internal_name": "Shrouded Figure - Seek Knowledge - Glimpse of Insight"
-        },
-        {
-          "name": "Health Spark",
-          "source_id": "ac6110d2-5a19-4a8b-85fb-9ca017046a78",
-          "source_ids": [
-            "ac6110d2-5a19-4a8b-85fb-9ca017046a78"
-          ],
-          "event_heroes": [
-            "Common"
-          ],
-          "event_type": "resource_event",
-          "resource_types": [
-            "health"
-          ],
-          "resource_rewards": {
-            "health": 1
-          },
-          "notes": "Gain {i-%} Max Health",
-          "event_category": "resource_events",
-          "parent_event": "Shrouded Figure",
-          "source_internal_name": "Shrouded Figure - Seek Health - Health Spark"
-        },
-        {
-          "name": "Mental Breakthrough",
-          "source_id": "a9cc89a9-8915-4902-837c-7feeb48a4069",
-          "source_ids": [
-            "a9cc89a9-8915-4902-837c-7feeb48a4069"
-          ],
-          "event_heroes": [
-            "Common"
-          ],
-          "event_type": "resource_event",
-          "resource_types": [
-            "exp"
-          ],
-          "resource_rewards": {
-            "exp": 1
-          },
-          "notes": "Gain {ability.0} XP",
-          "event_category": "resource_events",
-          "parent_event": "Shrouded Figure",
-          "source_internal_name": "Shrouded Figure - Seek Knowledge - Mental Breakthrough"
-        },
-        {
-          "name": "Seek Health",
-          "source_id": "9729a91f-a43b-43bd-b5d2-0ea3e177b758",
-          "source_ids": [
-            "9729a91f-a43b-43bd-b5d2-0ea3e177b758"
-          ],
-          "event_heroes": [
-            "Common"
-          ],
-          "event_type": "resource_event",
-          "resource_types": [
-            "health"
-          ],
-          "resource_rewards": {
-            "health": 1
-          },
-          "notes": "Gain 200 to 600 Max Health.",
-          "event_category": "resource_events",
-          "parent_event": "Shrouded Figure",
-          "source_internal_name": "Shrouded Figure - Seek Health"
-        },
-        {
-          "name": "Seek Knowledge",
-          "source_id": "dedd62b7-e55c-41a7-92d4-e0fef87c4256",
-          "source_ids": [
-            "dedd62b7-e55c-41a7-92d4-e0fef87c4256"
-          ],
-          "event_heroes": [
-            "Common"
-          ],
-          "event_type": "resource_event",
-          "resource_types": [
-            "exp"
-          ],
-          "resource_rewards": {
-            "exp": 1
-          },
-          "notes": "Gain 2 to 4 XP",
-          "event_category": "resource_events",
-          "parent_event": "Shrouded Figure",
-          "source_internal_name": "Shrouded Figure - Seek Knowledge"
-        },
-        {
-          "name": "Seek Wealth",
-          "source_id": "1f6f3974-ce2d-4e9e-a1d9-9a3367a0adb9",
-          "source_ids": [
-            "1f6f3974-ce2d-4e9e-a1d9-9a3367a0adb9"
-          ],
-          "event_heroes": [
-            "Common"
-          ],
-          "event_type": "resource_event",
-          "resource_types": [
-            "gold"
-          ],
-          "resource_rewards": {
-            "gold": 1
-          },
-          "notes": "Gain 5 to 10 Gold",
-          "event_category": "resource_events",
-          "parent_event": "Shrouded Figure",
-          "source_internal_name": "Shrouded Figure - Seek Wealth"
-        },
-        {
-          "name": "Vitality Boost",
-          "source_id": "89310997-4526-4076-80cc-fbb4ef8535ee",
-          "source_ids": [
-            "89310997-4526-4076-80cc-fbb4ef8535ee"
-          ],
-          "event_heroes": [
-            "Common"
-          ],
-          "event_type": "resource_event",
-          "resource_types": [
-            "health"
-          ],
-          "resource_rewards": {
-            "health": 1
-          },
-          "notes": "Gain {i-%} Max Health",
-          "event_category": "resource_events",
-          "parent_event": "Shrouded Figure",
-          "source_internal_name": "Shrouded Figure - Seek Health - Vitality Spark"
-        }
-      ]
+      "notes": "You learned a lot in your seminar"
     },
     {
       "name": "Snack Time",
@@ -5605,7 +6141,7 @@
       "resource_rewards": {
         "health": 1
       },
-      "notes": "Gain {ability.0.mod} Max Health per level. [{ability.0}]"
+      "notes": "Gain {ability.0.mod} Max Health per level [{ability.0}]"
     },
     {
       "name": "Study",
@@ -5623,34 +6159,14 @@
       "resource_rewards": {
         "exp": 1
       },
-      "notes": "Gain 1 additional XP."
-    },
-    {
-      "name": "The Cult",
-      "source_id": "bf1594cc-7f65-4236-b95f-ed2f521739de",
-      "source_ids": [
-        "bf1594cc-7f65-4236-b95f-ed2f521739de"
-      ],
-      "event_heroes": [
-        "Common"
-      ],
-      "event_type": "resource_event",
-      "resource_types": [
-        "health",
-        "power"
-      ],
-      "resource_rewards": {
-        "health": 1,
-        "power": 1
-      },
-      "notes": "Trade health for power"
+      "notes": "Gain 2 XP"
     },
     {
       "name": "The Docks",
-      "source_id": "fc00c3ca-3231-4c8e-ac0e-19bff8cd5f65",
+      "source_id": "11287697-dd45-4edc-9539-780a26001043",
       "source_ids": [
-        "fc00c3ca-3231-4c8e-ac0e-19bff8cd5f65",
-        "11287697-dd45-4edc-9539-780a26001043"
+        "11287697-dd45-4edc-9539-780a26001043",
+        "fc00c3ca-3231-4c8e-ac0e-19bff8cd5f65"
       ],
       "event_heroes": [
         "Common"
@@ -5680,29 +6196,8 @@
       "resource_rewards": {
         "income": 1
       },
-      "notes": "Look for opportunities in the Financial District.",
+      "notes": "Look for opportunities in the Financial District",
       "followup_options": [
-        {
-          "name": "Collect Earnings",
-          "source_id": "2c3d9965-69e4-4ce0-aeab-73a4bb668dd7",
-          "source_ids": [
-            "2c3d9965-69e4-4ce0-aeab-73a4bb668dd7"
-          ],
-          "event_heroes": [
-            "Common"
-          ],
-          "event_type": "resource_event",
-          "resource_types": [
-            "gold"
-          ],
-          "resource_rewards": {
-            "gold": 1
-          },
-          "notes": "Gain {ability.0} gold",
-          "event_category": "resource_events",
-          "parent_event": "The Financial District",
-          "source_internal_name": "The Financial District - Blacksmith Investment - Return Event Small Sale - Collect Earnings"
-        },
         {
           "name": "Collect Earnings",
           "source_id": "0c1a698d-515e-48ff-b7ad-7833f707ef52",
@@ -5719,10 +6214,31 @@
           "resource_rewards": {
             "gold": 1
           },
-          "notes": "Gain {ability.0} gold",
+          "notes": "Gain {ability.0} Gold",
           "event_category": "resource_events",
           "parent_event": "The Financial District",
           "source_internal_name": "The Financial District - Blacksmith Investment - Return Event Large Sale - Collect Earnings"
+        },
+        {
+          "name": "Collect Earnings",
+          "source_id": "2c3d9965-69e4-4ce0-aeab-73a4bb668dd7",
+          "source_ids": [
+            "2c3d9965-69e4-4ce0-aeab-73a4bb668dd7"
+          ],
+          "event_heroes": [
+            "Common"
+          ],
+          "event_type": "resource_event",
+          "resource_types": [
+            "gold"
+          ],
+          "resource_rewards": {
+            "gold": 1
+          },
+          "notes": "Gain {ability.0} Gold",
+          "event_category": "resource_events",
+          "parent_event": "The Financial District",
+          "source_internal_name": "The Financial District - Blacksmith Investment - Return Event Small Sale - Collect Earnings"
         },
         {
           "name": "Decline",
@@ -5765,27 +6281,6 @@
           "source_internal_name": "The Financial District - Blacksmith Investment - Decline"
         },
         {
-          "name": "Dividends",
-          "source_id": "afb67ef0-7d22-47d5-ad68-c2e7b68edb01",
-          "source_ids": [
-            "afb67ef0-7d22-47d5-ad68-c2e7b68edb01"
-          ],
-          "event_heroes": [
-            "Common"
-          ],
-          "event_type": "resource_event",
-          "resource_types": [
-            "income"
-          ],
-          "resource_rewards": {
-            "income": 1
-          },
-          "notes": "Gain {ability.0} Income",
-          "event_category": "resource_events",
-          "parent_event": "The Financial District",
-          "source_internal_name": "The Financial District - Health Investment - Dividends Large"
-        },
-        {
           "name": "Free Session",
           "source_id": "20e0f718-db1d-4ce4-a200-71e63598259c",
           "source_ids": [
@@ -5811,37 +6306,17 @@
             "excluded_tags": [
               "legendary"
             ],
-            "hero_scope": "current"
+            "hero_scope": "any"
           },
           "resource_rewards": {
             "gold": 0,
             "exp": 0,
             "health": 0
           },
-          "notes": "Get an Economic item or skill.",
+          "notes": "Get an Economic item or skill from any Hero",
           "event_category": "item_rewards",
           "parent_event": "The Financial District",
           "source_internal_name": "The Financial District - Economic Seminar - Basic Pass"
-        },
-        {
-          "name": "House Always Wins",
-          "source_id": "af7fc892-9597-4ec1-a2f4-ec0501cda9a0",
-          "source_ids": [
-            "af7fc892-9597-4ec1-a2f4-ec0501cda9a0"
-          ],
-          "event_heroes": [
-            "Common"
-          ],
-          "event_type": "unknown_event",
-          "resource_rewards": {
-            "gold": 0,
-            "exp": 0,
-            "health": 0
-          },
-          "notes": "Side with the merchant and shoo the customer away.",
-          "event_category": "unknown_events",
-          "parent_event": "The Financial District",
-          "source_internal_name": "The Financial District - Buyer's Remorse - House"
         },
         {
           "name": "Keep it",
@@ -5858,7 +6333,7 @@
             "exp": 0,
             "health": 0
           },
-          "notes": "Keep the wallet for yourself.",
+          "notes": "Keep the wallet for yourself",
           "event_category": "unknown_events",
           "parent_event": "The Financial District",
           "source_internal_name": "The Financial District - Lost Wallet - Keep"
@@ -5878,31 +6353,10 @@
             "exp": 0,
             "health": 0
           },
-          "notes": "Make a large investment.",
+          "notes": "Make a Large investment",
           "event_category": "unknown_events",
           "parent_event": "The Financial District",
           "source_internal_name": "The Financial District - Blacksmith Investment - Large Investment"
-        },
-        {
-          "name": "Large Investment Payout",
-          "source_id": "8d88cd06-c61e-460f-9ee8-c4e9ebceffe0",
-          "source_ids": [
-            "8d88cd06-c61e-460f-9ee8-c4e9ebceffe0"
-          ],
-          "event_heroes": [
-            "Common"
-          ],
-          "event_type": "resource_event",
-          "resource_types": [
-            "income"
-          ],
-          "resource_rewards": {
-            "income": 1
-          },
-          "notes": "Look for opportunities in the Financial District.",
-          "event_category": "resource_events",
-          "parent_event": "The Financial District",
-          "source_internal_name": "The Financial District - Health Investment - Large Investment Payout"
         },
         {
           "name": "Large Investment Payout",
@@ -5920,7 +6374,7 @@
           "resource_rewards": {
             "income": 1
           },
-          "notes": "Look for opportunities in the Financial District.",
+          "notes": "Look for opportunities in the Financial District",
           "event_category": "resource_events",
           "parent_event": "The Financial District",
           "source_internal_name": "The Financial District - Blacksmith Investment - Large Investment Payout"
@@ -5989,14 +6443,14 @@
             "excluded_tags": [
               "legendary"
             ],
-            "hero_scope": "current"
+            "hero_scope": "any"
           },
           "resource_rewards": {
             "gold": 0,
             "exp": 0,
             "health": 0
           },
-          "notes": "Get 2 Economic items or skills",
+          "notes": "Get {ability.0} Economic items or skills from any Hero",
           "event_category": "item_rewards",
           "parent_event": "The Financial District",
           "source_internal_name": "The Financial District - Economic Seminar - Premium Pass"
@@ -6017,7 +6471,7 @@
           "resource_rewards": {
             "income": 1
           },
-          "notes": "Look for opportunities in the Financial District.",
+          "notes": "Look for opportunities in the Financial District",
           "event_category": "resource_events",
           "parent_event": "The Financial District",
           "source_internal_name": "The Financial District - Merchant Investment - Small Investment Payout"
@@ -6040,16 +6494,40 @@
       "resource_rewards": {
         "gold": 1
       },
-      "notes": "Gain gold"
+      "notes": "Gain Gold"
     }
   ],
   "enchant_events": [
     {
-      "name": "Bladeborn Badlands",
-      "source_id": "81110f4a-ab1e-4a9e-af1f-a0a4ce44b629",
+      "name": "Arcane Abyss",
+      "source_id": "4874450b-1595-4bc2-b9e1-5b03e72a8cf6",
       "source_ids": [
-        "81110f4a-ab1e-4a9e-af1f-a0a4ce44b629",
-        "48462c74-567d-4e1e-a441-f0fa62617e47"
+        "4874450b-1595-4bc2-b9e1-5b03e72a8cf6",
+        "f1878b7e-cad6-4301-a5c1-bccf5d35da7b"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "enchant_event",
+      "effect": "enchant_items",
+      "target_tags": [],
+      "enchantment_tags": [
+        "value"
+      ],
+      "match_mode": "any",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Enchant an item with Shiny (doubling or multicast effects)"
+    },
+    {
+      "name": "Bladeborn Badlands",
+      "source_id": "48462c74-567d-4e1e-a441-f0fa62617e47",
+      "source_ids": [
+        "48462c74-567d-4e1e-a441-f0fa62617e47",
+        "81110f4a-ab1e-4a9e-af1f-a0a4ce44b629"
       ],
       "event_heroes": [
         "Common"
@@ -6066,7 +6544,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Enchant an item with Crit effects."
+      "notes": "Enchant an item with Deadly (Crit Chance effects)"
     },
     {
       "name": "Burning Caldera",
@@ -6092,14 +6570,14 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Enchant an item with Burn effects."
+      "notes": "Enchant an item with Fiery (Burn effects)"
     },
     {
       "name": "Celestial Conduit",
-      "source_id": "9c1f2654-3077-4c4e-b38e-946aed17cbfb",
+      "source_id": "3b9b8d2d-37bf-4742-8d9f-4c05c6d2a000",
       "source_ids": [
-        "9c1f2654-3077-4c4e-b38e-946aed17cbfb",
-        "3b9b8d2d-37bf-4742-8d9f-4c05c6d2a000"
+        "3b9b8d2d-37bf-4742-8d9f-4c05c6d2a000",
+        "9c1f2654-3077-4c4e-b38e-946aed17cbfb"
       ],
       "event_heroes": [
         "Common"
@@ -6107,9 +6585,11 @@
       "event_type": "enchant_event",
       "effect": "enchant_items",
       "target_tags": [
+        "freeze",
         "slow"
       ],
       "enchantment_tags": [
+        "freeze",
         "slow"
       ],
       "match_mode": "any",
@@ -6118,14 +6598,13 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Enchant an item with Cannot be Frozen, Slowed or Destroyed."
+      "notes": "Enchant an item with Radiant (Freeze, Slow and Destroy reduction effects)"
     },
     {
-      "name": "Frozen Tomb",
-      "source_id": "04f879e5-94fe-42ae-aa7a-273edbd6d410",
+      "name": "Gravity's Altar",
+      "source_id": "181c3701-c473-480a-b113-9befff77474b",
       "source_ids": [
-        "04f879e5-94fe-42ae-aa7a-273edbd6d410",
-        "a2ec8028-6526-49eb-9dd7-41f8538165e9"
+        "181c3701-c473-480a-b113-9befff77474b"
       ],
       "event_heroes": [
         "Common"
@@ -6133,10 +6612,10 @@
       "event_type": "enchant_event",
       "effect": "enchant_items",
       "target_tags": [
-        "freeze"
+        "slow"
       ],
       "enchantment_tags": [
-        "freeze"
+        "slow"
       ],
       "match_mode": "any",
       "resource_rewards": {
@@ -6144,7 +6623,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Enchant an item with Freeze effects."
+      "notes": "Enchant an item with Heavy (Slow effects)"
     },
     {
       "name": "Guardian's Gorge",
@@ -6170,13 +6649,12 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Enchant an item with Shield effects."
+      "notes": "Enchant an item with Shielded (Shield effects)"
     },
     {
       "name": "Languid Dunes",
-      "source_id": "181c3701-c473-480a-b113-9befff77474b",
+      "source_id": "c3925fd2-d174-40ff-8d15-3d9c41b3615b",
       "source_ids": [
-        "181c3701-c473-480a-b113-9befff77474b",
         "c3925fd2-d174-40ff-8d15-3d9c41b3615b"
       ],
       "event_heroes": [
@@ -6196,14 +6674,38 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Enchant an item with Slow effects."
+      "notes": "Enchant an item with Heavy (Slow effects)"
+    },
+    {
+      "name": "Mossy Ridge",
+      "source_id": "320e7f80-334b-440c-8cc1-0b54e3141335",
+      "source_ids": [
+        "320e7f80-334b-440c-8cc1-0b54e3141335",
+        "ce8b4112-39eb-419a-b65e-56f5b7c6aebd"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "enchant_event",
+      "effect": "enchant_items",
+      "target_tags": [
+        "regen"
+      ],
+      "enchantment_tags": [],
+      "match_mode": "any",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Enchant an item with Mossy (Regen effect)"
     },
     {
       "name": "Murkwood Bayou",
-      "source_id": "47c256d3-6f3e-495b-b119-12739adda129",
+      "source_id": "099c544c-6833-407d-8d38-d4d1bb488f72",
       "source_ids": [
-        "47c256d3-6f3e-495b-b119-12739adda129",
-        "099c544c-6833-407d-8d38-d4d1bb488f72"
+        "099c544c-6833-407d-8d38-d4d1bb488f72",
+        "47c256d3-6f3e-495b-b119-12739adda129"
       ],
       "event_heroes": [
         "Common"
@@ -6222,7 +6724,32 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Enchant an item with Poison effect."
+      "notes": "Enchant an item with Toxic (Poison effect)"
+    },
+    {
+      "name": "Plains of Edin",
+      "source_id": "22b1eb02-1133-4120-afe3-85f6e9a5aba2",
+      "source_ids": [
+        "22b1eb02-1133-4120-afe3-85f6e9a5aba2"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "enchant_event",
+      "effect": "enchant_items",
+      "target_tags": [
+        "heal"
+      ],
+      "enchantment_tags": [
+        "heal"
+      ],
+      "match_mode": "any",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Enchant an item with Restorative (Heal effects)"
     },
     {
       "name": "Sanguine Valley",
@@ -6248,7 +6775,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Enchant an item with Damage effects."
+      "notes": "Enchant an item with Obsidian (damage efects)"
     },
     {
       "name": "Sirocco Steppe",
@@ -6274,7 +6801,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Enchant an item with Haste effects."
+      "notes": "Enchant an item with Turbo (Haste effects)"
     },
     {
       "name": "The Artist",
@@ -6296,13 +6823,12 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Enchant an item."
+      "notes": "Enchant an item"
     },
     {
       "name": "Tranquil Spring",
-      "source_id": "22b1eb02-1133-4120-afe3-85f6e9a5aba2",
+      "source_id": "5f65bbe1-bf39-4fe7-8eeb-57b669df1ee6",
       "source_ids": [
-        "22b1eb02-1133-4120-afe3-85f6e9a5aba2",
         "5f65bbe1-bf39-4fe7-8eeb-57b669df1ee6"
       ],
       "event_heroes": [
@@ -6322,27 +6848,36 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Enchant an item with Heal effects."
-    }
-  ],
-  "combat_events": [
+      "notes": "Enchant an item with Restorative (Heal effects)"
+    },
     {
-      "name": "Ambush",
-      "source_id": "b3faee8b-8fff-47cf-90a1-70f4f08528ed",
+      "name": "Yetarian Tomb",
+      "source_id": "04f879e5-94fe-42ae-aa7a-273edbd6d410",
       "source_ids": [
-        "b3faee8b-8fff-47cf-90a1-70f4f08528ed"
+        "04f879e5-94fe-42ae-aa7a-273edbd6d410",
+        "a2ec8028-6526-49eb-9dd7-41f8538165e9"
       ],
       "event_heroes": [
         "Common"
       ],
-      "event_type": "combat_event",
+      "event_type": "enchant_event",
+      "effect": "enchant_items",
+      "target_tags": [
+        "freeze"
+      ],
+      "enchantment_tags": [
+        "freeze"
+      ],
+      "match_mode": "any",
       "resource_rewards": {
         "gold": 0,
         "exp": 0,
         "health": 0
       },
-      "notes": "A monster attacks!"
-    },
+      "notes": "Enchant an item with Icy (Freeze effects)"
+    }
+  ],
+  "combat_events": [
     {
       "name": "Bounty Hunters",
       "source_id": "0a46b7df-e0a2-4211-8529-0bfe91974a71",
@@ -6362,11 +6897,11 @@
     },
     {
       "name": "Deadly Duel",
-      "source_id": "fc1960b0-ac02-4e3c-9b46-e421ae896724",
+      "source_id": "a120c614-233b-460f-8b54-1dd81d5e1db5",
       "source_ids": [
-        "fc1960b0-ac02-4e3c-9b46-e421ae896724",
+        "a120c614-233b-460f-8b54-1dd81d5e1db5",
         "ddecdf10-d7b5-475a-9c7b-d74e4cb51294",
-        "a120c614-233b-460f-8b54-1dd81d5e1db5"
+        "fc1960b0-ac02-4e3c-9b46-e421ae896724"
       ],
       "event_heroes": [
         "Common"
@@ -6377,15 +6912,15 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Fight a monster"
+      "notes": "Fight a Monster"
     },
     {
       "name": "Epic Battle",
       "source_id": "2f50dc7e-8a03-41d9-82d0-dd956dfe4b50",
       "source_ids": [
         "2f50dc7e-8a03-41d9-82d0-dd956dfe4b50",
-        "d290146b-28d4-4aae-87c7-249d4e7c0a81",
-        "58413cc6-7c39-45c7-aeb5-de0fd5e801eb"
+        "58413cc6-7c39-45c7-aeb5-de0fd5e801eb",
+        "d290146b-28d4-4aae-87c7-249d4e7c0a81"
       ],
       "event_heroes": [
         "Common"
@@ -6396,7 +6931,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Fight a monster"
+      "notes": "Fight a Monster"
     },
     {
       "name": "Hide",
@@ -6413,10 +6948,10 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "The monster returns and sniffed you out."
+      "notes": "The Monster returns and sniffed you out"
     },
     {
-      "name": "Relax",
+      "name": "Rest",
       "source_id": "90e47f27-241c-4769-a6c6-a100d2a33421",
       "source_ids": [
         "90e47f27-241c-4769-a6c6-a100d2a33421"
@@ -6430,7 +6965,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Start your next fight with 100 Shield per Level. [{ability.0}]"
+      "notes": "Start your next fight with 100 Shield per Level [{ability.0}]"
     },
     {
       "name": "Sparring Partner",
@@ -6447,24 +6982,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Test your build against the Sparring Partner."
-    },
-    {
-      "name": "Uh Oh!",
-      "source_id": "7e9d3b47-1ec5-45fc-a330-f16fe328c671",
-      "source_ids": [
-        "7e9d3b47-1ec5-45fc-a330-f16fe328c671"
-      ],
-      "event_heroes": [
-        "Common"
-      ],
-      "event_type": "combat_event",
-      "resource_rewards": {
-        "gold": 0,
-        "exp": 0,
-        "health": 0
-      },
-      "notes": "They try to take your money"
+      "notes": "Test your build against the Sparring Partner"
     }
   ],
   "utility_events": [
@@ -6479,7 +6997,7 @@
       ],
       "event_type": "utility_event",
       "resource_rewards": {},
-      "notes": "You find a strange mushroom in the Greenheart.",
+      "notes": "You find a strange mushroom in the Greenheart",
       "followup_options": [
         {
           "name": "Brew a Potion",
@@ -6520,7 +7038,7 @@
             "exp": 0,
             "health": 0
           },
-          "notes": "(if you are Mak) Get a Small Silver-tier Potion.",
+          "notes": "(if you are Mak) Get a Small Silver-tier Potion",
           "event_category": "item_rewards",
           "parent_event": "A Strange Mushroom",
           "source_internal_name": "A Strange Mushroom (Brew a Potion)"
@@ -6562,10 +7080,56 @@
           "resource_rewards": {
             "gold": 1
           },
-          "notes": "Gain {ability.0} gold.",
+          "notes": "Gain {ability.0} Gold",
           "event_category": "resource_events",
           "parent_event": "A Strange Mushroom",
           "source_internal_name": "A Strange Mushroom (Sell It)"
+        },
+        {
+          "name": "Share It With a Friend",
+          "source_id": "f2445fe5-da49-45ad-9dfa-1cabc86dfbf9",
+          "source_ids": [
+            "f2445fe5-da49-45ad-9dfa-1cabc86dfbf9"
+          ],
+          "event_heroes": [
+            "Dooley",
+            "Karnok",
+            "Vanessa"
+          ],
+          "event_type": "item_reward",
+          "exact_names": [],
+          "reward_tags": [
+            "friend"
+          ],
+          "card_reward": {
+            "enabled": true,
+            "exact_names": [],
+            "reward_tags": [
+              "friend"
+            ],
+            "match_mode": "any",
+            "rarity_filter": {
+              "min": "silver",
+              "max": "silver"
+            },
+            "rarity_rule": null,
+            "excluded_tags": [
+              "legendary"
+            ],
+            "hero_scope": "any",
+            "size_filter": [
+              "small"
+            ]
+          },
+          "resource_rewards": {
+            "gold": 0,
+            "exp": 0,
+            "health": 0
+          },
+          "notes": "(if you are Vanessa, Dooley or Karnok) Get a Small Silver-tier Friend from any Hero",
+          "event_category": "item_rewards",
+          "parent_event": "A Strange Mushroom",
+          "source_internal_name": "A Strange Mushroom (Share It With a Friend)"
         }
       ]
     },
@@ -6609,24 +7173,11 @@
       "notes": "See all that the Bazaar has to offer"
     },
     {
-      "name": "Check on Merchant",
-      "source_id": "1ed73d89-54a4-4c2e-9d3c-ee3d6629f9b2",
+      "name": "Dooley's Crib",
+      "source_id": "2e0acd01-e0b2-4c0d-a7aa-84914c0cbb94",
       "source_ids": [
-        "1ed73d89-54a4-4c2e-9d3c-ee3d6629f9b2"
-      ],
-      "event_heroes": [
-        "Common"
-      ],
-      "event_type": "utility_event",
-      "resource_rewards": {},
-      "notes": "See if the merchant is alright"
-    },
-    {
-      "name": "Dooley's Workshop",
-      "source_id": "64fcc650-1266-4fcd-8f9a-7c64a38da056",
-      "source_ids": [
-        "64fcc650-1266-4fcd-8f9a-7c64a38da056",
         "2e0acd01-e0b2-4c0d-a7aa-84914c0cbb94",
+        "64fcc650-1266-4fcd-8f9a-7c64a38da056",
         "69bc6d15-487a-43cd-9b7f-d0652853d991"
       ],
       "event_heroes": [
@@ -6634,7 +7185,7 @@
       ],
       "event_type": "utility_event",
       "resource_rewards": {},
-      "notes": "Next, choose a Starting Package"
+      "notes": "Some of the Bazaar's most remarkable technology has been collected here"
     },
     {
       "name": "Futura",
@@ -6647,7 +7198,7 @@
       ],
       "event_type": "utility_event",
       "resource_rewards": {},
-      "notes": "This is not the end."
+      "notes": "This is not the end"
     },
     {
       "name": "Gulch's Dive",
@@ -6691,7 +7242,7 @@
           "resource_rewards": {
             "gold": 1
           },
-          "notes": "Gain {ability.0} Gold.",
+          "notes": "Gain {ability.0} Gold",
           "event_category": "resource_events",
           "parent_event": "Haddy",
           "source_internal_name": "Haddy - Bag of Gold"
@@ -6707,35 +7258,14 @@
           ],
           "event_type": "skill_event",
           "skill_tags": [],
-          "resource_rewards": {
-            "gold": 0,
-            "exp": 0,
-            "health": 0
-          },
-          "notes": "Gain a Diamond-tier skill.",
-          "event_category": "skill_shops",
-          "parent_event": "Haddy",
-          "source_internal_name": "Haddy - Diamond Skill"
-        },
-        {
-          "name": "Enchanted Item",
-          "source_id": "d03bb709-d865-4866-b756-39c18497258e",
-          "source_ids": [
-            "d03bb709-d865-4866-b756-39c18497258e"
-          ],
-          "event_heroes": [
-            "Common"
-          ],
-          "event_type": "item_reward",
-          "exact_names": [],
-          "reward_tags": [],
-          "card_reward": {
-            "enabled": true,
-            "exact_names": [],
+          "shop_pool": {
             "reward_tags": [],
             "match_mode": "any",
-            "rarity_filter": null,
-            "rarity_rule": "normal_shop_by_day",
+            "rarity_filter": {
+              "min": "diamond",
+              "max": "diamond"
+            },
+            "rarity_rule": null,
             "excluded_tags": [
               "legendary"
             ],
@@ -6746,8 +7276,32 @@
             "exp": 0,
             "health": 0
           },
-          "notes": "Gain a random enchanted item",
-          "event_category": "item_rewards",
+          "notes": "Gain a Diamond-tier skill",
+          "event_category": "skill_shops",
+          "parent_event": "Haddy",
+          "source_internal_name": "Haddy - Diamond Skill"
+        },
+        {
+          "name": "Enchanted item",
+          "source_id": "d03bb709-d865-4866-b756-39c18497258e",
+          "source_ids": [
+            "d03bb709-d865-4866-b756-39c18497258e"
+          ],
+          "event_heroes": [
+            "Common"
+          ],
+          "event_type": "enchant_event",
+          "effect": "enchant_items",
+          "target_tags": [],
+          "enchantment_tags": [],
+          "match_mode": "any",
+          "resource_rewards": {
+            "gold": 0,
+            "exp": 0,
+            "health": 0
+          },
+          "notes": "Gain an Enchanted item",
+          "event_category": "enchant_events",
           "parent_event": "Haddy",
           "source_internal_name": "Haddy - Enchanted Item"
         },
@@ -6762,12 +7316,25 @@
           ],
           "event_type": "skill_event",
           "skill_tags": [],
+          "shop_pool": {
+            "reward_tags": [],
+            "match_mode": "any",
+            "rarity_filter": {
+              "min": "gold",
+              "max": "gold"
+            },
+            "rarity_rule": null,
+            "excluded_tags": [
+              "legendary"
+            ],
+            "hero_scope": "current"
+          },
           "resource_rewards": {
             "gold": 0,
             "exp": 0,
             "health": 0
           },
-          "notes": "Gain a Gold-tier skill.",
+          "notes": "Gain a Gold-tier skill",
           "event_category": "skill_shops",
           "parent_event": "Haddy",
           "source_internal_name": "Haddy - Gold Skill"
@@ -6824,7 +7391,7 @@
             "exp": 0,
             "health": 0
           },
-          "notes": "Get 3 Diamond-tier loot items",
+          "notes": "Get 3 Diamond-tier Loot items",
           "event_category": "item_rewards",
           "parent_event": "Haddy",
           "source_internal_name": "Haddy - Mystery Bundle"
@@ -6858,7 +7425,54 @@
       ],
       "event_type": "utility_event",
       "resource_rewards": {},
-      "notes": "You find abandoned ruins in the jungle."
+      "notes": "You find abandoned ruins in the jungle",
+      "followup_options": [
+        {
+          "name": "Search for Abandoned Tools",
+          "source_id": "6a702c3a-cdec-4384-a3e4-2117bc057aea",
+          "source_ids": [
+            "6a702c3a-cdec-4384-a3e4-2117bc057aea"
+          ],
+          "event_heroes": [
+            "Dooley",
+            "Stelle"
+          ],
+          "event_type": "item_reward",
+          "exact_names": [],
+          "reward_tags": [
+            "tool"
+          ],
+          "card_reward": {
+            "enabled": true,
+            "exact_names": [],
+            "reward_tags": [
+              "tool"
+            ],
+            "match_mode": "any",
+            "rarity_filter": {
+              "min": "silver",
+              "max": "silver"
+            },
+            "rarity_rule": null,
+            "excluded_tags": [
+              "legendary"
+            ],
+            "hero_scope": "any",
+            "size_filter": [
+              "small"
+            ]
+          },
+          "resource_rewards": {
+            "gold": 0,
+            "exp": 0,
+            "health": 0
+          },
+          "notes": "(if you are Dooley or Stelle) Get a Small Silver-tier Tool from any Hero",
+          "event_category": "item_rewards",
+          "parent_event": "Jungle Ruins",
+          "source_internal_name": "Jungle Ruins (Search for Abanadoned Tools)"
+        }
+      ]
     },
     {
       "name": "Mak's Laboratory",
@@ -6875,13 +7489,13 @@
     },
     {
       "name": "Mountain Pass",
-      "source_id": "b66ed0c1-13ee-4ebb-ac35-9eeeaec5c2e3",
+      "source_id": "158b3bec-e4e1-4d5a-8e27-a82ba7fcb292",
       "source_ids": [
-        "b66ed0c1-13ee-4ebb-ac35-9eeeaec5c2e3",
+        "158b3bec-e4e1-4d5a-8e27-a82ba7fcb292",
         "1e590634-499a-43d0-9152-d9425cd380f6",
         "721dc5f3-7146-46ca-85ac-116505f59b00",
         "956e9c74-7d98-4a2b-b500-def577914945",
-        "158b3bec-e4e1-4d5a-8e27-a82ba7fcb292",
+        "b66ed0c1-13ee-4ebb-ac35-9eeeaec5c2e3",
         "e64431ff-8979-4112-81e3-81fb7865be36"
       ],
       "event_heroes": [
@@ -6889,7 +7503,7 @@
       ],
       "event_type": "utility_event",
       "resource_rewards": {},
-      "notes": "Aid the Convoys in navigating the dangerous Mountain Pass."
+      "notes": "Aid the Convoys in navigating the dangerous Mountain Pass"
     },
     {
       "name": "Mysterious Portal",
@@ -6902,7 +7516,7 @@
       ],
       "event_type": "utility_event",
       "resource_rewards": {},
-      "notes": "Take a chance on a rare event or merchant"
+      "notes": "Take a chance on a Gold-tier or higher Encounter"
     },
     {
       "name": "Pygmalien's Loft",
@@ -6928,14 +7542,14 @@
       ],
       "event_type": "utility_event",
       "resource_rewards": {},
-      "notes": "An echo of the past. A vision of the future."
+      "notes": "An echo of the past. A vision of the future"
     },
     {
       "name": "Rit",
-      "source_id": "63a890d2-3b12-459a-8bbf-88f811a3606d",
+      "source_id": "578479a7-4a5d-4a0e-8cee-4cd7b2191ae0",
       "source_ids": [
-        "63a890d2-3b12-459a-8bbf-88f811a3606d",
         "578479a7-4a5d-4a0e-8cee-4cd7b2191ae0",
+        "63a890d2-3b12-459a-8bbf-88f811a3606d",
         "77fd1cb0-4e77-47f0-903d-228f136fc8c7"
       ],
       "event_heroes": [
@@ -6959,6 +7573,19 @@
       "notes": "Have a glimpse of what the future holds"
     },
     {
+      "name": "Stelle's Workshop",
+      "source_id": "d6c69fd2-7493-4b55-af18-eab0695cf16a",
+      "source_ids": [
+        "d6c69fd2-7493-4b55-af18-eab0695cf16a"
+      ],
+      "event_heroes": [
+        "Stelle"
+      ],
+      "event_type": "utility_event",
+      "resource_rewards": {},
+      "notes": "Your journey begins here"
+    },
+    {
       "name": "Suprise Mushroom - Stronger",
       "source_id": "21dd4607-cf31-465d-9be8-89abddfa45cd",
       "source_ids": [
@@ -6969,33 +7596,7 @@
       ],
       "event_type": "utility_event",
       "resource_rewards": {},
-      "notes": "You find a strange mushroom in the Greenheart."
-    },
-    {
-      "name": "Thankful Adventurer",
-      "source_id": "79ba3b65-0580-4afd-b265-5ec1e5facf2b",
-      "source_ids": [
-        "79ba3b65-0580-4afd-b265-5ec1e5facf2b"
-      ],
-      "event_heroes": [
-        "Common"
-      ],
-      "event_type": "utility_event",
-      "resource_rewards": {},
-      "notes": " An adventurer you helped has a reward for you."
-    },
-    {
-      "name": "Thankful Patron",
-      "source_id": "bd246455-5989-4954-b219-d70b0a09feb0",
-      "source_ids": [
-        "bd246455-5989-4954-b219-d70b0a09feb0"
-      ],
-      "event_heroes": [
-        "Common"
-      ],
-      "event_type": "utility_event",
-      "resource_rewards": {},
-      "notes": "Someone you helped in the Arena wants to thank you."
+      "notes": "You find a strange mushroom in the Greenheart"
     },
     {
       "name": "The Greenheart",
@@ -7052,12 +7653,10 @@
     },
     {
       "name": "Vanessa's Quarters",
-      "source_id": "a42e4bea-d140-4d6a-a683-e8bf45e61fe2",
+      "source_id": "6e33409d-d390-4764-969f-f96e96629213",
       "source_ids": [
-        "a42e4bea-d140-4d6a-a683-e8bf45e61fe2",
-        "b10b084f-4704-4d0c-ae62-299c1c58d52c",
         "6e33409d-d390-4764-969f-f96e96629213",
-        "db1f1396-bd08-4203-97be-6868bd7ceb3c"
+        "b10b084f-4704-4d0c-ae62-299c1c58d52c"
       ],
       "event_heroes": [
         "Vanessa"
@@ -7067,5 +7666,921 @@
       "notes": "Your journey begins here"
     }
   ],
-  "unknown_events": []
+  "unknown_events": [
+    {
+      "name": "Advanced Training",
+      "source_id": "6a5e82cf-969c-432a-863a-1df6e7f56513",
+      "source_ids": [
+        "6a5e82cf-969c-432a-863a-1df6e7f56513"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Be all that you can be with Sergeant Suds (Give Types to your items)"
+    },
+    {
+      "name": "Apothecary",
+      "source_id": "04ac552f-c292-455e-bf5f-438119dfa196",
+      "source_ids": [
+        "04ac552f-c292-455e-bf5f-438119dfa196"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Offers a variety of boons to defensive items"
+    },
+    {
+      "name": "Bex",
+      "source_id": "34dc624d-1046-4e2d-906d-1fd8d19647d8",
+      "source_ids": [
+        "34dc624d-1046-4e2d-906d-1fd8d19647d8"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Attend a Bazball Game with Bex"
+    },
+    {
+      "name": "Bjorn's Gift Exchange",
+      "source_id": "a64974ac-1250-41fe-aada-508b22c93ac4",
+      "source_ids": [
+        "a64974ac-1250-41fe-aada-508b22c93ac4"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Get a gift from another Hero"
+    },
+    {
+      "name": "Bountiful Harvest",
+      "source_id": "facaa0bc-ddb9-48dc-8be7-f44b8a07df00",
+      "source_ids": [
+        "facaa0bc-ddb9-48dc-8be7-f44b8a07df00"
+      ],
+      "event_heroes": [
+        "Jules"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Get a Food"
+    },
+    {
+      "name": "Cargo Hold",
+      "source_id": "07139793-c844-4fbb-ad90-9f279843cdc8",
+      "source_ids": [
+        "07139793-c844-4fbb-ad90-9f279843cdc8"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "See what's in the hold"
+    },
+    {
+      "name": "Chef Brolin",
+      "source_id": "4b9c8dd5-fa9c-47a1-bd26-3f043faa5e2a",
+      "source_ids": [
+        "4b9c8dd5-fa9c-47a1-bd26-3f043faa5e2a",
+        "7a4f9be7-9132-45a2-9885-6f2ce40a59be"
+      ],
+      "event_heroes": [
+        "Jules"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Get a consultation to improve your kitchen"
+    },
+    {
+      "name": "Command Nexus",
+      "source_id": "54a0e045-36fe-4de4-92fb-9254fa73c48f",
+      "source_ids": [
+        "54a0e045-36fe-4de4-92fb-9254fa73c48f"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "You have reached the core of the ship"
+    },
+    {
+      "name": "Crash Site Expedition",
+      "source_id": "ead0a1ed-703e-445e-ba43-9a7df5d64f54",
+      "source_ids": [
+        "ead0a1ed-703e-445e-ba43-9a7df5d64f54"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "(Requires Ticket) Explore the Outland's mysterious Crash Site"
+    },
+    {
+      "name": "Crystal Growth Chamber",
+      "source_id": "2950afee-ce0e-40c1-becb-735570e560c5",
+      "source_ids": [
+        "2950afee-ce0e-40c1-becb-735570e560c5"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Enter the Crystal Growth Chamber"
+    },
+    {
+      "name": "Cupboard",
+      "source_id": "13b4c0cd-313d-4e0f-9a51-eb4d288f32a5",
+      "source_ids": [
+        "13b4c0cd-313d-4e0f-9a51-eb4d288f32a5"
+      ],
+      "event_heroes": [
+        "Jules"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Get a Small Food"
+    },
+    {
+      "name": "Dabora",
+      "source_id": "5ea96339-6c5e-42b4-bc5f-028b780348e0",
+      "source_ids": [
+        "5ea96339-6c5e-42b4-bc5f-028b780348e0"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Pays handsomely for stories of heroic battles"
+    },
+    {
+      "name": "Dino Trapping",
+      "source_id": "ae81a2e5-66c3-4bda-82ad-f9657add738a",
+      "source_ids": [
+        "ae81a2e5-66c3-4bda-82ad-f9657add738a"
+      ],
+      "event_heroes": [
+        "Dooley"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Get a Dinosaur"
+    },
+    {
+      "name": "Excavation",
+      "source_id": "8f83e037-1420-4210-a2b0-b4d80f7d86f5",
+      "source_ids": [
+        "8f83e037-1420-4210-a2b0-b4d80f7d86f5",
+        "91b039eb-1478-4cc8-a44e-c0b0a2f3fd20"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Get a Relic from any hero"
+    },
+    {
+      "name": "Family Reunion",
+      "source_id": "d0697c4c-2b63-4505-a946-d396493ac8a6",
+      "source_ids": [
+        "d0697c4c-2b63-4505-a946-d396493ac8a6"
+      ],
+      "event_heroes": [
+        "Stelle"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Stelle's sister shows up to get her to come home"
+    },
+    {
+      "name": "Farai",
+      "source_id": "412fb3ec-88de-40b4-a475-10e583189d8a",
+      "source_ids": [
+        "412fb3ec-88de-40b4-a475-10e583189d8a"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "HELP WANTED: Urgent deliveries"
+    },
+    {
+      "name": "Hidden Lake",
+      "source_id": "0f34d701-1529-4dac-aa46-35d97d5a57a1",
+      "source_ids": [
+        "0f34d701-1529-4dac-aa46-35d97d5a57a1"
+      ],
+      "event_heroes": [
+        "Karnok"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Confront your inner beast"
+    },
+    {
+      "name": "Jules' Cafe",
+      "source_id": "185a03bc-2fb2-4366-bbe8-1b1c6f7d39fd",
+      "source_ids": [
+        "185a03bc-2fb2-4366-bbe8-1b1c6f7d39fd"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Check out Jules' famous cafe for a temporary boost"
+    },
+    {
+      "name": "Laurel's Night Terrors",
+      "source_id": "2d23952b-f0e4-4a7a-ac65-11c7def01679",
+      "source_ids": [
+        "2d23952b-f0e4-4a7a-ac65-11c7def01679"
+      ],
+      "event_heroes": [
+        "Jules"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Comfort Laurel"
+    },
+    {
+      "name": "Library",
+      "source_id": "48a25657-baf6-440d-9085-bd7aeda1638a",
+      "source_ids": [
+        "48a25657-baf6-440d-9085-bd7aeda1638a"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "A quiet place to learn new skills"
+    },
+    {
+      "name": "Meal Prep",
+      "source_id": "04e1aad5-e5e4-4864-b217-28e5ff00023b",
+      "source_ids": [
+        "04e1aad5-e5e4-4864-b217-28e5ff00023b",
+        "71b59c65-e8b3-47bd-abb3-f5b019edb5c7"
+      ],
+      "event_heroes": [
+        "Jules"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Get a Silver-tier Food"
+    },
+    {
+      "name": "Regenerative Tincture",
+      "source_id": "fe756e73-bedb-4700-901f-07ef13b3c512",
+      "source_ids": [
+        "fe756e73-bedb-4700-901f-07ef13b3c512"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Permanently gain Regen equal to twice your level [{ability.0}]"
+    },
+    {
+      "name": "Roadside Crate",
+      "source_id": "218d4cae-2813-4414-a5ab-1138cb064961",
+      "source_ids": [
+        "218d4cae-2813-4414-a5ab-1138cb064961"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "A crate has fallen from the wagon ahead",
+      "followup_options": [
+        {
+          "name": "Keep It",
+          "source_id": "bcca335b-24cb-48ef-a62c-70a029baa16c",
+          "source_ids": [
+            "bcca335b-24cb-48ef-a62c-70a029baa16c"
+          ],
+          "event_heroes": [
+            "Common"
+          ],
+          "event_type": "unknown_event",
+          "resource_rewards": {
+            "gold": 0,
+            "exp": 0,
+            "health": 0
+          },
+          "notes": "Finders keepers",
+          "event_category": "unknown_events",
+          "parent_event": "Roadside Crate",
+          "source_internal_name": "Tutorial Day 1 Hour 4 - Pick Event - Result 2"
+        },
+        {
+          "name": "Return It",
+          "source_id": "01982309-095f-4d37-b550-634ab6d983f0",
+          "source_ids": [
+            "01982309-095f-4d37-b550-634ab6d983f0"
+          ],
+          "event_heroes": [
+            "Common"
+          ],
+          "event_type": "unknown_event",
+          "resource_rewards": {
+            "gold": 0,
+            "exp": 0,
+            "health": 0
+          },
+          "notes": "The owners may have a reward..",
+          "event_category": "unknown_events",
+          "parent_event": "Roadside Crate",
+          "source_internal_name": "Tutorial Day 1 Hour 4 - Pick Event - Result 1"
+        }
+      ]
+    },
+    {
+      "name": "Shrouded Figure",
+      "source_id": "818fcd1d-4cfd-4629-b83f-8d5e753dd8f4",
+      "source_ids": [
+        "818fcd1d-4cfd-4629-b83f-8d5e753dd8f4"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Knowledge, Wealth, or Power. Which do you seek?",
+      "followup_options": [
+        {
+          "name": "Gain 10 Gold",
+          "source_id": "a38b86cb-a66a-4f49-9d8c-0edd3744890e",
+          "source_ids": [
+            "a38b86cb-a66a-4f49-9d8c-0edd3744890e"
+          ],
+          "event_heroes": [
+            "Common"
+          ],
+          "event_type": "resource_event",
+          "resource_types": [
+            "gold"
+          ],
+          "resource_rewards": {
+            "gold": 1
+          },
+          "notes": "Gain {ability.0} Gold",
+          "event_category": "resource_events",
+          "parent_event": "Shrouded Figure",
+          "source_internal_name": "Shrouded Figure - Seek Wealth - Gain 10 Gold"
+        },
+        {
+          "name": "Gain 5 Gold",
+          "source_id": "1f7c4cf7-b951-4a97-aa99-f4a5685133e2",
+          "source_ids": [
+            "1f7c4cf7-b951-4a97-aa99-f4a5685133e2"
+          ],
+          "event_heroes": [
+            "Common"
+          ],
+          "event_type": "resource_event",
+          "resource_types": [
+            "gold"
+          ],
+          "resource_rewards": {
+            "gold": 1
+          },
+          "notes": "Gain {ability.0} Gold",
+          "event_category": "resource_events",
+          "parent_event": "Shrouded Figure",
+          "source_internal_name": "Shrouded Figure - Seek Wealth - Gain 5 Gold"
+        },
+        {
+          "name": "Gain 6 Gold",
+          "source_id": "9232936b-66c7-4370-9102-3e49b76ee066",
+          "source_ids": [
+            "9232936b-66c7-4370-9102-3e49b76ee066"
+          ],
+          "event_heroes": [
+            "Common"
+          ],
+          "event_type": "resource_event",
+          "resource_types": [
+            "gold"
+          ],
+          "resource_rewards": {
+            "gold": 1
+          },
+          "notes": "Gain {ability.0} Gold",
+          "event_category": "resource_events",
+          "parent_event": "Shrouded Figure",
+          "source_internal_name": "Shrouded Figure - Seek Wealth - Gain 6 Gold"
+        },
+        {
+          "name": "Gain 7 Gold",
+          "source_id": "c8e5a4ef-ffca-43ba-b751-b1de722d8cf1",
+          "source_ids": [
+            "c8e5a4ef-ffca-43ba-b751-b1de722d8cf1"
+          ],
+          "event_heroes": [
+            "Common"
+          ],
+          "event_type": "resource_event",
+          "resource_types": [
+            "gold"
+          ],
+          "resource_rewards": {
+            "gold": 1
+          },
+          "notes": "Gain {ability.0} Gold",
+          "event_category": "resource_events",
+          "parent_event": "Shrouded Figure",
+          "source_internal_name": "Shrouded Figure - Seek Wealth - Gain 7 Gold"
+        },
+        {
+          "name": "Gain 8 Gold",
+          "source_id": "cd29686f-7207-448a-9a1d-ae59dd73c975",
+          "source_ids": [
+            "cd29686f-7207-448a-9a1d-ae59dd73c975"
+          ],
+          "event_heroes": [
+            "Common"
+          ],
+          "event_type": "resource_event",
+          "resource_types": [
+            "gold"
+          ],
+          "resource_rewards": {
+            "gold": 1
+          },
+          "notes": "Gain {ability.0} Gold",
+          "event_category": "resource_events",
+          "parent_event": "Shrouded Figure",
+          "source_internal_name": "Shrouded Figure - Seek Wealth - Gain 8 Gold"
+        },
+        {
+          "name": "Gain 9 Gold",
+          "source_id": "f6495c83-fb34-4d52-aa7c-b6d85cab284e",
+          "source_ids": [
+            "f6495c83-fb34-4d52-aa7c-b6d85cab284e"
+          ],
+          "event_heroes": [
+            "Common"
+          ],
+          "event_type": "resource_event",
+          "resource_types": [
+            "gold"
+          ],
+          "resource_rewards": {
+            "gold": 1
+          },
+          "notes": "Gain {ability.0} Gold",
+          "event_category": "resource_events",
+          "parent_event": "Shrouded Figure",
+          "source_internal_name": "Shrouded Figure - Seek Wealth - Gain 9 Gold"
+        },
+        {
+          "name": "Glimpse of Insight",
+          "source_id": "bb24b2a2-65e4-453d-a5da-38a65d1f07af",
+          "source_ids": [
+            "bb24b2a2-65e4-453d-a5da-38a65d1f07af"
+          ],
+          "event_heroes": [
+            "Common"
+          ],
+          "event_type": "resource_event",
+          "resource_types": [
+            "exp"
+          ],
+          "resource_rewards": {
+            "exp": 1
+          },
+          "notes": "Gain {ability.0} XP",
+          "event_category": "resource_events",
+          "parent_event": "Shrouded Figure",
+          "source_internal_name": "Shrouded Figure - Seek Knowledge - Glimpse of Insight"
+        },
+        {
+          "name": "Health Spark",
+          "source_id": "ac6110d2-5a19-4a8b-85fb-9ca017046a78",
+          "source_ids": [
+            "ac6110d2-5a19-4a8b-85fb-9ca017046a78"
+          ],
+          "event_heroes": [
+            "Common"
+          ],
+          "event_type": "resource_event",
+          "resource_types": [
+            "health"
+          ],
+          "resource_rewards": {
+            "health": 1
+          },
+          "notes": "Gain {i-%} Max Health",
+          "event_category": "resource_events",
+          "parent_event": "Shrouded Figure",
+          "source_internal_name": "Shrouded Figure - Seek Health - Health Spark"
+        },
+        {
+          "name": "Mental Breakthrough",
+          "source_id": "a9cc89a9-8915-4902-837c-7feeb48a4069",
+          "source_ids": [
+            "a9cc89a9-8915-4902-837c-7feeb48a4069"
+          ],
+          "event_heroes": [
+            "Common"
+          ],
+          "event_type": "resource_event",
+          "resource_types": [
+            "exp"
+          ],
+          "resource_rewards": {
+            "exp": 1
+          },
+          "notes": "Gain {ability.0} XP",
+          "event_category": "resource_events",
+          "parent_event": "Shrouded Figure",
+          "source_internal_name": "Shrouded Figure - Seek Knowledge - Mental Breakthrough"
+        },
+        {
+          "name": "Vitality Boost",
+          "source_id": "89310997-4526-4076-80cc-fbb4ef8535ee",
+          "source_ids": [
+            "89310997-4526-4076-80cc-fbb4ef8535ee"
+          ],
+          "event_heroes": [
+            "Common"
+          ],
+          "event_type": "resource_event",
+          "resource_types": [
+            "health"
+          ],
+          "resource_rewards": {
+            "health": 1
+          },
+          "notes": "Gain {i-%} Max Health",
+          "event_category": "resource_events",
+          "parent_event": "Shrouded Figure",
+          "source_internal_name": "Shrouded Figure - Seek Health - Vitality Spark"
+        }
+      ]
+    },
+    {
+      "name": "Spawning Test",
+      "source_id": "7799fa37-567f-4356-bfa7-83e0fd0dd467",
+      "source_ids": [
+        "7799fa37-567f-4356-bfa7-83e0fd0dd467"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Large item spawning test"
+    },
+    {
+      "name": "Street Festival",
+      "source_id": "2ee65e2b-c679-41b6-812d-5dd59a5cb27a",
+      "source_ids": [
+        "2ee65e2b-c679-41b6-812d-5dd59a5cb27a"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Browse the Merchant stalls"
+    },
+    {
+      "name": "Temple Expedition",
+      "source_id": "91287d25-7f63-4826-8c42-06ed1bf83213",
+      "source_ids": [
+        "91287d25-7f63-4826-8c42-06ed1bf83213"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "(Requires Ticket) Explore the Greenheart's mysterious jungle temple"
+    },
+    {
+      "name": "Temple Reliquary",
+      "source_id": "5852a0ba-c097-419b-98b7-dadd8bd7ae6e",
+      "source_ids": [
+        "5852a0ba-c097-419b-98b7-dadd8bd7ae6e"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Choose a Legendary Relic"
+    },
+    {
+      "name": "Temple Vault",
+      "source_id": "7a6ce8eb-3098-403f-96d4-faa47048272b",
+      "source_ids": [
+        "7a6ce8eb-3098-403f-96d4-faa47048272b",
+        "810acb8e-e60a-4a84-b773-431d4d10a071",
+        "a1d43a69-6798-41a2-b356-211a726eee9d"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Enter the Temple Vault"
+    },
+    {
+      "name": "The Cult",
+      "source_id": "bf1594cc-7f65-4236-b95f-ed2f521739de",
+      "source_ids": [
+        "bf1594cc-7f65-4236-b95f-ed2f521739de"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Renounce your worldly possessions, and step into the embrace of the Cult\n(There is no turning back from this)"
+    },
+    {
+      "name": "Truffle Farming",
+      "source_id": "c1d4c505-4c97-47b5-b205-ae28c1415cd2",
+      "source_ids": [
+        "c1d4c505-4c97-47b5-b205-ae28c1415cd2"
+      ],
+      "event_heroes": [
+        "Pygmalien"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Get a Truffle"
+    },
+    {
+      "name": "Underground Resistance",
+      "source_id": "972e6031-4036-47ef-8e6e-1b8feb53fe47",
+      "source_ids": [
+        "972e6031-4036-47ef-8e6e-1b8feb53fe47"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Deliver a package to further the resistance"
+    },
+    {
+      "name": "Visit the Docks",
+      "source_id": "98197afb-62d3-4efe-986a-4f5d5cda5ed3",
+      "source_ids": [
+        "98197afb-62d3-4efe-986a-4f5d5cda5ed3"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Surely someone needs your assistance!",
+      "followup_options": [
+        {
+          "name": "Help the Dockhands",
+          "source_id": "1bdcba78-2102-42a7-ba91-176b2bd4f9df",
+          "source_ids": [
+            "1bdcba78-2102-42a7-ba91-176b2bd4f9df"
+          ],
+          "event_heroes": [
+            "Common"
+          ],
+          "event_type": "item_reward",
+          "exact_names": [],
+          "reward_tags": [
+            "weapon"
+          ],
+          "card_reward": {
+            "enabled": true,
+            "exact_names": [],
+            "reward_tags": [
+              "weapon"
+            ],
+            "match_mode": "any",
+            "rarity_filter": null,
+            "rarity_rule": "normal_shop_by_day",
+            "excluded_tags": [
+              "legendary"
+            ],
+            "hero_scope": "current"
+          },
+          "resource_rewards": {
+            "gold": 0,
+            "exp": 0,
+            "health": 0
+          },
+          "notes": "Get a random Weapon skill",
+          "event_category": "item_rewards",
+          "parent_event": "Visit the Docks",
+          "source_internal_name": "Tutorial Day 2 Hour 5 - Pick Event - Result 1"
+        },
+        {
+          "name": "Help the Fishermen",
+          "source_id": "05a904b2-056f-4de5-be12-5274de680ad1",
+          "source_ids": [
+            "05a904b2-056f-4de5-be12-5274de680ad1"
+          ],
+          "event_heroes": [
+            "Common"
+          ],
+          "event_type": "resource_event",
+          "resource_types": [
+            "health"
+          ],
+          "resource_rewards": {
+            "health": 1
+          },
+          "notes": "Get a random Health skill",
+          "event_category": "resource_events",
+          "parent_event": "Visit the Docks",
+          "source_internal_name": "Tutorial Day 2 Hour 5 - Pick Event - Result 2"
+        }
+      ]
+    },
+    {
+      "name": "Wink",
+      "source_id": "3e4c4f1a-fe5d-4e38-887a-08666ce36e71",
+      "source_ids": [
+        "3e4c4f1a-fe5d-4e38-887a-08666ce36e71"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Randomizes and upgrade all your items"
+    },
+    {
+      "name": "[DEBUG] Farai",
+      "source_id": "f64bf390-76b9-4da2-932d-7ce0b8dfce07",
+      "source_ids": [
+        "f64bf390-76b9-4da2-932d-7ce0b8dfce07"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "unknown_event",
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "HELP WANTED: Urgent deliveries"
+    }
+  ]
 }

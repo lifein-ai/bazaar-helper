@@ -259,6 +259,7 @@ def run_analysis(
             rarity_rules=data["rarity_rules"],
             current_hero=hero,
             owned_cards=owned_cards,
+            all_builds=data["builds"],
         )
         results.append(result)
 

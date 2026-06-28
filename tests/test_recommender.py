@@ -12,7 +12,7 @@ sys.path.insert(0, str(SRC_DIR))
 
 from ai_advisor import build_ai_messages, compact_recommendations
 from build_strategy import build_applies_to_day, get_game_stage_for_day
-from data_loader import load_all_data
+from data_loader import load_all_data as load_project_data
 from game_state import GameState
 from main import event_index_for_hero, parse_owned_cards, run_analysis
 from advisor import analyze_game_state
@@ -22,9 +22,97 @@ from web_app import MISSING_EVENTS_PATH, analyze_payload, normalize_payload_for_
 
 
 DATA_DIR = PROJECT_ROOT / "data"
+BUILD_FIXTURE_PATH = Path(__file__).parent / "fixtures" / "builds.json"
+
+
+def load_all_data(data_dir: Path) -> dict:
+    data = load_project_data(data_dir)
+    fixture_builds = json.loads(BUILD_FIXTURE_PATH.read_text(encoding="utf-8"))
+    data["builds"].update(fixture_builds)
+    return data
 
 
 class RecommenderTests(unittest.TestCase):
+    @staticmethod
+    def _analyze_alt_core_cards(card_names: list[str]) -> dict:
+        cards = {
+            name: {
+                "type": "Item",
+                "hero": "Vanessa",
+                "heroes": ["Vanessa"],
+                "tags": [],
+                "min_rarity": "bronze",
+                "max_rarity": "diamond",
+                "tier": "C",
+            }
+            for name in card_names
+        }
+        builds = {
+            "CurrentBuild": {
+                "hero": "Vanessa",
+                "core_cards": ["Current Core"],
+                "transition_cards": [],
+                "optional_cards": [],
+            },
+            "AltBuild": {
+                "hero": "Vanessa",
+                "display_name": "备用阵容",
+                "day_range": [1, 8],
+                "core_cards": ["Alt Core One", "Alt Core Two"],
+            },
+            "OtherHeroBuild": {
+                "hero": "Pygmalien",
+                "display_name": "跨英雄阵容",
+                "core_cards": ["Alt Core One"],
+            },
+        }
+        return analyze_event(
+            event_name="Test Reward",
+            event_data={
+                "event_category": "item_rewards",
+                "card_reward": {
+                    "enabled": True,
+                    "exact_names": card_names,
+                    "hero_scope": "current",
+                    "count": 1,
+                },
+            },
+            cards=cards,
+            build_name="CurrentBuild",
+            build_data=builds["CurrentBuild"],
+            current_day=3,
+            rarity_rules={},
+            current_hero="Vanessa",
+            all_builds=builds,
+        )
+
+    def test_recognizes_other_current_hero_build_core(self) -> None:
+        result = self._analyze_alt_core_cards(["Alt Core One"])
+
+        self.assertEqual(result["alt_core_card_count"], 1)
+        self.assertEqual(result["recommendation"], "Low Value")
+        self.assertEqual(
+            result["possible_cards"][0]["alt_core_build_hits"],
+            [{"build_name": "AltBuild", "display_name": "备用阵容"}],
+        )
+        self.assertTrue(any("备用阵容核心卡" in reason for reason in result["reasons"]))
+
+    def test_current_build_core_is_not_an_alt_core_hit(self) -> None:
+        result = self._analyze_alt_core_cards(["Current Core"])
+
+        self.assertEqual(result["possible_cards"][0]["role"], "core")
+        self.assertEqual(result["possible_cards"][0]["alt_core_build_hits"], [])
+        self.assertEqual(result["alt_core_card_count"], 0)
+
+    def test_two_alt_core_cards_promote_low_to_medium(self) -> None:
+        result = self._analyze_alt_core_cards(["Alt Core One", "Alt Core Two"])
+
+        self.assertEqual(result["alt_core_card_count"], 2)
+        self.assertEqual(result["recommendation"], "Medium Value")
+        self.assertTrue(
+            any("转型/备选阵容价值" in reason for reason in result["reasons"])
+        )
+
     def test_probability_at_least_one(self) -> None:
         self.assertEqual(probability_at_least_one(0.0), 0.0)
         self.assertEqual(probability_at_least_one(1.0), 1.0)
@@ -557,9 +645,28 @@ class RecommenderTests(unittest.TestCase):
         self.assertEqual(data["events"]["Go Fishing"]["event_category"], "item_rewards")
         self.assertEqual(data["events"]["Ammo Cache"]["event_category"], "item_rewards")
         self.assertEqual(data["events"]["C4"]["event_category"], "skill_shops")
+        self.assertEqual(data["events"]["C4"]["shop_pool"]["reward_tags"], ["ammo"])
         self.assertEqual(data["events"]["Burning Caldera"]["event_category"], "enchant_events")
         self.assertEqual(data["events"]["Deadly Duel"]["event_category"], "combat_events")
         self.assertEqual(data["events"]["Tok's Clocks"]["event_category"], "shops")
+
+    def test_legacy_skill_shop_uses_skill_tags_as_its_card_pool(self) -> None:
+        data = load_all_data(DATA_DIR)
+        c4_event = dict(data["events"]["C4"])
+        c4_event.pop("shop_pool", None)
+
+        cards, rarity_filter = infer_possible_cards_for_event(
+            event_data=c4_event,
+            cards=data["cards"],
+            current_day=6,
+            rarity_rules=data["rarity_rules"],
+            current_hero="Vanessa",
+        )
+
+        self.assertEqual(rarity_filter, {"min": "bronze", "max": "gold"})
+        self.assertTrue(cards)
+        self.assertTrue(all(card["raw"]["type"] == "Skill" for card in cards))
+        self.assertTrue(all("ammo" in card["tags"] for card in cards))
 
     def test_generated_events_include_followup_options(self) -> None:
         data = load_all_data(DATA_DIR)
@@ -609,8 +716,32 @@ class RecommenderTests(unittest.TestCase):
     def test_followup_options_promote_parent_pool_stats_from_best_followup(self) -> None:
         data = load_all_data(DATA_DIR)
         result = analyze_event(
-            event_name="Haddy",
-            event_data=data["events"]["Haddy"],
+            event_name="Parent Event",
+            event_data={
+                "name": "Parent Event",
+                "followup_options": [
+                    {
+                        "name": "Core Item",
+                        "event_category": "item_rewards",
+                        "card_reward": {
+                            "enabled": True,
+                            "exact_names": ["Ballista"],
+                            "reward_tags": [],
+                            "match_mode": "any",
+                            "rarity_filter": {"min": "gold", "max": "gold"},
+                            "excluded_tags": [],
+                            "hero_scope": "current",
+                            "count": 1,
+                        },
+                        "resource_rewards": {},
+                    },
+                    {
+                        "name": "Bag of Gold",
+                        "event_category": "resource_events",
+                        "resource_rewards": {"gold": 1},
+                    },
+                ],
+            },
             cards=data["cards"],
             build_name="VanessaAquaticAmmo",
             build_data=data["builds"]["VanessaAquaticAmmo"],
@@ -620,7 +751,7 @@ class RecommenderTests(unittest.TestCase):
             owned_cards={},
         )
 
-        self.assertEqual(result["best_followup"], "Enchanted Item")
+        self.assertEqual(result["best_followup"], "Core Item")
         self.assertGreater(result["pool_stats"]["total_pool_count"], 0)
         self.assertGreater(result["pool_stats"]["expected_valuable_in_shop"], 0)
         self.assertFalse(
@@ -680,6 +811,61 @@ class RecommenderTests(unittest.TestCase):
         self.assertEqual(rarity_filter, {"min": "gold", "max": "gold"})
         self.assertEqual([card["name"] for card in cards], ["Gunpowder"])
 
+    def test_farai_offers_six_packages_and_grants_one(self) -> None:
+        data = load_all_data(DATA_DIR)
+        event = data["events"]["法莱"]
+        cards, _ = infer_possible_cards_for_event(
+            event_data=event,
+            cards=data["cards"],
+            current_day=6,
+            rarity_rules=data["rarity_rules"],
+            current_hero="Vanessa",
+        )
+        result = analyze_event(
+            event_name="法莱",
+            event_data=event,
+            cards=data["cards"],
+            build_name="5middle",
+            build_data=data["builds"]["5middle"],
+            current_day=6,
+            rarity_rules=data["rarity_rules"],
+            current_hero="Vanessa",
+            owned_cards={},
+        )
+
+        self.assertTrue(cards)
+        self.assertTrue(all("package" in card["tags"] for card in cards))
+        self.assertEqual(result["pool_stats"]["draw_count"], 6)
+        self.assertEqual(result["pool_stats"]["selection_count"], 1)
+
+    def test_packages_are_exclusive_to_farai_event_pools(self) -> None:
+        data = load_all_data(DATA_DIR)
+
+        for event_name, event in data["events"].items():
+            cards, _ = infer_possible_cards_for_event(
+                event_data=event,
+                cards=data["cards"],
+                current_day=6,
+                rarity_rules=data["rarity_rules"],
+                current_hero="Vanessa",
+            )
+            package_cards = [
+                card for card in cards if "package" in card.get("tags", [])
+            ]
+            if package_cards:
+                self.assertIn(event_name, {"法莱", "Farai"})
+
+        farai_cards, _ = infer_possible_cards_for_event(
+            event_data=data["events"]["法莱"],
+            cards=data["cards"],
+            current_day=6,
+            rarity_rules=data["rarity_rules"],
+            current_hero="Vanessa",
+        )
+        self.assertTrue(
+            any("package" in card.get("tags", []) for card in farai_cards)
+        )
+
     def test_exact_item_reward_reference_tags_can_match_build_wants(self) -> None:
         data = load_all_data(DATA_DIR)
         result = analyze_event(
@@ -719,6 +905,12 @@ class RecommenderTests(unittest.TestCase):
 
     def test_unrelated_item_rewards_count_as_resale_gold(self) -> None:
         data = load_all_data(DATA_DIR)
+        data["cards"]["Ambergris"]["buy_prices"] = {
+            "bronze": 4,
+            "silver": 8,
+            "gold": 16,
+            "diamond": 200,
+        }
         result = analyze_event(
             event_name="Go Fishing",
             event_data=data["events"]["Go Fishing"],

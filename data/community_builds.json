@@ -1,110 +1,7 @@
 {
-  "VanessaAquaticAmmo": {
-    "hero": "Vanessa",
-    "display_name": "Vanessa Aquatic Ammo",
-    "applicable_stages": [
-      "mid",
-      "late"
-    ],
-    "day_range": [
-      5,
-      null
-    ],
-    "build_summary": "水产/弹药方向，围绕 Aquatic、Ammo、Weapon、Reload 等收益做中后期成型。",
-    "match_notes": [
-      "已有 Ammo/Aquatic 组件时考虑",
-      "拿到 Ballista/Depth Charge 等核心后可转入"
-    ],
-    "pilot_tips": [
-      "前期先拿水产/弹药过渡",
-      "第5天后有弩炮或船长舱再转入",
-      "金币紧张时优先战力事件"
-    ],
-    "core_cards": [
-      "Captain's Quarters",
-      "Captain's Wheel",
-      "Ballista"
-    ],
-    "transition_cards": [
-      "Beach Ball"
-    ],
-    "optional_cards": [
-      "Ambergris"
-    ],
-    "wanted_tags": [
-      "aquatic",
-      "ammo",
-      "weapon",
-      "tool",
-      "haste",
-      "reload",
-      "multicast"
-    ],
-    "event_priorities": [],
-    "avoid_events": [],
-    "source_type": "manual",
-    "confidence": "medium"
-  },
-  "BazaarDBVanessaMeta": {
-    "hero": "Vanessa",
-    "display_name": "BazaarDB Vanessa Meta",
-    "applicable_stages": [
-      "mid",
-      "late"
-    ],
-    "day_range": [
-      5,
-      null
-    ],
-    "build_summary": "由胜利通关阵容聚合，按出现频率识别核心方向。",
-    "match_notes": [
-      "样本数：2",
-      "最终阵容聚合，不代表前期照单全拿"
-    ],
-    "pilot_tips": [],
-    "core_cards": [],
-    "transition_cards": [],
-    "optional_cards": [
-      "Pet Rock"
-    ],
-    "wanted_tags": [],
-    "event_priorities": [],
-    "avoid_events": [],
-    "source_type": "bazaardb_hero_meta",
-    "confidence": "medium",
-    "source_runs": [
-      {
-        "id": "02cf9e12-538d-4c35-a647-54849db92f0a",
-        "url": "https://bazaardb.gg/run/02cf9e12-538d-4c35-a647-54849db92f0a",
-        "player": "leodriango",
-        "hero": "Vanessa",
-        "record": "5-?",
-        "result": "BRONZE VICTORY",
-        "title": "Vanessa 5 Wins Run by leodriango - Bazaar DB",
-        "imported_at_utc": 46198.56161042824
-      },
-      {
-        "id": "e23afdcc-0d86-4907-8be6-dde617ae7484",
-        "url": "https://bazaardb.gg/run/e23afdcc-0d86-4907-8be6-dde617ae7484",
-        "player": "caprisun",
-        "hero": "Vanessa",
-        "record": "7-?",
-        "result": "SILVER VICTORY",
-        "title": "Vanessa 7 Wins Run by caprisun - Bazaar DB",
-        "imported_at_utc": 46198.561820625
-      }
-    ],
-    "card_frequencies": [
-      {
-        "name": "Pet Rock",
-        "count": 1,
-        "frequency": 0.5
-      }
-    ]
-  },
   "5middle": {
     "hero": "Pygmalien",
-    "display_name": "五中",
+    "display_name": "五中（前中）",
     "applicable_stages": [
       "early",
       "mid"
@@ -132,11 +29,22 @@
       "Pitchfork",
       "Boomerang",
       "Lumboars",
-      "Crook"
+      "Crook",
+      "Pinata",
+      "Flail",
+      "Piggles",
+      "Jabalian Recurve Bow",
+      "Cash Cannon",
+      "Grindstone"
     ],
     "optional_cards": [
       "Atlas Stone",
-      "Pinata"
+      "Pawn Shop",
+      "Luxury Kiuas",
+      "Silk Scarf",
+      "Spiky Shield",
+      "Hatchet",
+      "Atlatl"
     ],
     "wanted_tags": [],
     "event_priorities": [],
@@ -144,7 +52,7 @@
   },
   "highHppig": {
     "hero": "Pygmalien",
-    "display_name": "肉猪",
+    "display_name": "肉猪（后）",
     "applicable_stages": [
       "mid",
       "late"
@@ -170,6 +78,252 @@
     ],
     "optional_cards": [
       "Regal Blade"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "luzi": {
+    "hero": "Pygmalien",
+    "display_name": "养炉子（前中）",
+    "applicable_stages": [
+      "early",
+      "mid",
+      "late"
+    ],
+    "day_range": [
+      1,
+      null
+    ],
+    "build_summary": "养炉子，早早的养",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Money Furnace"
+    ],
+    "transition_cards": [],
+    "optional_cards": [],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "dajian": {
+    "hero": "Karnok",
+    "display_name": "大剑（后）",
+    "applicable_stages": [
+      "mid",
+      "late"
+    ],
+    "day_range": [
+      8,
+      null
+    ],
+    "build_summary": "大剑，还说啥呢",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Caracal",
+      "Hunter's Pack",
+      "Flying Squirrel",
+      "Runic Claymore"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Messenger Sparrow",
+      "Flare",
+      "Great Eagle",
+      "Hidden Lake",
+      "Waterskin"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "xiongxiong": {
+    "hero": "Karnok",
+    "display_name": "野熊（后）",
+    "applicable_stages": [
+      "mid",
+      "late"
+    ],
+    "day_range": [
+      8,
+      null
+    ],
+    "build_summary": "我要一爪拍死你",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Wild Bear",
+      "Hunter's Pack",
+      "Caracal",
+      "Flying Squirrel",
+      "Waystones"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Messenger Sparrow",
+      "Assault Sigil"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "animalsparty": {
+    "hero": "Karnok",
+    "display_name": "动物园（前中）",
+    "applicable_stages": [
+      "early",
+      "mid"
+    ],
+    "day_range": [
+      1,
+      null
+    ],
+    "build_summary": "动物园开园了",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Spear",
+      "Flying Squirrel",
+      "Hunting Hawk",
+      "Shelter Shelby's Package",
+      "Aila's Package",
+      "Ande's Package"
+    ],
+    "transition_cards": [
+      "Bat",
+      "Caracal",
+      "Messenger Sparrow",
+      "Runed Amulet",
+      "Hunting Knife"
+    ],
+    "optional_cards": [],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "xianjinteng": {
+    "hero": "Karnok",
+    "display_name": "陷阱藤（后）",
+    "applicable_stages": [
+      "mid",
+      "late"
+    ],
+    "day_range": [
+      7,
+      null
+    ],
+    "build_summary": "你来动自己死",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Trapvine",
+      "Hunter's Pack"
+    ],
+    "transition_cards": [
+      "Bat",
+      "Log Trap",
+      "Hunting Knife"
+    ],
+    "optional_cards": [
+      "Boa Constrictor",
+      "Enervating Sigil",
+      "Trail Markers"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "dashe": {
+    "hero": "Karnok",
+    "display_name": "大蛇（中后）",
+    "applicable_stages": [
+      "mid",
+      "late"
+    ],
+    "day_range": [
+      7,
+      null
+    ],
+    "build_summary": "咬死",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Anaconda",
+      "Flying Squirrel",
+      "Assault Sigil",
+      "Messenger Sparrow"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Outlands Terror",
+      "Wild Bear",
+      "Beast Tooth"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "huansu": {
+    "hero": "Karnok",
+    "display_name": "缓速武器（前中）",
+    "applicable_stages": [
+      "early",
+      "mid"
+    ],
+    "day_range": [
+      1,
+      null
+    ],
+    "build_summary": "锁链叠救我",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Chains",
+      "Waystones",
+      "Shelter Shelby's Package",
+      "Aila's Package",
+      "Ande's Package"
+    ],
+    "transition_cards": [
+      "Boa Constrictor",
+      "Worry Wart"
+    ],
+    "optional_cards": [],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "juzhongrenjia": {
+    "hero": "Karnok",
+    "display_name": "举重刃甲臂缠（前中）",
+    "applicable_stages": [
+      "early",
+      "mid"
+    ],
+    "day_range": [
+      1,
+      null
+    ],
+    "build_summary": "陨落的天才",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Lifting Stones",
+      "Bladed Armor",
+      "Waterskin",
+      "Hunting Knife",
+      "Shelter Shelby's Package",
+      "Aila's Package",
+      "Ande's Package"
+    ],
+    "transition_cards": [
+      "Caracal",
+      "Runed Amulet"
+    ],
+    "optional_cards": [
+      "Infused Arm Wraps"
     ],
     "wanted_tags": [],
     "event_priorities": [],

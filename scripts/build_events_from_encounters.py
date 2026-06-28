@@ -76,7 +76,7 @@ RARITY_ALIASES = {
     "diamond": "diamond",
 }
 
-HERO_NAMES = {"Vanessa", "Pygmalien", "Dooley", "Mak", "Jules", "Stelle"}
+HERO_NAMES = {"Vanessa", "Pygmalien", "Dooley", "Mak", "Jules", "Stelle", "Karnok"}
 SELECTABLE_CACHE_TYPES = {"TCardEncounterEvent", "TCardEncounterPedestal"}
 STEP_CACHE_TYPE = "TCardEncounterStep"
 
@@ -618,13 +618,23 @@ def build_enchant_event(event_name: str, event: dict[str, Any]) -> dict[str, Any
 
 def build_skill_event(event_name: str, event: dict[str, Any]) -> dict[str, Any]:
     description = event.get("description") or ""
+    skill_tags = tags_from_description(description)
+    rarity_filter = rarity_filter_from_description(description)
     return {
         "name": event_name,
         "source_id": event.get("id"),
         "source_ids": [event.get("id")] if event.get("id") else [],
         "event_heroes": event_heroes_from_event(event),
         "event_type": "skill_event",
-        "skill_tags": tags_from_description(description),
+        "skill_tags": skill_tags,
+        "shop_pool": {
+            "reward_tags": skill_tags,
+            "match_mode": "any",
+            "rarity_filter": rarity_filter,
+            "rarity_rule": None if rarity_filter else "normal_shop_by_day",
+            "excluded_tags": ["legendary"],
+            "hero_scope": "current",
+        },
         "resource_rewards": {"gold": 0, "exp": 0, "health": 0},
         "notes": description,
     }
