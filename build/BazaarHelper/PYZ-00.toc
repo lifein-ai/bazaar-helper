@@ -37,6 +37,7 @@
   ('annotationlib',
    'C:\\Users\\MR\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\annotationlib.py',
    'PYMODULE'),
+  ('app_paths', 'D:\\bazzarhelp\\src\\app_paths.py', 'PYMODULE'),
   ('argparse',
    'C:\\Users\\MR\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\argparse.py',
    'PYMODULE'),

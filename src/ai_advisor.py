@@ -10,11 +10,12 @@ from typing import Any
 
 from build_strategy import format_build_timing_summary, get_game_stage_for_day
 from recommender import format_resource_rewards
+from app_paths import get_app_root
 
 
 DEFAULT_DEEPSEEK_BASE_URL = "https://api.deepseek.com"
 DEFAULT_DEEPSEEK_MODEL = "deepseek-chat"
-DEFAULT_API_KEY_FILE = Path(__file__).resolve().parent.parent / "runtime" / "deepseek_api_key.txt"
+DEFAULT_API_KEY_FILE = get_app_root() / "runtime" / "deepseek_api_key.txt"
 STAGE_LABELS_ZH = {
     "early": "前期",
     "mid": "中期",

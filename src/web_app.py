@@ -15,9 +15,10 @@ from ai_advisor import analyze_with_ai, compact_recommendations
 from build_strategy import applicable_build_names, build_applies_to_day, get_game_stage_for_day
 from data_loader import load_all_data
 from game_state import GameState
+from app_paths import get_app_root
 
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = get_app_root()
 DATA_DIR = BASE_DIR / "data"
 RUNTIME_DIR = BASE_DIR / "runtime"
 STATE_PATH = RUNTIME_DIR / "game_state.json"
