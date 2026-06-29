@@ -96,6 +96,7 @@ namespace BazaarStateExporter
             try
             {
                 probe.ScanVisibleUiCards();
+                probe.ScanUiResources();
                 GameStateSnapshot snapshot = probe.TryReadCurrentState();
                 if (snapshot == null && writePlaceholderWhenEmpty.Value)
                 {

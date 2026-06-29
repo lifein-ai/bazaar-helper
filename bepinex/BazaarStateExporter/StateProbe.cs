@@ -17,6 +17,8 @@ namespace BazaarStateExporter
         private readonly HashSet<int> loggedUiResourceObjects = new HashSet<int>();
         private int? lastLoggedUiGold;
         private int? lastLoggedUiHealth;
+        private int? latestUiDay;
+        private int? lastLoggedUiDay;
         private bool loggedUiCandidate;
         private string lastSnapshotHero;
 
@@ -165,6 +167,15 @@ namespace BazaarStateExporter
             RuntimeStateCache.SetCurrentVisibleCards(visibleCards);
         }
 
+        public void ScanUiResources()
+        {
+            int? gold;
+            int? health;
+            TryReadUiResources(logger, out gold, out health);
+            RuntimeStateCache.UpdateResources(gold, health, "ui_hud");
+            latestUiDay = TryReadUiDay();
+        }
+
         private void LogLoadedAssemblies()
         {
             Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
@@ -310,6 +321,8 @@ namespace BazaarStateExporter
                 loggedUiCandidate = false;
                 lastLoggedUiGold = null;
                 lastLoggedUiHealth = null;
+                latestUiDay = null;
+                lastLoggedUiDay = null;
             }
             if (!string.IsNullOrEmpty(hero))
             {
@@ -323,6 +336,10 @@ namespace BazaarStateExporter
                 day = IntValue(GetField(run, "Day"), 1),
                 event_option_ids = StringList(GetField(currentState, "SelectionSet")),
             };
+            if (latestUiDay.HasValue)
+            {
+                snapshot.day = latestUiDay.Value;
+            }
 
             object allCards = GetField(dto, "Cards");
             List<CardSnapshot> allCardSnapshots = CardList(allCards).ToList();
@@ -656,6 +673,83 @@ namespace BazaarStateExporter
             }
 
             return score;
+        }
+
+        private int? TryReadUiDay()
+        {
+            int bestScore = int.MinValue;
+            int? bestDay = null;
+            MonoBehaviour[] components = Resources.FindObjectsOfTypeAll<MonoBehaviour>();
+            foreach (MonoBehaviour component in components)
+            {
+                if (component == null
+                    || component.gameObject == null
+                    || !component.gameObject.activeInHierarchy)
+                {
+                    continue;
+                }
+
+                string typeName = component.GetType().FullName ?? component.GetType().Name;
+                if (typeName.IndexOf("Text", StringComparison.OrdinalIgnoreCase) < 0)
+                {
+                    continue;
+                }
+
+                GameObject gameObject = component.gameObject;
+                string objectName = (gameObject.name ?? "").ToLowerInvariant();
+                string hierarchy = GetHierarchyPath(gameObject.transform).ToLowerInvariant();
+                if (!objectName.Contains("day") && !hierarchy.Contains("day"))
+                {
+                    continue;
+                }
+                if (hierarchy.Contains("tooltip")
+                    || hierarchy.Contains("reward")
+                    || hierarchy.Contains("card")
+                    || hierarchy.Contains("history"))
+                {
+                    continue;
+                }
+
+                int parsed;
+                List<string> diagnostics = new List<string>();
+                if (!TryReadIntegerFromComponent(component, out parsed, diagnostics)
+                    || parsed < 1
+                    || parsed > 20)
+                {
+                    continue;
+                }
+
+                int score = ScoreUiResourceObject(gameObject);
+                if (objectName.Contains("daynumber")
+                    || objectName.Contains("day_number")
+                    || objectName.Contains("dayvalue")
+                    || objectName.Contains("day_value")
+                    || objectName.Contains("currentday"))
+                {
+                    score += 500;
+                }
+                else if (objectName.Contains("day"))
+                {
+                    score += 300;
+                }
+
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    bestDay = parsed;
+                }
+            }
+
+            if (bestScore < 1400)
+            {
+                return null;
+            }
+            if (bestDay.HasValue && lastLoggedUiDay != bestDay)
+            {
+                logger?.LogInfo("UI day candidate day=" + bestDay.Value);
+                lastLoggedUiDay = bestDay;
+            }
+            return bestDay;
         }
 
         private static bool TryReadIntegerFromComponents(
