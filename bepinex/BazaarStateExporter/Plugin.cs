@@ -30,17 +30,16 @@ namespace BazaarStateExporter
         private void Awake()
         {
             string defaultOutputPath = Path.Combine(
-                Paths.GameRootPath,
-                "BepInEx",
-                "plugins",
-                "BazaarStateExporter",
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "BazaarHelper",
+                "runtime",
                 "game_state.json");
 
             outputPath = Config.Bind(
                 "Export",
                 "OutputPath",
                 defaultOutputPath,
-                "Absolute path to the JSON file consumed by the Python helper. Set this to D:\\bazzarhelp\\runtime\\game_state.json for the current workspace.");
+                "Absolute path to the shared JSON file consumed by BazaarHelper.");
             pollIntervalSeconds = Config.Bind(
                 "Export",
                 "PollIntervalSeconds",
@@ -116,7 +115,10 @@ namespace BazaarStateExporter
                     return;
                 }
 
-                snapshot.source = "bepinex";
+                if (string.IsNullOrEmpty(snapshot.source))
+                {
+                    snapshot.source = "bepinex";
+                }
                 snapshot.updated_at_utc = DateTime.UtcNow.ToString("o");
                 JsonStateWriter.WriteAtomic(outputPath.Value, snapshot);
             }

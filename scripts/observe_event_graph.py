@@ -8,10 +8,6 @@ from typing import Any
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
-RUNTIME_DIR = BASE_DIR / "runtime"
-
-STATE_PATH = RUNTIME_DIR / "game_state.json"
-GRAPH_PATH = RUNTIME_DIR / "observed_event_graph.json"
 
 OFFICIAL_CARDS_PATH = (
     Path.home()
@@ -25,7 +21,13 @@ OFFICIAL_CARDS_PATH = (
 
 sys.path.insert(0, str(BASE_DIR / "src"))
 
+from app_paths import get_runtime_dir  # noqa: E402
 from data_loader import load_all_data  # noqa: E402
+
+
+RUNTIME_DIR = get_runtime_dir()
+STATE_PATH = RUNTIME_DIR / "game_state.json"
+GRAPH_PATH = RUNTIME_DIR / "observed_event_graph.json"
 
 
 def load_json(path: Path) -> Any:

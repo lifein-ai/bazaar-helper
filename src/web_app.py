@@ -15,12 +15,12 @@ from ai_advisor import analyze_with_ai, compact_recommendations
 from build_strategy import applicable_build_names, build_applies_to_day, get_game_stage_for_day
 from data_loader import load_all_data
 from game_state import GameState
-from app_paths import get_app_root
+from app_paths import get_app_root, get_runtime_dir
 
 
 BASE_DIR = get_app_root()
 DATA_DIR = BASE_DIR / "data"
-RUNTIME_DIR = BASE_DIR / "runtime"
+RUNTIME_DIR = get_runtime_dir()
 STATE_PATH = RUNTIME_DIR / "game_state.json"
 EXAMPLE_STATE_PATH = BASE_DIR / "examples" / "game_state.example.json"
 MISSING_EVENTS_PATH = RUNTIME_DIR / "missing_events.json"
@@ -1083,7 +1083,7 @@ def summarize_recommendation(data: dict[str, Any], result: dict[str, Any]) -> di
         recommendation_label_zh = "事件数据缺失"
         base_reasons.insert(
             0,
-            "事件数据缺失：这个事件没有在 events.json 中找到，应该已经记录到 runtime/missing_events.json，当前无法计算卡池、核心命中率或资源收益。",
+            f"事件数据缺失：这个事件没有在 events.json 中找到，应该已经记录到 {MISSING_EVENTS_PATH}，当前无法计算卡池、核心命中率或资源收益。",
         )
     elif is_parent_event:
         event_rule_status = "parent_event"
@@ -1445,6 +1445,8 @@ class BazaarHandler(BaseHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store, no-cache, must-revalidate")
+        self.send_header("Pragma", "no-cache")
         self.end_headers()
         self.wfile.write(body)
 
@@ -1690,16 +1692,12 @@ HTML_PAGE = r"""<!doctype html>
     }
 
     async function loadState() {
-      const res = await fetch("/api/state");
+      const res = await fetch("/api/state", { cache: "no-store" });
       const data = await res.json();
       return data.payload;
     }
 
     async function analyze(includeAi = false) {
-      if (!includeAi && aiRequestInFlight) {
-        return;
-      }
-
       messageEl.innerHTML = "";
       if (includeAi) {
         aiRequestInFlight = true;
@@ -1710,7 +1708,10 @@ HTML_PAGE = r"""<!doctype html>
       const build = encodeURIComponent(selectedBuild);
       let data;
       try {
-        const res = await fetch(`/api/analysis?top=3&build=${build}&ai=${includeAi ? "1" : "0"}`);
+        const res = await fetch(
+          `/api/analysis?top=3&build=${build}&ai=${includeAi ? "1" : "0"}`,
+          { cache: "no-store" }
+        );
         data = await res.json();
       } catch (error) {
         if (includeAi) {

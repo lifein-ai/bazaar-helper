@@ -10,12 +10,12 @@ from typing import Any
 
 from build_strategy import format_build_timing_summary, get_game_stage_for_day
 from recommender import format_resource_rewards
-from app_paths import get_app_root
+from app_paths import get_runtime_dir
 
 
 DEFAULT_DEEPSEEK_BASE_URL = "https://api.deepseek.com"
 DEFAULT_DEEPSEEK_MODEL = "deepseek-chat"
-DEFAULT_API_KEY_FILE = get_app_root() / "runtime" / "deepseek_api_key.txt"
+DEFAULT_API_KEY_FILE = get_runtime_dir() / "deepseek_api_key.txt"
 STAGE_LABELS_ZH = {
     "early": "前期",
     "mid": "中期",
@@ -411,7 +411,7 @@ def call_deepseek(
     if not api_key:
         raise RuntimeError(
             "没有找到 DeepSeek API Key。请在启动 UI 前设置 DEEPSEEK_API_KEY，"
-            "或把 key 放到 runtime/deepseek_api_key.txt。"
+            f"或把 key 放到 {DEFAULT_API_KEY_FILE}。"
         )
 
     url = base_url.rstrip("/") + "/chat/completions"

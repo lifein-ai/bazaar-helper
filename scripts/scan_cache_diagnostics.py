@@ -7,8 +7,15 @@ from pathlib import Path
 from typing import Any
 
 
-path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("runtime/cache_diagnostics.json")
-out_path = Path("runtime/cache_candidates.txt")
+BASE_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(BASE_DIR / "src"))
+
+from app_paths import get_runtime_dir  # noqa: E402
+
+
+runtime_dir = get_runtime_dir()
+path = Path(sys.argv[1]) if len(sys.argv) > 1 else runtime_dir / "cache_diagnostics.json"
+out_path = runtime_dir / "cache_candidates.txt"
 
 data = json.loads(path.read_text(encoding="utf-8-sig"))
 
@@ -106,4 +113,4 @@ out_path.write_text("\n".join(lines), encoding="utf-8")
 
 print(f"wrote {out_path}")
 print(f"matches: {len(matches)}")
-print("open runtime/cache_candidates.txt")
+print(f"open {out_path}")

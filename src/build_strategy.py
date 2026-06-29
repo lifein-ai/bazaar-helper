@@ -4,9 +4,9 @@ from typing import Any
 
 
 GAME_STAGE_RANGES = {
-    "early": (1, 4),
-    "mid": (5, 8),
-    "late": (9, None),
+    "early": (1, 5),
+    "mid": (6, 9),
+    "late": (10, None),
 }
 
 STAGE_LABELS_ZH = {

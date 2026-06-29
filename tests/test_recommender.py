@@ -339,6 +339,13 @@ class RecommenderTests(unittest.TestCase):
         self.assertTrue(build_applies_to_day(build_data, current_day=6))
         self.assertFalse(build_applies_to_day(build_data, current_day=3))
 
+    def test_game_stage_day_boundaries(self) -> None:
+        self.assertEqual(get_game_stage_for_day(1), "early")
+        self.assertEqual(get_game_stage_for_day(5), "early")
+        self.assertEqual(get_game_stage_for_day(6), "mid")
+        self.assertEqual(get_game_stage_for_day(9), "mid")
+        self.assertEqual(get_game_stage_for_day(10), "late")
+
     def test_build_config_does_not_use_trap_cards(self) -> None:
         data = load_all_data(DATA_DIR)
 

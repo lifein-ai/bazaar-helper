@@ -5,9 +5,9 @@ setlocal
 cd /d "%~dp0"
 
 set "DLL_SRC=%~dp0bepinex_plugin\BazaarStateExporter.dll"
-set "OUTPUT_PATH=%~dp0runtime\game_state.json"
+set "OUTPUT_PATH=%LOCALAPPDATA%\BazaarHelper\runtime\game_state.json"
 
-if not exist "runtime" mkdir "runtime"
+if not exist "%LOCALAPPDATA%\BazaarHelper\runtime" mkdir "%LOCALAPPDATA%\BazaarHelper\runtime"
 
 if not exist "%DLL_SRC%" (
     echo 没找到插件 DLL：

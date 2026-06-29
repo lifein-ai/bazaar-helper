@@ -171,9 +171,9 @@ namespace BazaarStateExporter
                     continue;
                 }
 
-                bool isVisible = BoolValue(GetProperty(behaviour, "IsCardVisible"))
-                    || behaviour.gameObject.activeInHierarchy;
-                if (!isVisible)
+                // Pooled CardControllers can keep IsCardVisible=true after their event
+                // closes. Only active hierarchy objects belong to the current screen.
+                if (!behaviour.gameObject.activeInHierarchy)
                 {
                     continue;
                 }

@@ -4,6 +4,7 @@ import json
 import sys
 import tempfile
 import unittest
+from io import BytesIO
 from pathlib import Path
 from unittest.mock import patch
 
@@ -20,6 +21,19 @@ DATA_DIR = PROJECT_ROOT / "data"
 
 
 class WebAppResilienceTests(unittest.TestCase):
+    def test_json_responses_disable_browser_cache(self) -> None:
+        handler = object.__new__(web_app.BazaarHandler)
+        handler.wfile = BytesIO()
+        headers: dict[str, str] = {}
+        handler.send_response = lambda status: None
+        handler.send_header = lambda name, value: headers.__setitem__(name, value)
+        handler.end_headers = lambda: None
+
+        handler.send_json({"ok": True})
+
+        self.assertIn("no-store", headers["Cache-Control"])
+        self.assertEqual(headers["Pragma"], "no-cache")
+
     def test_shop_does_not_record_observed_child_options(self) -> None:
         data = {
             "events": {

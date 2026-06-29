@@ -4,8 +4,9 @@ setlocal
 
 cd /d "%~dp0"
 
-if not exist "runtime" mkdir "runtime"
-if not exist "runtime\deepseek_api_key.txt" type nul > "runtime\deepseek_api_key.txt"
+set "RUNTIME_DIR=%LOCALAPPDATA%\BazaarHelper\runtime"
+if not exist "%RUNTIME_DIR%" mkdir "%RUNTIME_DIR%"
+if not exist "%RUNTIME_DIR%\deepseek_api_key.txt" type nul > "%RUNTIME_DIR%\deepseek_api_key.txt"
 
 if not exist "BazaarHelper.exe" (
     echo 没找到 BazaarHelper.exe
@@ -14,6 +15,7 @@ if not exist "BazaarHelper.exe" (
     exit /b 1
 )
 
+taskkill /IM BazaarHelper.exe /F >nul 2>&1
 start "BazaarHelper" "%~dp0BazaarHelper.exe" --port 8765
 
 timeout /t 1 >nul
@@ -23,7 +25,7 @@ echo The Bazaar AI 助手已启动：
 echo http://127.0.0.1:8765
 echo.
 echo 如果要用 AI 分析，把 DeepSeek key 填到：
-echo %~dp0runtime\deepseek_api_key.txt
+echo %RUNTIME_DIR%\deepseek_api_key.txt
 echo.
 
 endlocal

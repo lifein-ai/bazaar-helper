@@ -2,7 +2,7 @@ $ErrorActionPreference = "Stop"
 
 $ProjectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $BundledPython = Join-Path $env:USERPROFILE ".cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe"
-$RuntimeDir = Join-Path $ProjectRoot "runtime"
+$RuntimeDir = Join-Path $env:LOCALAPPDATA "BazaarHelper\runtime"
 $KeyFile = Join-Path $RuntimeDir "deepseek_api_key.txt"
 $Port = 8765
 $Url = "http://127.0.0.1:$Port"

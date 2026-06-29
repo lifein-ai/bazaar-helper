@@ -32,7 +32,7 @@
    'D:\\bazzarhelp\\.venv\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_inspect.py',
    'PYSOURCE'),
   ('web_app', 'D:\\bazzarhelp\\src\\web_app.py', 'PYSOURCE')],
- 'python314.dll',
+ 'python312.dll',
  True,
  False,
  False,

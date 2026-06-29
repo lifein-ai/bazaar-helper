@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import shutil
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -10,7 +11,12 @@ from build_events_from_encounters import build_events
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-RUNTIME_DIR = BASE_DIR / "runtime"
+sys.path.insert(0, str(BASE_DIR / "src"))
+
+from app_paths import get_runtime_dir  # noqa: E402
+
+
+RUNTIME_DIR = get_runtime_dir()
 DATA_DIR = BASE_DIR / "data"
 LIVE_CARDS_PATH = RUNTIME_DIR / "live_cards_raw.json"
 CARDS_OUTPUT_PATH = DATA_DIR / "cards_generated.json"

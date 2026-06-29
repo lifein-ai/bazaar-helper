@@ -5,7 +5,7 @@ Minimal BepInEx plugin shell for exporting The Bazaar runtime state to the Pytho
 The plugin should not run recommendations or AI. Its job is only to write structured game facts to:
 
 ```text
-D:\bazzarhelp\runtime\game_state.json
+%LOCALAPPDATA%\BazaarHelper\runtime\game_state.json
 ```
 
 ## Build
@@ -35,17 +35,20 @@ Set:
 
 ```ini
 [Export]
-OutputPath = D:\bazzarhelp\runtime\game_state.json
+OutputPath = C:\Users\<user>\AppData\Local\BazaarHelper\runtime\game_state.json
 PollIntervalSeconds = 1
 ```
 
-For a smoke test before live probing is implemented:
+For a smoke test only (never enable this for normal use):
 
 ```ini
 [Debug]
 WritePlaceholderWhenEmpty = true
 EnableRuntimeInspection = true
 ```
+
+For normal use, keep `WritePlaceholderWhenEmpty = false`; otherwise a temporary
+probe failure continuously writes sample data that looks like a frozen screen.
 
 ## Next Hook Point
 
