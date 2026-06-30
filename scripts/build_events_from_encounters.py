@@ -16,13 +16,15 @@ TAG_ALIASES = {
     "aquatic": "aquatic",
     "burn": "burn",
     "cooldown": "cooldown",
+    "crit": "crit",
     "damage": "damage",
-    "economic": "gold",
-    "economy": "gold",
+    "economic": None,
+    "economy": None,
     "enchanted": None,
     "food": "food",
     "foods": "food",
     "freeze": "freeze",
+    "flying": "flying",
     "friend": "friend",
     "haste": "haste",
     "heal": "heal",
@@ -43,6 +45,8 @@ TAG_ALIASES = {
     "slow": "slow",
     "sports equipment": "weapon",
     "tech": "tech",
+    "ticket": "ticket",
+    "tickets": "ticket",
     "tool": "tool",
     "tools": "tool",
     "toy": "toy",
@@ -105,7 +109,7 @@ def normalized_words(description: str) -> list[str]:
 
 
 def tags_from_description(description: str) -> list[str]:
-    text = description.lower()
+    text = selling_clause(description).lower()
 
     if "non-weapon" in text:
         return []
@@ -118,11 +122,14 @@ def tags_from_description(description: str) -> list[str]:
         if phrase in text:
             tags.append(tag)
 
+    if "economic" in text or "economy" in text:
+        tags.extend(["economyreference", "value", "income"])
+
     return unique(tags)
 
 
 def sizes_from_description(description: str) -> list[str]:
-    text = description.lower()
+    text = selling_clause(description).lower()
     sizes = []
 
     for size in ["small", "medium", "large"]:
@@ -130,6 +137,10 @@ def sizes_from_description(description: str) -> list[str]:
             sizes.append(size)
 
     return sizes
+
+
+def selling_clause(description: str) -> str:
+    return re.split(r"\bbuys?\b", description, maxsplit=1, flags=re.IGNORECASE)[0]
 
 
 def rarity_filter_from_description(description: str) -> dict[str, str] | None:
@@ -165,6 +176,8 @@ def hero_scope_from_description(description: str, hero_filter: str | None) -> st
         return "fixed"
     if "from any hero" in description.lower():
         return "any"
+    if "from other heroes" in description.lower():
+        return "other"
     return "current"
 
 
@@ -225,6 +238,13 @@ def build_shop(event_name: str, event: dict[str, Any]) -> dict[str, Any]:
 
     if hero_filter:
         shop_pool["hero_filter"] = hero_filter
+    if "enchanted items" in description.lower():
+        shop_pool["enchanted_shop"] = True
+        shop_pool["enchantment_required"] = True
+    if "expedition tickets" in description.lower():
+        shop_pool["hero_scope"] = "any"
+        shop_pool["rarity_filter"] = {"min": "bronze", "max": "legendary"}
+        shop_pool["rarity_rule"] = None
 
     return {
         "name": event_name,
@@ -680,6 +700,9 @@ def build_unknown_event(event_name: str, event: dict[str, Any]) -> dict[str, Any
 
 
 def classify_event(event_name: str, event: dict[str, Any]) -> tuple[str, dict[str, Any]] | None:
+    if event_name == "Street Festival":
+        return "utility_events", build_utility_event(event_name, event)
+
     if is_item_merchant(event):
         return "shops", build_shop(event_name, event)
 

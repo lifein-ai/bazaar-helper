@@ -8,7 +8,9 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SRC_DIR = PROJECT_ROOT / "src"
+SCRIPTS_DIR = PROJECT_ROOT / "scripts"
 sys.path.insert(0, str(SRC_DIR))
+sys.path.insert(0, str(SCRIPTS_DIR))
 
 from ai_advisor import build_ai_messages, compact_recommendations
 from build_strategy import build_applies_to_day, get_game_stage_for_day
@@ -18,6 +20,8 @@ from main import event_index_for_hero, parse_owned_cards, run_analysis
 from advisor import analyze_game_state
 from recommender import infer_possible_cards_for_event, probability_at_least_one
 from recommender import analyze_event
+from audit_event_pool import audit_event_pool
+import recommender
 from web_app import MISSING_EVENTS_PATH, analyze_payload, normalize_payload_for_analysis
 
 
@@ -253,6 +257,11 @@ class RecommenderTests(unittest.TestCase):
             "Legendary": card("Vanessa", "legendary"),
             "Debug": card("Vanessa", "debug"),
             "Template": card("Vanessa", "template"),
+            "Debug Name": card("Vanessa"),
+            "Internal Template": {
+                **card("Vanessa"),
+                "internal_name": "Shop Item Template",
+            },
         }
         base_event = {
             "event_category": "shops",
@@ -292,28 +301,178 @@ class RecommenderTests(unittest.TestCase):
         )
         self.assertEqual([entry["name"] for entry in common_pool], ["Neutral"])
 
-    def test_shop_loot_requires_allow_loot_or_exact_names(self) -> None:
-        loot_card = {
-            "Loot": {
+    def test_shop_special_tags_require_explicit_allow_flags(self) -> None:
+        special_cards = {
+            name: {
                 "type": "Item",
                 "hero": "Vanessa",
                 "heroes": ["Vanessa"],
                 "size": "Small",
-                "tags": ["loot"],
+                "tags": [tag],
                 "min_rarity": "bronze",
                 "max_rarity": "diamond",
             }
+            for name, tag in (
+                ("Loot", "loot"),
+                ("Package", "package"),
+                ("Quest", "quest"),
+            )
         }
 
-        for shop_pool in ({"allow_loot": True}, {"exact_names": ["Loot"]}):
+        for name, flag in (
+            ("Loot", "allow_loot"),
+            ("Package", "allow_package"),
+            ("Quest", "allow_quest"),
+        ):
             cards, _ = infer_possible_cards_for_event(
-                {"event_category": "shops", "shop_pool": shop_pool},
-                loot_card,
+                {
+                    "event_category": "shops",
+                    "shop_pool": {
+                        "exact_names": [name],
+                        flag: True,
+                    },
+                },
+                special_cards,
                 5,
                 {},
                 current_hero="Vanessa",
             )
-            self.assertEqual([entry["name"] for entry in cards], ["Loot"])
+            self.assertEqual([entry["name"] for entry in cards], [name])
+
+    def test_exact_names_can_allow_debug_or_template_cards(self) -> None:
+        cards = {
+            "Debug Prototype": {
+                "type": "Item",
+                "hero": "Vanessa",
+                "heroes": ["Vanessa"],
+                "tags": ["debug"],
+                "min_rarity": "bronze",
+                "max_rarity": "diamond",
+            }
+        }
+        pool, _ = infer_possible_cards_for_event(
+            {
+                "event_category": "shops",
+                "shop_pool": {"exact_names": ["Debug Prototype"]},
+            },
+            cards,
+            3,
+            {},
+            current_hero="Vanessa",
+        )
+        self.assertEqual([entry["name"] for entry in pool], ["Debug Prototype"])
+
+    def test_generated_special_shop_rules(self) -> None:
+        data = load_all_data(DATA_DIR)
+        events = data["events"]
+
+        self.assertEqual(events["Aimbot"]["shop_pool"]["reward_tags"], ["crit"])
+        self.assertEqual(events["Aimbot"]["shop_pool"]["hero_scope"], "any")
+        self.assertEqual(events["Pinfeather"]["shop_pool"]["reward_tags"], ["flying"])
+        self.assertEqual(events["Pinfeather"]["shop_pool"]["hero_scope"], "any")
+        self.assertEqual(
+            events["Barkun"]["shop_pool"]["size_filter"], ["medium", "large"]
+        )
+        self.assertEqual(
+            events["Quixel"]["shop_pool"]["size_filter"], ["small", "medium"]
+        )
+        self.assertEqual(
+            events["The Travel Agent"]["shop_pool"]["reward_tags"], ["ticket"]
+        )
+        self.assertEqual(events["The Travel Agent"]["shop_pool"]["hero_scope"], "any")
+        self.assertEqual(events["Stickybeans"]["shop_pool"]["hero_scope"], "other")
+        self.assertEqual(
+            events["Prospero"]["shop_pool"]["reward_tags"],
+            ["economyreference", "value", "income"],
+        )
+        self.assertTrue(
+            events["Serafina"]["shop_pool"]["enchantment_required"]
+        )
+        self.assertEqual(events["Street Festival"]["event_category"], "utility_events")
+
+    def test_special_shop_pools_follow_generated_rules(self) -> None:
+        data = load_all_data(DATA_DIR)
+
+        for event_name, required_tag in (
+            ("Aimbot", "crit"),
+            ("Pinfeather", "flying"),
+            ("The Travel Agent", "ticket"),
+        ):
+            pool, _ = infer_possible_cards_for_event(
+                data["events"][event_name],
+                data["cards"],
+                10,
+                data["rarity_rules"],
+                current_hero="Karnok",
+            )
+            self.assertTrue(pool, event_name)
+            self.assertTrue(
+                all(required_tag in card["tags"] for card in pool),
+                event_name,
+            )
+            if event_name == "The Travel Agent":
+                self.assertEqual(len(pool), 2)
+
+        for event_name, allowed_sizes in (
+            ("Barkun", {"medium", "large"}),
+            ("Quixel", {"small", "medium"}),
+        ):
+            pool, _ = infer_possible_cards_for_event(
+                data["events"][event_name],
+                data["cards"],
+                3,
+                data["rarity_rules"],
+                current_hero="Karnok",
+            )
+            self.assertTrue(pool, event_name)
+            self.assertTrue(
+                all(card["raw"]["size"].lower() in allowed_sizes for card in pool)
+            )
+
+        other_pool, _ = infer_possible_cards_for_event(
+            data["events"]["Stickybeans"],
+            data["cards"],
+            3,
+            data["rarity_rules"],
+            current_hero="Karnok",
+        )
+        self.assertTrue(other_pool)
+        self.assertTrue(
+            all(
+                "Karnok" not in card["raw"].get("heroes", [])
+                and card["raw"].get("hero") != "Karnok"
+                for card in other_pool
+            )
+        )
+
+        enchanted_pool, _ = infer_possible_cards_for_event(
+            data["events"]["Serafina"],
+            data["cards"],
+            3,
+            data["rarity_rules"],
+            current_hero="Karnok",
+        )
+        self.assertTrue(enchanted_pool)
+        self.assertTrue(
+            all(card["enchantment_required"] for card in enchanted_pool)
+        )
+
+    def test_ande_karnok_day_three_audit_matches_recommender_at_47(self) -> None:
+        data = load_all_data(DATA_DIR)
+        event = data["events"]["Ande"]
+        report = audit_event_pool(
+            event_name="Ande",
+            event_data=event,
+            cards=data["cards"],
+            current_day=3,
+            current_hero="Karnok",
+            rarity_rules=data["rarity_rules"],
+            recommender=recommender,
+        )
+
+        self.assertEqual(report["parity_check"]["audit_count"], 47)
+        self.assertEqual(report["parity_check"]["recommender_count"], 47)
+        self.assertTrue(report["parity_check"]["matches_recommender"])
 
     def test_any_hero_shop_pool_can_include_other_heroes(self) -> None:
         data = load_all_data(DATA_DIR)

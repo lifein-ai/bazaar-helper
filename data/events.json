@@ -71,10 +71,12 @@
         "Karnok",
         "Stelle"
       ],
-      "shop_type": "normal",
+      "shop_type": "crit",
       "hero_filter": null,
       "shop_pool": {
-        "reward_tags": [],
+        "reward_tags": [
+          "crit"
+        ],
         "match_mode": "any",
         "rarity_filter": null,
         "rarity_rule": "normal_shop_by_day",
@@ -124,7 +126,7 @@
       "event_heroes": [
         "Common"
       ],
-      "shop_type": "small+medium+large",
+      "shop_type": "medium+large",
       "hero_filter": null,
       "shop_pool": {
         "reward_tags": [],
@@ -136,7 +138,6 @@
         ],
         "hero_scope": "current",
         "size_filter": [
-          "small",
           "medium",
           "large"
         ]
@@ -891,10 +892,12 @@
         "Vanessa",
         "Dooley"
       ],
-      "shop_type": "normal",
+      "shop_type": "flying",
       "hero_filter": null,
       "shop_pool": {
-        "reward_tags": [],
+        "reward_tags": [
+          "flying"
+        ],
         "match_mode": "any",
         "rarity_filter": null,
         "rarity_rule": "normal_shop_by_day",
@@ -940,11 +943,13 @@
       "event_heroes": [
         "Pygmalien"
       ],
-      "shop_type": "gold",
+      "shop_type": "economyreference+value+income",
       "hero_filter": null,
       "shop_pool": {
         "reward_tags": [
-          "gold"
+          "economyreference",
+          "value",
+          "income"
         ],
         "match_mode": "any",
         "rarity_filter": null,
@@ -1020,7 +1025,7 @@
       "event_heroes": [
         "Common"
       ],
-      "shop_type": "small+medium+large",
+      "shop_type": "small+medium",
       "hero_filter": null,
       "shop_pool": {
         "reward_tags": [],
@@ -1033,8 +1038,7 @@
         "hero_scope": "current",
         "size_filter": [
           "small",
-          "medium",
-          "large"
+          "medium"
         ]
       },
       "notes": "Sells Small and Medium items. Buys your Large items at +{aura.3} value"
@@ -1058,7 +1062,9 @@
         "excluded_tags": [
           "legendary"
         ],
-        "hero_scope": "current"
+        "hero_scope": "current",
+        "enchanted_shop": true,
+        "enchantment_required": true
       },
       "notes": "Sells Enchanted items"
     },
@@ -1188,32 +1194,9 @@
         "excluded_tags": [
           "legendary"
         ],
-        "hero_scope": "current"
+        "hero_scope": "other"
       },
       "notes": "Sells items from other Heroes"
-    },
-    {
-      "name": "Street Festival",
-      "source_id": "48e598a5-5e37-4ffc-ac66-b80f08a5af62",
-      "source_ids": [
-        "48e598a5-5e37-4ffc-ac66-b80f08a5af62"
-      ],
-      "event_heroes": [
-        "Dooley"
-      ],
-      "shop_type": "normal",
-      "hero_filter": null,
-      "shop_pool": {
-        "reward_tags": [],
-        "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
-        "excluded_tags": [
-          "legendary"
-        ],
-        "hero_scope": "current"
-      },
-      "notes": "Visit one of 3 Hero Merchants"
     },
     {
       "name": "Tatiana",
@@ -1305,17 +1288,22 @@
       "event_heroes": [
         "Common"
       ],
-      "shop_type": "normal",
+      "shop_type": "ticket",
       "hero_filter": null,
       "shop_pool": {
-        "reward_tags": [],
+        "reward_tags": [
+          "ticket"
+        ],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "legendary"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary"
         ],
-        "hero_scope": "current"
+        "hero_scope": "any"
       },
       "notes": "Sells Expedition Tickets"
     },
@@ -1490,10 +1478,12 @@
       "event_heroes": [
         "Common"
       ],
-      "shop_type": "normal",
+      "shop_type": "crit",
       "hero_filter": null,
       "shop_pool": {
-        "reward_tags": [],
+        "reward_tags": [
+          "crit"
+        ],
         "match_mode": "any",
         "rarity_filter": null,
         "rarity_rule": "normal_shop_by_day",
@@ -1513,11 +1503,13 @@
       "event_heroes": [
         "Common"
       ],
-      "shop_type": "gold",
+      "shop_type": "economyreference+value+income",
       "hero_filter": null,
       "shop_pool": {
         "reward_tags": [
-          "gold"
+          "economyreference",
+          "value",
+          "income"
         ],
         "match_mode": "any",
         "rarity_filter": null,
@@ -1538,10 +1530,12 @@
       "event_heroes": [
         "Common"
       ],
-      "shop_type": "normal",
+      "shop_type": "flying",
       "hero_filter": null,
       "shop_pool": {
-        "reward_tags": [],
+        "reward_tags": [
+          "flying"
+        ],
         "match_mode": "any",
         "rarity_filter": null,
         "rarity_rule": "normal_shop_by_day",
@@ -2471,9 +2465,13 @@
         "Karnok"
       ],
       "event_type": "skill_event",
-      "skill_tags": [],
+      "skill_tags": [
+        "crit"
+      ],
       "shop_pool": {
-        "reward_tags": [],
+        "reward_tags": [
+          "crit"
+        ],
         "match_mode": "any",
         "rarity_filter": null,
         "rarity_rule": "normal_shop_by_day",
@@ -4753,13 +4751,17 @@
       "event_type": "item_reward",
       "exact_names": [],
       "reward_tags": [
-        "gold"
+        "economyreference",
+        "value",
+        "income"
       ],
       "card_reward": {
         "enabled": true,
         "exact_names": [],
         "reward_tags": [
-          "gold"
+          "economyreference",
+          "value",
+          "income"
         ],
         "match_mode": "any",
         "rarity_filter": null,
@@ -4981,11 +4983,15 @@
       ],
       "event_type": "item_reward",
       "exact_names": [],
-      "reward_tags": [],
+      "reward_tags": [
+        "flying"
+      ],
       "card_reward": {
         "enabled": true,
         "exact_names": [],
-        "reward_tags": [],
+        "reward_tags": [
+          "flying"
+        ],
         "match_mode": "any",
         "rarity_filter": {
           "min": "diamond",
@@ -5861,13 +5867,17 @@
           "event_type": "item_reward",
           "exact_names": [],
           "reward_tags": [
-            "gold"
+            "economyreference",
+            "value",
+            "income"
           ],
           "card_reward": {
             "enabled": true,
             "exact_names": [],
             "reward_tags": [
-              "gold"
+              "economyreference",
+              "value",
+              "income"
             ],
             "match_mode": "any",
             "rarity_filter": null,
@@ -5899,13 +5909,17 @@
           "event_type": "item_reward",
           "exact_names": [],
           "reward_tags": [
-            "gold"
+            "economyreference",
+            "value",
+            "income"
           ],
           "card_reward": {
             "enabled": true,
             "exact_names": [],
             "reward_tags": [
-              "gold"
+              "economyreference",
+              "value",
+              "income"
             ],
             "match_mode": "any",
             "rarity_filter": null,
@@ -6292,13 +6306,17 @@
           "event_type": "item_reward",
           "exact_names": [],
           "reward_tags": [
-            "gold"
+            "economyreference",
+            "value",
+            "income"
           ],
           "card_reward": {
             "enabled": true,
             "exact_names": [],
             "reward_tags": [
-              "gold"
+              "economyreference",
+              "value",
+              "income"
             ],
             "match_mode": "any",
             "rarity_filter": null,
@@ -6391,13 +6409,17 @@
           "event_type": "item_reward",
           "exact_names": [],
           "reward_tags": [
-            "gold"
+            "economyreference",
+            "value",
+            "income"
           ],
           "card_reward": {
             "enabled": true,
             "exact_names": [],
             "reward_tags": [
-              "gold"
+              "economyreference",
+              "value",
+              "income"
             ],
             "match_mode": "any",
             "rarity_filter": null,
@@ -6429,13 +6451,17 @@
           "event_type": "item_reward",
           "exact_names": [],
           "reward_tags": [
-            "gold"
+            "economyreference",
+            "value",
+            "income"
           ],
           "card_reward": {
             "enabled": true,
             "exact_names": [],
             "reward_tags": [
-              "gold"
+              "economyreference",
+              "value",
+              "income"
             ],
             "match_mode": "any",
             "rarity_filter": null,
@@ -6534,7 +6560,9 @@
       ],
       "event_type": "enchant_event",
       "effect": "enchant_items",
-      "target_tags": [],
+      "target_tags": [
+        "crit"
+      ],
       "enchantment_tags": [
         "crit"
       ],
@@ -7586,6 +7614,21 @@
       "notes": "Your journey begins here"
     },
     {
+      "name": "Street Festival",
+      "source_id": "2ee65e2b-c679-41b6-812d-5dd59a5cb27a",
+      "source_ids": [
+        "2ee65e2b-c679-41b6-812d-5dd59a5cb27a",
+        "48e598a5-5e37-4ffc-ac66-b80f08a5af62"
+      ],
+      "event_heroes": [
+        "Common",
+        "Dooley"
+      ],
+      "event_type": "utility_event",
+      "resource_rewards": {},
+      "notes": "Browse the Merchant stalls"
+    },
+    {
       "name": "Suprise Mushroom - Stronger",
       "source_id": "21dd4607-cf31-465d-9be8-89abddfa45cd",
       "source_ids": [
@@ -8348,23 +8391,6 @@
         "health": 0
       },
       "notes": "Large item spawning test"
-    },
-    {
-      "name": "Street Festival",
-      "source_id": "2ee65e2b-c679-41b6-812d-5dd59a5cb27a",
-      "source_ids": [
-        "2ee65e2b-c679-41b6-812d-5dd59a5cb27a"
-      ],
-      "event_heroes": [
-        "Common"
-      ],
-      "event_type": "unknown_event",
-      "resource_rewards": {
-        "gold": 0,
-        "exp": 0,
-        "health": 0
-      },
-      "notes": "Browse the Merchant stalls"
     },
     {
       "name": "Temple Expedition",
