@@ -1,124 +1,69 @@
-# Event Data Workflow
+# 事件数据工作流
 
-事件数据建议用 CSV 维护，再生成 `data/events.json` 给推荐系统读取。
+事件事实数据来自游戏客户端收到并加载的官方数据，不再维护人工 CSV 或第三方静态 JSON。
 
-## 为什么不直接手写 JSON
-
-`events.json` 是程序友好的结构，但不适合人工长期维护：
-
-- 商店、资源事件、道具事件字段不同
-- `shop_pool`、`card_reward` 这类嵌套结构容易漏字段
-- tag、rarity、rarity_rule 写错后很难肉眼发现
-- 从网页、表格、游戏记录整理数据时，CSV 更容易批量复制和修正
-
-推荐流程：
+## 主流程
 
 ```text
-raw_data/events.csv  ->  scripts/import_events.py  ->  data/events.json
+游戏客户端缓存 / BepInEx 运行时扫描
+  -> cards_generated.json
+  -> skills_generated.json
+  -> encounters_generated.json
+  -> build_events_from_encounters.py
+  -> events.json
 ```
 
-## CSV 字段
+生成器无法可靠表达的特殊事件写入 `data/event_overrides.json`。加载时 overrides 会覆盖生成结果，因此不要长期直接编辑 `data/events.json`。
 
-基础字段：
+## 更新数据
 
-| 字段 | 含义 | 示例 |
-| --- | --- | --- |
-| `name` | 商店或事件名称 | `Nautica` |
-| `category` / `event_type` | 类型 | `shop`, `skill_shop`, `item_event`, `resource_event` |
-| `notes` | 备注 | `Sells Aquatic items.` |
+从官方客户端缓存导入：
 
-卡池字段：
-
-| 字段 | 含义 | 示例 |
-| --- | --- | --- |
-| `reward_tags` | 可出现卡牌标签，逗号分隔 | `aquatic,ammo` |
-| `target_tags` | item event 影响的标签，逗号分隔 | `poison` |
-| `match_mode` | 标签匹配方式 | `any` 或 `all` |
-| `excluded_tags` | 排除标签 | `legendary` |
-| `rarity_min` | 固定最低稀有度 | `silver` |
-| `rarity_max` | 固定最高稀有度 | `gold` |
-| `rarity_rule` | 按天数变化的稀有度规则 | `normal_shop_by_day` |
-
-资源字段：
-
-| 字段 | 含义 | 示例 |
-| --- | --- | --- |
-| `gold` | 金币奖励 | `3` |
-| `exp` | 经验奖励 | `1` |
-| `health` | 生命奖励 | `5` |
-
-其他字段：
-
-| 字段 | 含义 | 示例 |
-| --- | --- | --- |
-| `shop_type` | 商店分类，用于展示或调试 | `aquatic` |
-| `hero_filter` | 限定英雄，不要写成 tag | `Vanessa` |
-| `effect` | item event 效果 | `improve_items` |
-
-## 常见填写规则
-
-普通标签商店：
-
-```csv
-name,category,shop_type,reward_tags,match_mode,rarity_rule,excluded_tags,notes
-Nautica,shop,aquatic,aquatic,any,normal_shop_by_day,legendary,Sells Aquatic items.
+```powershell
+python scripts\import_game_cache.py
 ```
 
-固定稀有度商店：
+从 BepInEx 运行时扫描结果导入：
 
-```csv
-name,category,shop_type,reward_tags,match_mode,rarity_min,rarity_max,excluded_tags,notes
-Goldie,shop,gold,,any,gold,gold,legendary,Sells Gold-tier items.
+```powershell
+python scripts\import_live_cards.py
 ```
 
-强化某类物品的事件：
+仅重新生成事件：
 
-```csv
-name,category,target_tags,match_mode,effect,health,notes
-Mad Maddie,item_event,ammo,any,improve_items,5,Improves Ammo items.
+```powershell
+python scripts\build_events_from_encounters.py
 ```
 
-资源事件：
+## 审计
 
-```csv
-name,category,gold,exp,health,notes
-Treasure Turtle,resource_event,6,0,0,Gives gold.
+检查单个事件卡池：
+
+```powershell
+python scripts\audit_event_pool.py --event Ande --hero Karnok --day 3
 ```
 
-英雄商店：
+查找已识别但暂无收益规则的事件：
 
-```csv
-name,category,shop_type,hero_filter,reward_tags,match_mode,rarity_rule,excluded_tags,notes
-Vanessa,shop,hero,Vanessa,,any,normal_shop_by_day,legendary,Sells Vanessa items.
+```powershell
+python scripts\audit_event_rules.py
 ```
 
-注意：`Vanessa` 是英雄字段，不是卡牌 tag。不要把它填到 `reward_tags`。
+## 人工知识
 
-## 导入和校验
+项目只保留两类人工推荐知识：
 
-只校验，不覆盖 JSON：
+- `data/community_builds.json`：社区阵容和卡牌在阵容内的定位。
+- `data/card_ratings.json`：单一的全局卡牌评级文件。
 
-```bash
-python scripts/import_events.py --check-only
+卡牌、技能、Encounter 和事件基础事实不得写入这两个文件。
+
+## 修改后的检查顺序
+
+```text
+修改生成器或 event_overrides
+  -> 重新生成 events.json
+  -> 运行事件审计
+  -> 运行 pytest
+  -> 游戏内验证
 ```
-
-生成 `data/events.json`：
-
-```bash
-python scripts/import_events.py
-```
-
-脚本会检查：
-
-- 重复事件名
-- 未知 tag
-- 未知稀有度
-- 未知 `match_mode`
-- 不存在的 `rarity_rule`
-
-## 推荐的数据维护方式
-
-1. 从 Wiki、截图、游戏内记录整理到 `raw_data/events.csv`
-2. 每次改完先运行 `python scripts/import_events.py --check-only`
-3. 没有警告后运行 `python scripts/import_events.py`
-4. 再运行推荐 demo 看结果是否符合直觉

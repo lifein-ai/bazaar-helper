@@ -348,12 +348,12 @@ def get_card_role_for_build(
     判断一张卡在当前 build 里的定位。
 
     优先级：
-    1. builds.json 里的 core_cards / transition_cards / optional_cards
+    1. community_builds.json 里的 core_cards / transition_cards / optional_cards
     2. card_ratings.json 里的 build_roles
     3. 默认 unrelated
 
-    这样社区阵容模板转换出来的 builds.json 会成为主要事实来源，
-    card_ratings.json 只作为补充评级和旧数据兼容。
+    社区阵容文件是 Build 定位的唯一事实来源，
+    card_ratings.json 只提供全局卡牌评级和可选的定位补充。
     """
 
     if card_name in build_data.get("core_cards", []):

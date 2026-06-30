@@ -11,7 +11,6 @@ from openpyxl import load_workbook
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT = BASE_DIR / "data" / "community_builds.json"
-DEFAULT_MERGE_TARGET = BASE_DIR / "data" / "builds.json"
 
 MAIN_SHEET = "阵容主表"
 CARDS_SHEET = "阵容卡牌"
@@ -30,13 +29,6 @@ CARD_ROLE_FIELDS = {
     "transition_cards",
     "optional_cards",
 }
-
-
-def load_json(path: Path) -> Any:
-    if not path.exists():
-        return {}
-    with path.open("r", encoding="utf-8-sig") as file:
-        return json.load(file)
 
 
 def write_json(path: Path, data: Any) -> None:
@@ -290,11 +282,9 @@ def import_workbook(path: Path) -> tuple[dict[str, Any], list[str]]:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="把社区阵容 Excel 模板转换为 builds.json 数据。")
+    parser = argparse.ArgumentParser(description="把社区阵容 Excel 模板转换为 community_builds.json。")
     parser.add_argument("input", type=Path, help="社区阵容录入模板 .xlsx 路径")
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT, help="独立输出 JSON 路径")
-    parser.add_argument("--merge", action="store_true", help="同时合并写入 data/builds.json")
-    parser.add_argument("--merge-target", type=Path, default=DEFAULT_MERGE_TARGET)
     parser.add_argument("--allow-errors", action="store_true", help="有校验错误时仍然输出")
     return parser.parse_args()
 
@@ -318,13 +308,6 @@ def main() -> None:
     write_json(args.output, builds)
     print(f"- 已输出独立 JSON：{args.output}")
 
-    if args.merge:
-        existing = load_json(args.merge_target)
-        if not isinstance(existing, dict):
-            raise ValueError(f"{args.merge_target} 必须是 JSON object")
-        existing.update(builds)
-        write_json(args.merge_target, existing)
-        print(f"- 已合并写入：{args.merge_target}")
 
 
 if __name__ == "__main__":

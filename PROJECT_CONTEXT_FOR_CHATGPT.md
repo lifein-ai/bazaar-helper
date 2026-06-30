@@ -1177,7 +1177,6 @@ git commit -m "improve AI event analysis with gold affordability"
 
 ```text
 PROJECT_CONTEXT_FOR_CHATGPT.md
-project_tree_clean.txt
 当前问题相关代码文件
 当前问题相关数据片段
 错误截图或终端 traceback

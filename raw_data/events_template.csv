@@ -1,7 +1,0 @@
-name,category,shop_type,hero_filter,reward_tags,target_tags,match_mode,rarity_min,rarity_max,rarity_rule,excluded_tags,effect,gold,exp,health,notes
-Nautica,shop,aquatic,,aquatic,,any,,,normal_shop_by_day,legendary,,0,0,0,Sells Aquatic items.
-Colt,shop,ammo,,ammo,,any,,,normal_shop_by_day,legendary,,0,0,0,Sells Ammo items.
-Goldie,shop,gold,,,,any,gold,gold,,legendary,,0,0,0,Sells Gold-tier items.
-Vanessa,shop,hero,Vanessa,,,any,,,normal_shop_by_day,legendary,,0,0,0,Sells Vanessa items.
-Botul,item_event,,,,poison,any,,,,,improve_items,0,0,0,Improves Poison items.
-Mad Maddie,item_event,,,,ammo,any,,,,,improve_items,0,0,5,Improves Ammo items.

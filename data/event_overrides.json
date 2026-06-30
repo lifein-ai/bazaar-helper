@@ -821,5 +821,29 @@
       "health": 0
     },
     "notes": "Start your next fight with 100 Shield per Level."
+  },
+  "Mountain Pass": {
+    "_override_reason": "人工修正：山间小路固定收益为 3 经验、5 金币。",
+    "event_type": "resource_event",
+    "event_category": "resource_events",
+    "resource_types": ["exp", "gold"],
+    "resource_rewards": {
+      "exp": 3,
+      "gold": 5,
+      "health": 0
+    },
+    "notes": "Fight a Monster.Gain 3 XP and 5 Gold."
+  },
+  "Epic Battle": {
+    "_override_reason": "人工修正：史诗对决固定收益为 3 经验、5 金币。",
+    "event_type": "combat_event",
+    "event_category": "combat_events",
+    "resource_types": ["exp", "gold"],
+    "resource_rewards": {
+      "exp": 3,
+      "gold": 5,
+      "health": 0
+    },
+    "notes": "Fight a Monster. Reward: 3 XP and 5 Gold."
   }
 }

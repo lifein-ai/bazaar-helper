@@ -1,1 +1,27 @@
-{}
+{
+  "Ambergris": {"tier": "A", "build_roles": {}},
+  "Anchor": {"tier": "D", "build_roles": {}},
+  "Arbalest": {"tier": "A", "build_roles": {}},
+  "Ballista": {"tier": "A", "build_roles": {}},
+  "Beach Ball": {"tier": "B", "build_roles": {}},
+  "Bilge Worm": {"tier": "F", "build_roles": {}},
+  "Bladed Hoverboard": {"tier": "D", "build_roles": {}},
+  "Blunderbuss": {"tier": "A", "build_roles": {}},
+  "Bolas": {"tier": "B", "build_roles": {}},
+  "Burnacuda": {"tier": "S", "build_roles": {}},
+  "Cannon": {"tier": "A", "build_roles": {}},
+  "Cannonball": {"tier": "A", "build_roles": {}},
+  "Captain's Quarters": {"tier": "A", "build_roles": {}},
+  "Captain's Wheel": {"tier": "C", "build_roles": {}},
+  "Catfish": {"tier": "C", "build_roles": {}},
+  "Chum": {"tier": "A", "build_roles": {}},
+  "Clamera": {"tier": "C", "build_roles": {}},
+  "Dive Weights": {"tier": "A", "build_roles": {}},
+  "Double Barrel": {"tier": "F", "build_roles": {}},
+  "Elemental Depth Charge": {"tier": "A", "build_roles": {}},
+  "Life Preserver": {"tier": "F", "build_roles": {}},
+  "Narwhal": {"tier": "B", "build_roles": {}},
+  "Seaweed": {"tier": "B", "build_roles": {}},
+  "Shuriken": {"tier": "C", "build_roles": {}},
+  "Torpedo": {"tier": "A", "build_roles": {}}
+}

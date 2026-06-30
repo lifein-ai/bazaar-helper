@@ -213,7 +213,7 @@ def load_all_data(data_dir: str | Path) -> dict[str, Any]:
     event_overrides = load_json_if_exists(data_dir / "event_overrides.json")
     events = apply_event_overrides(events, event_overrides)
 
-    builds = load_json(data_dir / "builds.json")
+    builds = load_json(data_dir / "community_builds.json")
     rarity_rules = load_json(data_dir / "rarity_rules.json")
     translations_path = data_dir / "translations_zh_cn.json"
     translations = load_json(translations_path) if translations_path.exists() else {}

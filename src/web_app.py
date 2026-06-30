@@ -23,7 +23,6 @@ BASE_DIR = get_app_root()
 DATA_DIR = BASE_DIR / "data"
 RUNTIME_DIR = get_runtime_dir()
 STATE_PATH = RUNTIME_DIR / "game_state.json"
-EXAMPLE_STATE_PATH = BASE_DIR / "examples" / "game_state.example.json"
 MISSING_EVENTS_PATH = RUNTIME_DIR / "missing_events.json"
 OFFICIAL_CARDS_PATH = (
     Path.home()
@@ -190,7 +189,7 @@ def score_build_match(
     根据已拥有卡牌判断当前 build 的匹配度。
 
     原则：
-    - 只按每张卡的最终定位加一次分，避免 builds.json 和 card_ratings.json 重复计分。
+    - 只按每张卡的最终定位加一次分，避免社区阵容和卡牌评级重复计分。
     - 定位判断复用 recommender.py 的 get_card_role_for_build()。
     - 当前天数适合该 build 时，给少量加成。
     """
@@ -706,8 +705,6 @@ def auto_observe_event_graph(data: dict[str, Any], payload: dict[str, Any]) -> N
         if isinstance(child, dict)
     }
 
-    changed = False
-
     for child in children:
         source_id = child.get("template_id")
         if not source_id:
@@ -726,19 +723,12 @@ def auto_observe_event_graph(data: dict[str, Any], payload: dict[str, Any]) -> N
 
             parent_record["children"].append(child_item)
             existing_children[source_id] = child_item
-            changed = True
 
         # 旧子选项也会补充官方 cards.json 信息，但不会被删除或覆盖成空
         if not isinstance(child_item, dict):
             continue
 
-        before = json.dumps(child_item, ensure_ascii=False, sort_keys=True)
-
         enrich_child_from_official_cards(child_item, official_cards)
-
-        after = json.dumps(child_item, ensure_ascii=False, sort_keys=True)
-        if before != after:
-            changed = True
 
     graph[parent_name] = parent_record
 
@@ -832,15 +822,6 @@ def recommendation_label(label: str | None) -> str:
         "Medium Value": "可以考虑",
         "Low Value": "优先级低",
     }.get(label or "", label or "")
-
-
-def role_label(role: str | None) -> str:
-    return {
-        "core": "核心",
-        "transition": "过渡",
-        "optional": "可选",
-        "unrelated": "无关",
-    }.get(role or "", role or "")
 
 
 def load_observed_event_graph() -> dict[str, Any]:

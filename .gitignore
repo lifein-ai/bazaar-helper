@@ -34,6 +34,7 @@ node_modules/
 /runtime/
 /outputs/
 /debug_output/
+/project_tree_clean.txt
 /tmp/
 /temp/
 *.backup.json

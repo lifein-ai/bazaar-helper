@@ -40,6 +40,19 @@ def load_all_data(data_dir: Path) -> dict:
 
 
 class RecommenderTests(unittest.TestCase):
+    def test_project_uses_single_community_build_and_rating_sources(self) -> None:
+        project_data = load_project_data(DATA_DIR)
+        community_builds = json.loads(
+            (DATA_DIR / "community_builds.json").read_text(encoding="utf-8")
+        )
+
+        self.assertFalse((DATA_DIR / "builds.json").exists())
+        self.assertFalse((DATA_DIR / "cards.json").exists())
+        self.assertEqual(project_data["builds"], community_builds)
+        self.assertTrue((DATA_DIR / "card_ratings.json").exists())
+        self.assertEqual(project_data["cards"]["Ballista"]["tier"], "A")
+        self.assertEqual(project_data["cards"]["Ballista"]["build_roles"], {})
+
     @staticmethod
     def _analyze_alt_core_cards(card_names: list[str]) -> dict:
         cards = {
