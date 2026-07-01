@@ -1,11 +1,9 @@
 @echo off
-chcp 65001 >nul
 setlocal
 
 cd /d "%~dp0"
 
 set "DLL_SRC=%~dp0bepinex_plugin\BazaarStateExporter.dll"
-set "OUTPUT_PATH=%LOCALAPPDATA%\BazaarHelper\runtime\game_state.json"
 
 if "%LOCALAPPDATA%"=="" (
     echo ERROR: LOCALAPPDATA is not available.
@@ -13,50 +11,61 @@ if "%LOCALAPPDATA%"=="" (
     exit /b 1
 )
 
-if not exist "%LOCALAPPDATA%\BazaarHelper\runtime" mkdir "%LOCALAPPDATA%\BazaarHelper\runtime"
-if not exist "%LOCALAPPDATA%\BazaarHelper\runtime" (
+set "RUNTIME_DIR=%LOCALAPPDATA%\BazaarHelper\runtime"
+set "OUTPUT_PATH=%RUNTIME_DIR%\game_state.json"
+
+if not exist "%RUNTIME_DIR%" mkdir "%RUNTIME_DIR%"
+if not exist "%RUNTIME_DIR%" (
     echo ERROR: Cannot create runtime directory:
-    echo %LOCALAPPDATA%\BazaarHelper\runtime
+    echo %RUNTIME_DIR%
     pause
     exit /b 1
 )
 
-> "%LOCALAPPDATA%\BazaarHelper\runtime\.write_test" echo ok
+> "%RUNTIME_DIR%\.write_test" echo ok
 if errorlevel 1 (
     echo ERROR: Runtime directory is not writable:
-    echo %LOCALAPPDATA%\BazaarHelper\runtime
+    echo %RUNTIME_DIR%
     pause
     exit /b 1
 )
-del /Q "%LOCALAPPDATA%\BazaarHelper\runtime\.write_test" >nul 2>nul
+del /Q "%RUNTIME_DIR%\.write_test" >nul 2>nul
+
+if not exist "%OUTPUT_PATH%" (
+    > "%OUTPUT_PATH%" echo {
+    >> "%OUTPUT_PATH%" echo   "source": "installer",
+    >> "%OUTPUT_PATH%" echo   "status": "waiting_for_game",
+    >> "%OUTPUT_PATH%" echo   "message": "Bazaar State Exporter is installed. Start the game and enter a run to generate live state."
+    >> "%OUTPUT_PATH%" echo }
+)
 
 if not exist "%DLL_SRC%" (
-    echo 没找到插件 DLL：
+    echo ERROR: BazaarStateExporter.dll was not found:
     echo %DLL_SRC%
     echo.
-    echo 请确认 BazaarStateExporter.dll 放在 bepinex_plugin 文件夹里。
+    echo Please keep BazaarStateExporter.dll inside the bepinex_plugin folder.
     pause
     exit /b 1
 )
 
-echo 请输入 The Bazaar 游戏安装目录。
-echo 例如：
+echo Please enter The Bazaar game install directory.
+echo Examples:
 echo C:\Program Files (x86)\Steam\steamapps\common\The Bazaar
 echo E:\SteamLibrary\steamapps\common\The Bazaar
 echo.
-set /p "GAME_DIR=游戏目录: "
+set /p "GAME_DIR=Game directory: "
 
 if "%GAME_DIR%"=="" (
-    echo 没有输入游戏目录。
+    echo ERROR: No game directory was entered.
     pause
     exit /b 1
 )
 
 if not exist "%GAME_DIR%\BepInEx" (
-    echo 没检测到 BepInEx：
+    echo ERROR: BepInEx was not found:
     echo %GAME_DIR%\BepInEx
     echo.
-    echo 请先给游戏安装 BepInEx，再运行这个脚本。
+    echo Install BepInEx for the game first, then run this installer again.
     pause
     exit /b 1
 )
@@ -69,6 +78,12 @@ if not exist "%PLUGIN_DIR%" mkdir "%PLUGIN_DIR%"
 if not exist "%CONFIG_DIR%" mkdir "%CONFIG_DIR%"
 
 copy /Y "%DLL_SRC%" "%PLUGIN_DIR%\BazaarStateExporter.dll" >nul
+if errorlevel 1 (
+    echo ERROR: Cannot copy plugin DLL to:
+    echo %PLUGIN_DIR%\BazaarStateExporter.dll
+    pause
+    exit /b 1
+)
 
 > "%CONFIG_FILE%" echo [Export]
 >> "%CONFIG_FILE%" echo OutputPath = %OUTPUT_PATH%
@@ -77,6 +92,7 @@ copy /Y "%DLL_SRC%" "%PLUGIN_DIR%\BazaarStateExporter.dll" >nul
 >> "%CONFIG_FILE%" echo [Debug]
 >> "%CONFIG_FILE%" echo WritePlaceholderWhenEmpty = false
 >> "%CONFIG_FILE%" echo EnableRuntimeInspection = false
+>> "%CONFIG_FILE%" echo EnableVisibleCardScanning = true
 if errorlevel 1 (
     echo ERROR: Cannot write plugin config:
     echo %CONFIG_FILE%
@@ -85,14 +101,15 @@ if errorlevel 1 (
 )
 
 echo.
-echo 安装完成。
-echo 插件已复制到：
+echo Install complete.
+echo Plugin copied to:
 echo %PLUGIN_DIR%\BazaarStateExporter.dll
 echo.
-echo 插件输出路径已设置为：
+echo Live state file:
 echo %OUTPUT_PATH%
 echo.
-echo 现在启动游戏，再双击 start.bat 打开助手。
+echo If the file still says source=installer, start/restart the game and enter a run.
+echo Then run start.bat to open BazaarHelper.
 pause
 
 endlocal

@@ -68,20 +68,30 @@ def load_runtime_payload() -> tuple[dict[str, Any], Path]:
         raise FileNotFoundError(
             f"实时状态文件不存在：{STATE_PATH}。请确认游戏和 Bazaar State Exporter 已启动。"
         )
+    for attempt in range(3):
+        try:
+            payload = json.loads(STATE_PATH.read_text(encoding="utf-8-sig"))
+            break
+        except (OSError, json.JSONDecodeError):
+            if attempt >= 2:
+                raise
+            time.sleep(0.02)
+    else:
+        raise RuntimeError("无法读取实时状态")
+
+    if isinstance(payload, dict) and payload.get("source") == "installer":
+        raise RuntimeError(
+            "实时状态文件还只是安装器创建的占位文件。"
+            "请先启动或重启 The Bazaar，并进入一局游戏，等待插件写入真实状态。"
+        )
+
     age_seconds = max(0.0, time.time() - STATE_PATH.stat().st_mtime)
     if age_seconds > MAX_STATE_AGE_SECONDS:
         raise RuntimeError(
             f"实时状态已停止更新（{age_seconds:.0f} 秒前）。"
             "请确认游戏正在运行，并重启游戏以重新加载插件配置。"
         )
-    for attempt in range(3):
-        try:
-            return json.loads(STATE_PATH.read_text(encoding="utf-8-sig")), STATE_PATH
-        except (OSError, json.JSONDecodeError):
-            if attempt >= 2:
-                raise
-            time.sleep(0.02)
-    raise RuntimeError("无法读取实时状态")
+    return payload, STATE_PATH
 
 
 def runtime_state_is_plugin_owned(path: Path = STATE_PATH) -> bool:

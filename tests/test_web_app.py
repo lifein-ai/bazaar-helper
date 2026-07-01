@@ -40,6 +40,14 @@ class WebAppResilienceTests(unittest.TestCase):
                 with self.assertRaisesRegex(RuntimeError, "停止更新"):
                     web_app.load_runtime_payload()
 
+    def test_runtime_payload_explains_installer_placeholder(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            state_path = Path(tmp_dir) / "game_state.json"
+            state_path.write_text('{"source": "installer"}', encoding="utf-8")
+            with patch.object(web_app, "STATE_PATH", state_path):
+                with self.assertRaisesRegex(RuntimeError, "占位文件"):
+                    web_app.load_runtime_payload()
+
     def test_json_responses_disable_browser_cache(self) -> None:
         handler = object.__new__(web_app.BazaarHandler)
         handler.wfile = BytesIO()

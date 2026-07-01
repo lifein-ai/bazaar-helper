@@ -57,7 +57,7 @@
  [],
  False,
  False,
- 1782883734,
+ 1782921553,
  [('run.exe',
    'D:\\bazzarhelp\\.venv\\Lib\\site-packages\\PyInstaller\\bootloader\\Windows-64bit-intel\\run.exe',
    'EXECUTABLE')],
