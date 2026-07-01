@@ -671,5 +671,410 @@
     "wanted_tags": [],
     "event_priorities": [],
     "avoid_events": []
+  },
+  "yaoshui": {
+    "hero": "Mak",
+    "display_name": "药水流",
+    "applicable_stages": [
+      "late"
+    ],
+    "day_range": [
+      7,
+      null
+    ],
+    "build_summary": "药水均",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Boiling Flask",
+      "Flying Potion"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Atmospheric Sampler",
+      "Bottled Explosion",
+      "Recycling Bin",
+      "Caustic Solvent",
+      "Strength Potion",
+      "Scales"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "zaishengrenwu": {
+    "hero": "Mak",
+    "display_name": "再生任务",
+    "applicable_stages": [
+      "late"
+    ],
+    "day_range": [
+      7,
+      null
+    ],
+    "build_summary": "再生任务",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Life Conduit",
+      "Soulstone"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Atmospheric Sampler",
+      "Soul Ring",
+      "Blank Slate",
+      "Flying Potion",
+      "Tomb of the Ancients",
+      "Sunlight Spear",
+      "Smelling Salts"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "huansurenwu": {
+    "hero": "Mak",
+    "display_name": "缓速任务",
+    "applicable_stages": [
+      "late"
+    ],
+    "day_range": [
+      7,
+      null
+    ],
+    "build_summary": "缓速任务",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Smelling Salts",
+      "Sands of Time"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Refractor",
+      "Magnus' Femur",
+      "Atmospheric Sampler",
+      "Blank Slate",
+      "Makroscope",
+      "Runic Potion",
+      "Earrings"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "niubiliu": {
+    "hero": "Mak",
+    "display_name": "牛匕首",
+    "applicable_stages": [
+      "late"
+    ],
+    "day_range": [
+      7,
+      null
+    ],
+    "build_summary": "牛杖匕首",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Staff of the Moose",
+      "Ritual Dagger"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Atmospheric Sampler",
+      "Flying Potion",
+      "Soul Ring",
+      "Runic Potion"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "daguozhonguo": {
+    "hero": "Mak",
+    "display_name": "大锅中锅",
+    "applicable_stages": [
+      "late"
+    ],
+    "day_range": [
+      7,
+      null
+    ],
+    "build_summary": "大锅中锅",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Vat of Acid",
+      "Boiling Flask",
+      "Cauldron"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Strength Potion",
+      "Smelling Salts",
+      "Energy Potion"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "fuwenjian": {
+    "hero": "Mak",
+    "display_name": "符文剑",
+    "applicable_stages": [
+      "late"
+    ],
+    "day_range": [
+      7,
+      null
+    ],
+    "build_summary": "符文剑",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Runic Blade",
+      "Flying Potion"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Orly",
+      "Bottled Explosion",
+      "Scalpel",
+      "Runic Great Axe"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "huorenwu": {
+    "hero": "Mak",
+    "display_name": "火任务",
+    "applicable_stages": [
+      "late"
+    ],
+    "day_range": [
+      7,
+      null
+    ],
+    "build_summary": "火任务",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Eternal Torch",
+      "Blank Slate"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Library",
+      "Palanquin",
+      "Laboratory",
+      "Smelling Salts",
+      "Earrings",
+      "Soulstone"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "durenwu": {
+    "hero": "Mak",
+    "display_name": "毒任务",
+    "applicable_stages": [
+      "late"
+    ],
+    "day_range": [
+      7,
+      null
+    ],
+    "build_summary": "毒任务",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Blank Slate",
+      "Rapid Injection System",
+      "Adrenal Converter",
+      "Idol of Decay"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Library",
+      "Plague Glaive",
+      "Palanquin",
+      "Laboratory",
+      "Smelling Salts",
+      "Earrings",
+      "Soulstone"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "yongdongbing": {
+    "hero": "Mak",
+    "display_name": "永冻冰",
+    "applicable_stages": [
+      "late"
+    ],
+    "day_range": [
+      7,
+      null
+    ],
+    "build_summary": "永冻冰",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Blank Slate",
+      "Earrings",
+      "Black Ice"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Smelling Salts",
+      "Ice Claw",
+      "Frost Totem",
+      "Atmospheric Sampler",
+      "Flying Potion",
+      "Library",
+      "Tomb of the Ancients"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "lengjing": {
+    "hero": "Mak",
+    "display_name": "棱镜",
+    "applicable_stages": [
+      "early"
+    ],
+    "day_range": [
+      1,
+      null
+    ],
+    "build_summary": "棱镜",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Refractor",
+      "Smelling Salts",
+      "Blank Slate"
+    ],
+    "transition_cards": [],
+    "optional_cards": [],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "durenwuqian": {
+    "hero": "Mak",
+    "display_name": "毒任务（前）",
+    "applicable_stages": [
+      "early"
+    ],
+    "day_range": [
+      1,
+      null
+    ],
+    "build_summary": "毒任务（前）",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Smelling Salts",
+      "Emerald",
+      "Blank Slate",
+      "Idol of Decay"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Rainbow Potion"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "durenwuzhong": {
+    "hero": "Mak",
+    "display_name": "毒任务（中）",
+    "applicable_stages": [
+      "mid"
+    ],
+    "day_range": [
+      4,
+      null
+    ],
+    "build_summary": "毒任务（中）",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Smelling Salts",
+      "Blank Slate",
+      "Idol of Decay",
+      "Rapid Injection System"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Emerald",
+      "Adrenal Converter"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "huorenwuqian": {
+    "hero": "Mak",
+    "display_name": "火任务（前）",
+    "applicable_stages": [
+      "early"
+    ],
+    "day_range": [
+      1,
+      null
+    ],
+    "build_summary": "火任务（前）",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Eternal Torch",
+      "Ruby",
+      "Smelling Salts",
+      "Blank Slate"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Thurible",
+      "Rainbow Potion"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "huorenwuzhong": {
+    "hero": "Mak",
+    "display_name": "火任务（中）",
+    "applicable_stages": [
+      "mid"
+    ],
+    "day_range": [
+      4,
+      null
+    ],
+    "build_summary": "火任务（中）",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Eternal Torch",
+      "Smelling Salts",
+      "Blank Slate"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Ruby",
+      "Thurible"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
   }
 }

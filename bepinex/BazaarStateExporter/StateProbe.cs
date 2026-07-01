@@ -158,7 +158,6 @@ namespace BazaarStateExporter
             }
 
             List<CardSnapshot> visibleCards = new List<CardSnapshot>();
-            bool changed = false;
             UnityEngine.Object[] controllers = Resources.FindObjectsOfTypeAll(cardControllerType);
             foreach (UnityEngine.Object controller in controllers)
             {
@@ -172,7 +171,7 @@ namespace BazaarStateExporter
                 if (card != null && !string.IsNullOrEmpty(card.id))
                 {
                     visibleCards.Add(card);
-                    changed = RuntimeStateCache.RecordUiCard(card) || changed;
+                    RuntimeStateCache.RecordUiCard(card);
                 }
             }
 
@@ -183,18 +182,12 @@ namespace BazaarStateExporter
                 RuntimeStateCache.SetScreenMode(
                     RuntimeStateCache.ScreenModeEvents,
                     "visible_scan");
-                changed = true;
             }
             else if (visibleCards.Any(IsShopOfferCard))
             {
                 RuntimeStateCache.SetScreenMode(
                     RuntimeStateCache.ScreenModeShop,
                     "visible_scan");
-                changed = true;
-            }
-            if (changed)
-            {
-                Plugin.RequestEventExport();
             }
         }
 

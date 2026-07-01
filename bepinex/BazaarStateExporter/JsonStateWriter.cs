@@ -10,55 +10,59 @@ namespace BazaarStateExporter
     public static class JsonStateWriter
     {
         private static readonly Encoding Utf8NoBom = new UTF8Encoding(false);
+        private static readonly object WriteLock = new object();
 
         public static void WriteAtomic(string path, GameStateSnapshot snapshot)
         {
-            string fullPath = Path.GetFullPath(Environment.ExpandEnvironmentVariables(path));
-            string directory = Path.GetDirectoryName(fullPath);
-            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+            lock (WriteLock)
             {
-                Directory.CreateDirectory(directory);
-            }
+                string fullPath = Path.GetFullPath(Environment.ExpandEnvironmentVariables(path));
+                string directory = Path.GetDirectoryName(fullPath);
+                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
 
-            string tempPath = fullPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
-            try
-            {
-                File.WriteAllText(tempPath, ToJson(snapshot), Utf8NoBom);
-                for (int attempt = 0; ; attempt++)
+                string tempPath = fullPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
+                try
+                {
+                    File.WriteAllText(tempPath, ToJson(snapshot), Utf8NoBom);
+                    for (int attempt = 0; ; attempt++)
+                    {
+                        try
+                        {
+                            if (File.Exists(fullPath))
+                            {
+                                File.Replace(tempPath, fullPath, null);
+                            }
+                            else
+                            {
+                                File.Move(tempPath, fullPath);
+                            }
+                            return;
+                        }
+                        catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+                        {
+                            if (attempt >= 24)
+                            {
+                                throw;
+                            }
+                            Thread.Sleep(25 + attempt * 5);
+                        }
+                    }
+                }
+                finally
                 {
                     try
                     {
-                        if (File.Exists(fullPath))
+                        if (File.Exists(tempPath))
                         {
-                            File.Replace(tempPath, fullPath, null);
+                            File.Delete(tempPath);
                         }
-                        else
-                        {
-                            File.Move(tempPath, fullPath);
-                        }
-                        return;
                     }
                     catch (IOException)
                     {
-                        if (attempt >= 4)
-                        {
-                            throw;
-                        }
-                        Thread.Sleep(20);
                     }
-                }
-            }
-            finally
-            {
-                try
-                {
-                    if (File.Exists(tempPath))
-                    {
-                        File.Delete(tempPath);
-                    }
-                }
-                catch (IOException)
-                {
                 }
             }
         }

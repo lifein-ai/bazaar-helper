@@ -196,6 +196,8 @@ namespace BazaarStateExporter
         private static ManualLogSource logger;
         private static bool exporting;
         private static int exportCount;
+        private static float lastExportAt;
+        private const float MinExportIntervalSeconds = 0.2f;
 
         public static void Initialize(
             StateProbe stateProbe,
@@ -209,6 +211,7 @@ namespace BazaarStateExporter
                 logger = log;
                 exporting = false;
                 exportCount = 0;
+                lastExportAt = 0f;
             }
         }
 
@@ -223,8 +226,13 @@ namespace BazaarStateExporter
                 {
                     return;
                 }
+                if (Time.unscaledTime - lastExportAt < MinExportIntervalSeconds)
+                {
+                    return;
+                }
 
                 exporting = true;
+                lastExportAt = Time.unscaledTime;
                 currentProbe = probe;
                 currentOutputPath = outputPath;
                 currentLogger = logger;
