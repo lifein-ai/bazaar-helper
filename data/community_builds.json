@@ -1,10 +1,9 @@
 {
   "5middle": {
     "hero": "Pygmalien",
-    "display_name": "五中（前中）",
+    "display_name": "五中（前）",
     "applicable_stages": [
-      "early",
-      "mid"
+      "early"
     ],
     "day_range": [
       1,
@@ -22,7 +21,8 @@
     "core_cards": [
       "Dog",
       "Regal Blade",
-      "Gumball Machine"
+      "Abacus",
+      "Lethargy"
     ],
     "transition_cards": [
       "Briefcase",
@@ -33,18 +33,82 @@
       "Pinata",
       "Flail",
       "Piggles",
-      "Jabalian Recurve Bow",
-      "Cash Cannon",
-      "Grindstone"
+      "Jabalian Recurve Bow"
     ],
     "optional_cards": [
       "Atlas Stone",
       "Pawn Shop",
       "Luxury Kiuas",
-      "Silk Scarf",
-      "Spiky Shield",
       "Hatchet",
+      "Atlatl",
+      "Grindstone"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "5middlezhongqi": {
+    "hero": "Pygmalien",
+    "display_name": "五中（中）",
+    "applicable_stages": [
+      "mid"
+    ],
+    "day_range": [
+      5,
+      null
+    ],
+    "build_summary": "五中",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Dog",
+      "Regal Blade",
+      "Gumball Machine",
+      "Lifting",
+      "Grindstone",
+      "VIP Pass",
+      "Abacus",
+      "Lethargy"
+    ],
+    "transition_cards": [
+      "Cash Cannon"
+    ],
+    "optional_cards": [
+      "Crook",
       "Atlatl"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "caiyuanguangji": {
+    "hero": "Pygmalien",
+    "display_name": "广告牌财源炮",
+    "applicable_stages": [
+      "late"
+    ],
+    "day_range": [
+      7,
+      null
+    ],
+    "build_summary": "财源炮",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Cash Cannon",
+      "Gramophone",
+      "Second Wind"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Billboard",
+      "Icicle",
+      "Booby Trap",
+      "Lethargy",
+      "Yo-Yo",
+      "Model Ship",
+      "Piggles Board",
+      "[DEBUG] Speedrunner"
     ],
     "wanted_tags": [],
     "event_priorities": [],
@@ -54,7 +118,6 @@
     "hero": "Pygmalien",
     "display_name": "肉猪（后）",
     "applicable_stages": [
-      "mid",
       "late"
     ],
     "day_range": [
@@ -69,15 +132,16 @@
       "Gramophone",
       "Bootstraps",
       "Lion Cane",
-      "Double Whammy"
+      "Double Whammy",
+      "Vengeance"
     ],
-    "transition_cards": [
+    "transition_cards": [],
+    "optional_cards": [
+      "Booby Trap",
+      "Regal Blade",
       "Dog",
       "Pitchfork",
       "Boomerang"
-    ],
-    "optional_cards": [
-      "Regal Blade"
     ],
     "wanted_tags": [],
     "event_priorities": [],
@@ -85,11 +149,9 @@
   },
   "luzi": {
     "hero": "Pygmalien",
-    "display_name": "养炉子（前中）",
+    "display_name": "养炉子（前）",
     "applicable_stages": [
-      "early",
-      "mid",
-      "late"
+      "early"
     ],
     "day_range": [
       1,
@@ -99,10 +161,270 @@
     "match_notes": [],
     "pilot_tips": [],
     "core_cards": [
-      "Money Furnace"
+      "Money Furnace",
+      "Luxury Kiuas",
+      "Money Tree",
+      "Cash Register",
+      "Pitchfork",
+      "Abacus"
     ],
     "transition_cards": [],
-    "optional_cards": [],
+    "optional_cards": [
+      "Premium Piggles",
+      "Matchbox",
+      "Heirlooms",
+      "Signet Ring",
+      "Briefcase"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "luzizhongqi": {
+    "hero": "Pygmalien",
+    "display_name": "养炉子（中）",
+    "applicable_stages": [
+      "mid"
+    ],
+    "day_range": [
+      5,
+      null
+    ],
+    "build_summary": "养炉子，早早的养",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Money Furnace",
+      "Luxury Kiuas",
+      "Pitchfork",
+      "Abacus",
+      "Fire Claw"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Cash Cannon",
+      "Private Hot Springs",
+      "Briefcase",
+      "Regal Blade",
+      "Gumball Machine"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "luzihouqi": {
+    "hero": "Pygmalien",
+    "display_name": "养炉子（后）",
+    "applicable_stages": [
+      "late"
+    ],
+    "day_range": [
+      8,
+      null
+    ],
+    "build_summary": "养炉子，早早的养",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Luxury Kiuas",
+      "Pitchfork",
+      "Abacus",
+      "Fire Claw"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Textiles",
+      "Cash Cannon",
+      "Private Hot Springs",
+      "Luxury Tents"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "fengche": {
+    "hero": "Pygmalien",
+    "display_name": "风车钥匙串",
+    "applicable_stages": [
+      "late"
+    ],
+    "day_range": [
+      8,
+      null
+    ],
+    "build_summary": "风车",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Windmill",
+      "Keychain",
+      "Gramophone",
+      "Second Wind"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Lion Cane",
+      "Double Whammy"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "wanjuzz": {
+    "hero": "Pygmalien",
+    "display_name": "玩具",
+    "applicable_stages": [
+      "late"
+    ],
+    "day_range": [
+      7,
+      null
+    ],
+    "build_summary": "玩具",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Yo-Yo",
+      "Model Ship",
+      "Piggles Board",
+      "[DEBUG] Speedrunner",
+      "Streaming Setup",
+      "Abacus",
+      "Boar Market",
+      "Pitchfork"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Piggles",
+      "Spark Plug",
+      "Ledger"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "tuoshou": {
+    "hero": "Pygmalien",
+    "display_name": "驼兽",
+    "applicable_stages": [
+      "late"
+    ],
+    "day_range": [
+      7,
+      null
+    ],
+    "build_summary": "驼兽",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Gramophone",
+      "Beast of Burden",
+      "Abacus",
+      "Pitchfork"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Private Runabout",
+      "Open Sign",
+      "Pyg's Gym",
+      "Boar Market",
+      "Atlatl"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "wengquan": {
+    "hero": "Pygmalien",
+    "display_name": "温泉",
+    "applicable_stages": [
+      "late"
+    ],
+    "day_range": [
+      7,
+      null
+    ],
+    "build_summary": "温泉",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Private Hot Springs",
+      "Cold Room",
+      "Conflagration"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Piggles Board",
+      "Snow Globe",
+      "Gramophone",
+      "Icicle",
+      "Growth Spurt"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "diaochuangguolan": {
+    "hero": "Pygmalien",
+    "display_name": "吊床果篮（前）",
+    "applicable_stages": [
+      "early"
+    ],
+    "day_range": [
+      1,
+      null
+    ],
+    "build_summary": "吊床果篮（前）",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Hammock",
+      "Bushel",
+      "Robe",
+      "Succulents",
+      "Abacus",
+      "Burning Shield"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Matchbox",
+      "Bandages",
+      "Pitchfork",
+      "Tusked Helm"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "diaochuangguolanzhongqi": {
+    "hero": "Pygmalien",
+    "display_name": "吊床果篮（中）",
+    "applicable_stages": [
+      "mid"
+    ],
+    "day_range": [
+      4,
+      null
+    ],
+    "build_summary": "吊床果篮（中）",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Hammock",
+      "Bushel",
+      "Robe",
+      "Succulents",
+      "Display Case",
+      "Abacus"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Matchbox",
+      "Bandages",
+      "Pitchfork",
+      "Textiles",
+      "Burning Shield"
+    ],
     "wanted_tags": [],
     "event_priorities": [],
     "avoid_events": []
@@ -333,8 +655,7 @@
     "hero": "Vanessa",
     "display_name": "武器（前中）",
     "applicable_stages": [
-      "early",
-      "mid"
+      "early"
     ],
     "day_range": [
       1,
@@ -377,8 +698,7 @@
     "hero": "Vanessa",
     "display_name": "火开（前中）",
     "applicable_stages": [
-      "early",
-      "mid"
+      "early"
     ],
     "day_range": [
       1,
@@ -418,8 +738,7 @@
     "hero": "Vanessa",
     "display_name": "水产（前中）",
     "applicable_stages": [
-      "early",
-      "mid"
+      "early"
     ],
     "day_range": [
       1,
@@ -463,9 +782,7 @@
     "hero": "Vanessa",
     "display_name": "梭子鱼相关阵容",
     "applicable_stages": [
-      "early",
-      "mid",
-      "late"
+      "mid"
     ],
     "day_range": [
       4,
@@ -499,9 +816,7 @@
     "hero": "Vanessa",
     "display_name": "宠物石相关阵容",
     "applicable_stages": [
-      "early",
-      "mid",
-      "late"
+      "mid"
     ],
     "day_range": [
       4,
@@ -532,11 +847,38 @@
     "event_priorities": [],
     "avoid_events": []
   },
+  "chongwushidenghouqi": {
+    "hero": "Vanessa",
+    "display_name": "毒刀（后期）",
+    "applicable_stages": [
+      "late"
+    ],
+    "day_range": [
+      7,
+      null
+    ],
+    "build_summary": "毒刀（后期）",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Pet Rock",
+      "Scimitar of the Deep",
+      "Holsters"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Cyber-Sai",
+      "Throwing Knives",
+      "Shuriken"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
   "qijian": {
     "hero": "Vanessa",
     "display_name": "旗舰",
     "applicable_stages": [
-      "mid",
       "late"
     ],
     "day_range": [
@@ -568,7 +910,6 @@
     "hero": "Vanessa",
     "display_name": "多武器火",
     "applicable_stages": [
-      "mid",
       "late"
     ],
     "day_range": [
@@ -606,7 +947,6 @@
     "hero": "Vanessa",
     "display_name": "龟龟",
     "applicable_stages": [
-      "mid",
       "late"
     ],
     "day_range": [
@@ -641,7 +981,6 @@
     "hero": "Vanessa",
     "display_name": "克总",
     "applicable_stages": [
-      "mid",
       "late"
     ],
     "day_range": [
@@ -1072,6 +1411,244 @@
     "optional_cards": [
       "Ruby",
       "Thurible"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "kuangbaomokuai": {
+    "hero": "Dooley",
+    "display_name": "狂暴模块（后期）",
+    "applicable_stages": [
+      "late"
+    ],
+    "day_range": [
+      7,
+      null
+    ],
+    "build_summary": "狂暴模块（后期）",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "RAMPage Module",
+      "Dooley's Scarf",
+      "Flamethrower",
+      "Icicle"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Cryosphere",
+      "Fiber Optics",
+      "Power Drill",
+      "Cooling Fan",
+      "Monitor Lizard",
+      "Lens"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "baojihe": {
+    "hero": "Dooley",
+    "display_name": "暴击核",
+    "applicable_stages": [
+      "mid"
+    ],
+    "day_range": [
+      4,
+      null
+    ],
+    "build_summary": "暴击核",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Critical Core",
+      "Tesla Coil",
+      "Arc Blaster",
+      "SMG",
+      "Temporal Navigator",
+      "Memory Card"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Fiber Optics",
+      "Metronome"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "baojiheqian": {
+    "hero": "Dooley",
+    "display_name": "暴击核",
+    "applicable_stages": [
+      "early"
+    ],
+    "day_range": [
+      1,
+      null
+    ],
+    "build_summary": "暴击核",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Critical Core",
+      "Tesla Coil",
+      "Arc Blaster",
+      "SMG",
+      "Temporal Navigator"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Pulse Rifle"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "ruodian": {
+    "hero": "Dooley",
+    "display_name": "弱点",
+    "applicable_stages": [
+      "mid"
+    ],
+    "day_range": [
+      4,
+      null
+    ],
+    "build_summary": "弱点",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Weakpoint Detector",
+      "Duct Tape",
+      "Plasma Grenade",
+      "The Core",
+      "Cool LEDs"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Barbed Wire",
+      "Hammlet",
+      "Critical Core"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "dagong": {
+    "hero": "Dooley",
+    "display_name": "前期打工（第一二天专用）",
+    "applicable_stages": [
+      "early"
+    ],
+    "day_range": [
+      1,
+      null
+    ],
+    "build_summary": "前期打工（第一二天专用）",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Temporal Navigator",
+      "Duct Tape"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Sat-Comm",
+      "Tesla Coil",
+      "Micro Dave",
+      "Power Drill",
+      "Pulse Rifle",
+      "Weakpoint Detector"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "konglongan": {
+    "hero": "Dooley",
+    "display_name": "恐龙鞍",
+    "applicable_stages": [
+      "late"
+    ],
+    "day_range": [
+      7,
+      null
+    ],
+    "build_summary": "恐龙鞍",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Dino Saddle",
+      "Micro Mach",
+      "Fiber Optics",
+      "Thrusters"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Charging Station",
+      "The Core",
+      "Weaponized Core"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "dunhe": {
+    "hero": "Dooley",
+    "display_name": "盾核",
+    "applicable_stages": [
+      "mid"
+    ],
+    "day_range": [
+      4,
+      null
+    ],
+    "build_summary": "盾核",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Armored Core",
+      "Duct Tape",
+      "Welding Torch"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Chaff",
+      "Pyrocarbon",
+      "Remote Control"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "kuangbaomk": {
+    "hero": "Dooley",
+    "display_name": "狂暴模块（中期）",
+    "applicable_stages": [
+      "mid"
+    ],
+    "day_range": [
+      4,
+      null
+    ],
+    "build_summary": "狂暴模块（中期）",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "RAMPage Module",
+      "Power Drill",
+      "Flamethrower"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Fiber Optics",
+      "Cooling Fan",
+      "Monitor Lizard",
+      "Lens",
+      "Icicle",
+      "Spark Plug"
     ],
     "wanted_tags": [],
     "event_priorities": [],
