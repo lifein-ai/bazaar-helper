@@ -1,124 +1,126 @@
-# The Bazaar AI 助手
+# BazaarHelper
 
-这是一个用于《The Bazaar》的 Python 决策辅助项目。它读取官方 cache JSON、事件数据、阵容配置和当前局面，分析商店/事件收益，并输出可解释的推荐。
+BazaarHelper 是一个面向《The Bazaar》的本地决策辅助工具。它读取游戏实时状态、卡牌数据、事件数据和社区阵容配置，分析当前事件、商店和可见卡牌的收益，并在本地 Web UI 中给出可解释的选择建议。
 
-核心流程：
+项目目标不是替玩家做唯一答案，而是帮助玩家快速判断：
 
-```text
-结构化游戏状态 -> 匹配适用阵容 -> 过滤候选卡池 -> 计算概率 -> 输出事件/卡牌推荐 -> 可选 AI 策略分析
-```
+- 当前事件或商店可能产出哪些卡牌
+- 哪些选项命中当前英雄和当前阵容
+- 核心卡、过渡卡、可选卡的命中情况
+- 当前金币、血量、声望、背包等状态下的购买/刷新价值
+- 当前阵容包含哪些关键卡
+- 是否值得调用 AI 做中文策略解释
 
-## 设计原则
-
-主流程不依赖 OCR。核心输入应来自：
-
-- 官方 cache JSON
-- 手动结构化 JSON
-- 未来 BepInEx 插件导出的 game state JSON
-
-优先级：
+## 工作流程
 
 ```text
-稳定性 > 准确性 > 自动化程度
+The Bazaar 游戏状态
+-> BepInEx 插件导出 runtime/game_state.json
+-> Python 读取 data/ 数据库
+-> 自动匹配当前英雄阵容
+-> 分析事件、商店、可见卡牌收益
+-> Web UI 展示推荐
+-> 可选 DeepSeek AI 中文分析
 ```
 
-AI 分析不是规则系统的替代品。规则系统先负责卡池过滤、概率计算和基础推荐；AI 只读取精简后的推荐摘要，用来做中文解释、对比和下一步策略建议。
+## 主要功能
+
+- 实时读取 `runtime/game_state.json`
+- 根据当前英雄只显示对应英雄的阵容
+- 支持手动选择阵容，也支持按已有卡牌自动匹配阵容
+- 点击左侧“阵容目标”可展开查看阵容包含卡牌
+- 分析当前事件、商店和奖励选项
+- 显示核心卡命中率、相关卡命中率和推荐等级
+- 展示已拥有物品、已拥有技能、当前可见卡
+- 对未知事件生成提示，方便后续补数据
+- 可选调用 DeepSeek 生成中文策略分析
+- 提供 BepInEx 插件，用于把游戏局内状态导出给 Python 工具
 
 ## 目录结构
 
 ```text
 .
-├── data/                  # 程序实际读取的数据
-├── scripts/               # 数据导入脚本
-├── src/                   # 核心代码
-├── docs/                  # 架构和数据维护说明
-├── examples/              # 示例输入
-└── tests/                 # 回归测试
+├─ src/                         Python 主程序和推荐逻辑
+├─ data/                        程序实际读取的数据
+├─ scripts/                     数据导入、转换和审计脚本
+├─ bepinex/BazaarStateExporter/ BepInEx 状态导出插件
+├─ docs/                        项目文档和用户指南
+├─ examples/                    示例状态文件
+├─ tests/                       回归测试
+├─ runtime/                     运行时状态文件，不提交 Git
+├─ outputs/                     输出文件，不提交 Git
+├─ release/                     打包后的发布目录
+├─ start.bat                    发布版启动脚本
+├─ start_ui.ps1                 开发环境 UI 启动脚本
+├─ package_release.ps1          发布打包脚本
+└─ VERSION                      当前版本号
 ```
 
 ## 核心模块
 
-- `src/data_loader.py`：加载并合并卡牌、评分、事件和阵容数据
-- `src/game_state.py`：定义当前游戏状态 `GameState`
-- `src/build_strategy.py`：判断当前游戏时期，以及 build 是否适用于当前时期
-- `src/advisor.py`：把 `GameState` 转成推荐结果
-- `src/recommender.py`：卡池推断、概率计算、推荐解释
-- `src/ai_advisor.py`：把推荐结果压缩成 AI 摘要，并可调用 DeepSeek 分析
-- `src/main.py`：命令行入口
-- `scripts/import_game_cache.py`：从官方 cache 导入卡牌、技能、遭遇等数据
-- `scripts/build_events_from_encounters.py`：从官方 encounter 数据生成 `data/events.json`
+- `src/web_app.py`  
+  本地 Web UI 和 HTTP API。负责读取实时状态、归一化数据、调用推荐逻辑、返回页面和 JSON API。
 
-## 快速运行
+- `src/main.py`  
+  命令行入口。适合开发调试、手动传入 hero/build/day/events 进行分析。
 
-```bash
-python src/main.py --hero Vanessa --build VanessaAquaticAmmo --day 6 --events Colt Kina Gaseo
-```
+- `src/game_state.py`  
+  定义当前局内状态 `GameState`，包括英雄、天数、事件选项、已拥有卡牌、金币、血量、商店状态等。
 
-读取结构化状态：
+- `src/advisor.py`  
+  把 `GameState` 转换为多事件推荐结果，并按推荐价值排序。
 
-```bash
-python src/main.py --state-json examples/game_state.example.json --top 1
-```
+- `src/recommender.py`  
+  核心推荐逻辑。负责卡池推断、稀有度过滤、阵容定位、命中率、升级收益、资源收益和推荐理由。
 
-## DeepSeek AI 分析
+- `src/stage_build_matcher.py`  
+  分析当前阶段、当前商店和候选卡牌对不同阵容的命中关系。
 
-先设置 API Key。PowerShell 示例：
+- `src/data_loader.py`  
+  加载并合并卡牌、事件、阵容、评分、翻译和稀有度规则。
 
-```powershell
-$env:DEEPSEEK_API_KEY="你的 DeepSeek API Key"
-```
+- `src/ai_advisor.py`  
+  把推荐结果压缩成 AI 输入，并调用 DeepSeek 生成自然语言分析。
 
-如果使用 Web UI，更推荐写入本地密钥文件，避免后台进程读不到环境变量：
+## 数据文件
 
-```text
-runtime/deepseek_api_key.txt
-```
+主要数据位于 `data/`：
 
-文件内容只放一行 DeepSeek API Key。这个文件已加入 `.gitignore`，不会被提交。
+- `cards_generated.json`：从游戏 cache 导入的卡牌基础数据
+- `skills_generated.json`：技能数据
+- `events.json`：事件、商店、奖励规则
+- `event_overrides.json`：人工修正事件规则
+- `community_builds.json`：社区阵容配置
+- `card_ratings.json`：卡牌评分和补充定位
+- `rarity_rules.json`：稀有度规则
+- `translations_zh_cn.json`：中文翻译
 
-建议先 dry run，查看会发给 AI 的精简摘要：
-
-```bash
-python src/main.py --hero Vanessa --build VanessaAquaticAmmo --day 6 --events Colt Kina Gaseo --ai-dry-run
-```
-
-确认摘要合理后再调用 DeepSeek：
-
-```bash
-python src/main.py --hero Vanessa --build VanessaAquaticAmmo --day 6 --events Colt Kina Gaseo --ai
-```
-
-也可以和状态 JSON 一起使用：
-
-```bash
-python src/main.py --state-json examples/game_state.example.json --top 3 --ai
-```
-
-默认模型是 `deepseek-chat`，默认 API 地址是 `https://api.deepseek.com`。如果之后要切模型：
-
-```bash
-python src/main.py --state-json examples/game_state.example.json --ai --ai-model deepseek-chat
-```
-
-## 本地 UI
-
-推荐启动方式：
+推荐逻辑的数据优先级大致是：
 
 ```text
-双击 start_ui.bat
+community_builds.json
+> card_ratings.json
+> events.json
+> cards_generated.json
 ```
 
-或在 PowerShell 中运行：
+## 快速启动
+
+推荐使用发布版目录中的：
+
+```text
+start.bat
+```
+
+开发环境可以运行：
 
 ```powershell
 .\start_ui.ps1
 ```
 
-脚本会自动停止旧 UI、启动新 UI，并打开浏览器。
+或直接启动 Python Web UI：
 
-手动启动方式：
-
-```bash
+```powershell
 python src/web_app.py
 ```
 
@@ -128,34 +130,97 @@ python src/web_app.py
 http://127.0.0.1:8765
 ```
 
-UI 会优先读取：
+## 命令行示例
+
+手动传入英雄、阵容、天数和事件：
+
+```powershell
+python src/main.py --hero Vanessa --build VanessaAquaticAmmo --day 6 --events Colt Kina Gaseo
+```
+
+读取完整状态 JSON：
+
+```powershell
+python src/main.py --state-json examples/game_state.example.json --top 3
+```
+
+预览将发送给 AI 的摘要，不实际调用 API：
+
+```powershell
+python src/main.py --state-json examples/game_state.example.json --ai-dry-run
+```
+
+调用 DeepSeek：
+
+```powershell
+python src/main.py --state-json examples/game_state.example.json --ai
+```
+
+## Web UI 说明
+
+Web UI 会优先读取：
 
 ```text
 runtime/game_state.json
 ```
 
-如果这个文件不存在，则读取：
+如果文件不存在、过期或仍是插件占位状态，页面会提示需要启动游戏和状态导出插件。
+
+左侧区域显示：
+
+- 英雄
+- 天数
+- 金币
+- 生命
+- 声望
+- 收入
+- 当前阵容目标
+- 当前事件
+- 已拥有物品
+- 已拥有技能
+- 当前可见卡
+
+阵容选择规则：
+
+- 下拉框只显示当前英雄可用阵容
+- 可以选择“自动匹配已有卡牌”
+- 如果浏览器缓存了其他英雄的旧阵容，会自动清空
+- 即使前端传入其他英雄的阵容，后端也会忽略并重新匹配
+
+阵容详情：
+
+- 点击左侧“阵容目标”卡片可展开
+- 展示核心卡、过渡卡、可选卡和需求标签
+- 卡牌名会尽量使用中文翻译
+
+常用接口：
 
 ```text
-实时状态不存在时页面会直接提示启动游戏和状态导出插件，不再回退到示例数据。
+GET  /
+GET  /api/state
+GET  /api/options
+GET  /api/options?hero=Vanessa
+GET  /api/analysis
+POST /api/state
 ```
 
-页面支持：
+## BepInEx 插件
 
-- 查看当前 hero、day、build、stage
-- 展示事件推荐、命中概率、核心概率、关键卡
-- 编辑并保存运行时 JSON
-- 点击按钮调用 DeepSeek AI 分析
+插件位于：
 
-## BepInEx 输出协议
+```text
+bepinex/BazaarStateExporter/
+```
 
-BepInEx 插件不需要做推荐，也不需要调用 AI。它只需要尽量读取游戏事实，并持续写入 `runtime/game_state.json`。
+插件职责很简单：只读取游戏事实并持续写入结构化状态，不做推荐，也不调用 AI。
 
-当前插件骨架在 `bepinex/BazaarStateExporter/`，接入步骤见 `docs/bepinex_integration.md`。
+默认输出路径：
 
-`build` 不属于 BepInEx 输出字段。阵容推荐知识只维护在 `data/community_builds.json`，UI 会根据当前 hero/day 自动选择，也可以手动切换。
+```text
+%LOCALAPPDATA%\BazaarHelper\runtime\game_state.json
+```
 
-最低可用字段：
+最小可用状态示例：
 
 ```json
 {
@@ -166,9 +231,7 @@ BepInEx 插件不需要做推荐，也不需要调用 AI。它只需要尽量读
 }
 ```
 
-BepInEx 不需要知道当前使用哪个 build。即使运行时 JSON 里误带了 `build`，Web UI 分析也会忽略它，避免插件层和推荐知识库耦合。
-
-增强字段：
+增强字段示例：
 
 ```json
 {
@@ -181,123 +244,118 @@ BepInEx 不需要知道当前使用哪个 build。即使运行时 JSON 里误带
 }
 ```
 
-缺少增强字段时系统会降级：
-
-- 没有 `owned_cards`：不计算升级收益
-- 没有 `visible_cards`：只分析事件，不分析具体购买
-- 没有 `gold`：不判断购买能力
-- 没有 `health`：不判断保命优先级
-
-附魔会改变运行时卡牌 tag。例如 `Fiery` 会让已拥有卡牌额外视为 `burn` 物品，因此 `Improve your Burn items` 这类事件会命中它。当前支持的常见映射包括：
+更多插件说明见：
 
 ```text
-Fiery/Burn -> burn
-Toxic/Poison -> poison
-Icy/Freeze -> freeze
-Shielded/Shield -> shield
-Restorative/Heal -> heal
-Turbo/Haste -> haste
-Deadly/Crit -> crit
-Heavy/Obsidian -> damage
+docs/bepinex_integration.md
+bepinex/BazaarStateExporter/README.md
 ```
 
-## 事件数据覆盖
+## DeepSeek AI 分析
 
-`scripts/build_events_from_encounters.py` 会从官方 encounter 数据生成多类事件：
+AI 分析是可选功能。规则系统会先完成事件过滤、卡池推断、概率计算和推荐排序，AI 只读取压缩后的推荐摘要，用于生成中文解释和策略建议。
+
+推荐把 API Key 写入本地运行时文件：
 
 ```text
-shops             商店
-skill_shops       技能商店/技能教学
-item_rewards      获得物品
-item_events       强化已有物品
-resource_events   金币、XP、生命、收入等资源
-enchant_events    附魔事件
-combat_events     战斗事件
-unknown_events    有描述但暂未结构化的事件
+runtime/deepseek_api_key.txt
 ```
 
-如果 BepInEx 读到非商店事件，也直接写进 `event_options` 即可。
+文件内容只放一行 DeepSeek API Key。该文件不应提交到 Git。
 
-## 结构化状态示例
+也可以使用环境变量：
 
-```json
-{
-  "source": "plugin",
-  "hero": "Vanessa",
-  "build": "VanessaAquaticAmmo",
-  "day": 6,
-  "event_options": ["Colt", "Kina", "Gaseo"],
-  "owned_cards": [
-    {"name": "Ballista", "rarity": "gold"}
-  ],
-  "visible_cards": [],
-  "gold": 12,
-  "health": 43
-}
+```powershell
+$env:DEEPSEEK_API_KEY="你的 DeepSeek API Key"
 ```
 
-## Build 配置方式
-
-`data/community_builds.json` 中的每个 build 代表一个可切换的社区阵容路线。每个 build 独立标注适用时期。
-
-示例：
-
-```json
-{
-  "VanessaAquaticAmmo": {
-    "hero": "Vanessa",
-    "display_name": "Vanessa Aquatic Ammo",
-    "applicable_stages": ["mid", "late"],
-    "day_range": [5, null],
-    "build_summary": "阵容描述",
-    "match_notes": ["什么时候考虑转入这个阵容"],
-    "core_cards": [],
-    "transition_cards": [],
-    "optional_cards": [],
-    "wanted_tags": [],
-    "event_priorities": [],
-    "avoid_events": []
-  }
-}
-```
-
-游戏时期默认规则：
+默认模型：
 
 ```text
-early: Day 1-4
-mid:   Day 5-8
-late:  Day 9+
+deepseek-chat
 ```
 
-后续 AI 会根据当前天数、已有卡牌和各 build 的适用时期，先判断当前更适合哪个阵容，再推荐事件选择。
+默认 API 地址：
 
-## 数据导入
-
-导入官方 cache：
-
-```bash
-python scripts/import_game_cache.py --check-only
-python scripts/import_game_cache.py
+```text
+https://api.deepseek.com
 ```
 
-从官方 encounter 生成事件数据：
+## 数据维护
 
-```bash
-python scripts/build_events_from_encounters.py --check-only
-python scripts/build_events_from_encounters.py
-```
+常用脚本：
 
-普通商店默认使用当前 hero + Common/Neutral 卡池。只有官方描述包含 `from any Hero` 的商店才使用全英雄卡池。
+- `scripts/import_live_cards.py`：导入当前游戏 cache 中的卡牌数据
+- `scripts/import_game_cache.py`：从官方 cache 导入卡牌、技能、遭遇等数据
+- `scripts/build_events_from_encounters.py`：从 encounter 数据生成 `data/events.json`
+- `scripts/audit_event_rules.py`：审计事件规则质量
+- `scripts/audit_event_pool.py`：审计事件卡池
+- `scripts/import_zh_translations.py`：导入中文翻译
+
+事件数据通常包括：
+
+- `shops`：商店
+- `skill_shops`：技能商店/技能教学
+- `item_rewards`：物品奖励
+- `item_events`：强化已有物品
+- `resource_events`：金币、经验、生命、收入等资源
+- `enchant_events`：附魔事件
+- `combat_events`：战斗事件
+- `unknown_events`：暂未结构化的事件
 
 ## 测试
 
-```bash
-python -m unittest discover -s tests
+运行全部测试：
+
+```powershell
+python -m pytest -q
 ```
 
-## 下一步方向
+常用快速检查：
 
-- 补充更多 build，并为每个 build 标注适用时期和核心卡
-- 根据当前已拥有卡牌自动匹配最适合的 build
-- 加入当前可见卡牌的购买建议
-- 输出 JSON 格式推荐结果，方便未来 UI 或插件接入
+```powershell
+python -m py_compile src/web_app.py src/recommender.py src/ai_advisor.py
+python -m pytest -q tests/test_web_app.py tests/test_recommender.py
+```
+
+## 发布打包
+
+发布脚本：
+
+```powershell
+.\package_release.ps1
+```
+
+脚本会执行：
+
+1. 运行发布前测试
+2. 构建 BepInEx 插件
+3. 使用 PyInstaller 构建 `BazaarHelper.exe`
+4. 生成用户指南
+5. 组装 `release/BazaarHelper`
+6. 校验发布文件完整性
+
+发布目录通常包含：
+
+- `BazaarHelper.exe`
+- `_internal/`
+- `data/`
+- `examples/`
+- `start.bat`
+- `install_plugin.bat`
+- `set_ai_key.bat`
+- `update_helper.ps1`
+- `VERSION`
+- `version.json`
+- `BazaarHelper_User_Guide.docx`
+- `bepinex_plugin/BazaarStateExporter.dll`
+
+## 设计原则
+
+- 稳定性优先于自动化程度
+- 结构化输入优先于 OCR
+- 规则系统先给出可解释推荐
+- AI 只做解释和策略补充，不替代规则判断
+- BepInEx 插件只负责导出事实，不耦合推荐知识库
+- 阵容知识维护在 `data/community_builds.json`
+

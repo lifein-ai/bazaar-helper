@@ -1480,7 +1480,7 @@
   },
   "baojiheqian": {
     "hero": "Dooley",
-    "display_name": "暴击核",
+    "display_name": "暴击核（前）",
     "applicable_stages": [
       "early"
     ],
@@ -1649,6 +1649,432 @@
       "Lens",
       "Icicle",
       "Spark Plug"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "wurenjichegoingshi": {
+    "hero": "Stelle",
+    "display_name": "无人机车公式摧毁（后期）",
+    "applicable_stages": [
+      "late"
+    ],
+    "day_range": [
+      7,
+      null
+    ],
+    "build_summary": "无人机车公式摧毁（后期）",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Drone Crusher",
+      "Targeting Drone",
+      "Parts Picker"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Oblivion Cannon",
+      "LavaRoller",
+      "Hydrogen Tank",
+      "Boosted Saucer",
+      "Fire Bomb",
+      "Firecrackers",
+      "Flare Gun"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "yongfei": {
+    "hero": "Stelle",
+    "display_name": "永飞",
+    "applicable_stages": [
+      "late"
+    ],
+    "day_range": [
+      7,
+      null
+    ],
+    "build_summary": "永飞",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Private Runabout",
+      "Ornithopter",
+      "Launch Pad",
+      "Jetpack"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Skyliner",
+      "Squirrel Suit",
+      "Goggles",
+      "Tugboat",
+      "Headset",
+      "Tool Fight",
+      "Targeting Drone",
+      "Binoculars",
+      "It's a Drone",
+      "Darts"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "qijiang": {
+    "hero": "Stelle",
+    "display_name": "起降",
+    "applicable_stages": [
+      "late"
+    ],
+    "day_range": [
+      7,
+      null
+    ],
+    "build_summary": "起降",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Hang Glider",
+      "MagShield",
+      "Ornithopter",
+      "Freefall Simulator",
+      "Headset"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Daggerwing",
+      "Pogo Stick"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "mbb": {
+    "hero": "Stelle",
+    "display_name": "mbb（前期）",
+    "applicable_stages": [
+      "early"
+    ],
+    "day_range": [
+      1,
+      null
+    ],
+    "build_summary": "mbb（前期）",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Molten Ball Blaster",
+      "Precision Calipers",
+      "Targeting Drone",
+      "Toolbox",
+      "Goggles"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Steam Washer",
+      "Blow Torch",
+      "Recycler Bot",
+      "Inertial Dampener",
+      "Ornithopter",
+      "Rocket Drone",
+      "Pressure Heater"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "yongfeizhongqi": {
+    "hero": "Stelle",
+    "display_name": "永飞（中期）",
+    "applicable_stages": [
+      "mid"
+    ],
+    "day_range": [
+      4,
+      null
+    ],
+    "build_summary": "永飞（中期）",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Private Runabout",
+      "Squirrel Suit",
+      "Goggles"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Tugboat",
+      "Headset",
+      "Darts",
+      "Ornithopter",
+      "Launch Pad"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "jipao": {
+    "hero": "Stelle",
+    "display_name": "机炮（前期）",
+    "applicable_stages": [
+      "early"
+    ],
+    "day_range": [
+      1,
+      null
+    ],
+    "build_summary": "机炮（前期）",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Aerial Turret",
+      "Caracara",
+      "Targeting Drone",
+      "Lightning Butterfly"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Ornithopter",
+      "Gyro Gunsight",
+      "Darts",
+      "Clockwork Disc",
+      "Precision Calipers",
+      "Headset",
+      "Airplane Glue",
+      "Binoculars"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "qiqiang": {
+    "hero": "Stelle",
+    "display_name": "气枪（前期）",
+    "applicable_stages": [
+      "early"
+    ],
+    "day_range": [
+      1,
+      null
+    ],
+    "build_summary": "气枪（前期）",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Air-Pressure Rifle",
+      "Targeting Drone",
+      "Goggles",
+      "Orbital Polisher",
+      "Darts",
+      "Airplane Glue"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Bird Cage",
+      "Headset",
+      "Precision Calipers",
+      "Ornithopter",
+      "Squirrel Suit",
+      "Clockwork Disc"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "qijiangzhong": {
+    "hero": "Stelle",
+    "display_name": "起降（前期）",
+    "applicable_stages": [
+      "early"
+    ],
+    "day_range": [
+      1,
+      null
+    ],
+    "build_summary": "起降（前期）",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Hang Glider",
+      "Targeting Drone",
+      "Goggles",
+      "Orbital Polisher",
+      "Darts",
+      "Airplane Glue"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Daggerwing",
+      "Rocket Drone",
+      "Marshalling Lights",
+      "Headset",
+      "Precision Calipers",
+      "Ornithopter",
+      "Squirrel Suit",
+      "Clockwork Disc"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "cuihui": {
+    "hero": "Stelle",
+    "display_name": "摧毁（中期）",
+    "applicable_stages": [
+      "mid"
+    ],
+    "day_range": [
+      4,
+      null
+    ],
+    "build_summary": "摧毁（中期）",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Drone Crusher",
+      "Targeting Drone",
+      "Parts Picker"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Oblivion Cannon",
+      "LavaRoller",
+      "Goggles",
+      "Boosted Saucer",
+      "Fire Bomb",
+      "Firecrackers",
+      "Flare Gun",
+      "Precision Calipers",
+      "Flashbang",
+      "Hydrogen Tank"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "tiankongmao": {
+    "hero": "Stelle",
+    "display_name": "缓速（中期）",
+    "applicable_stages": [
+      "mid"
+    ],
+    "day_range": [
+      4,
+      null
+    ],
+    "build_summary": "天空锚",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Trained (monster skill)",
+      "Sky Anchor",
+      "Inertial Dampener",
+      "Ornithopter"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Cruise Ship",
+      "Flare Gun",
+      "Sirens",
+      "Weather Machine",
+      "Ni-Kola",
+      "Goggles",
+      "Fire Hose"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "xiguachongzhopngqi": {
+    "hero": "Stelle",
+    "display_name": "西瓜虫（中期）",
+    "applicable_stages": [
+      "mid"
+    ],
+    "day_range": [
+      4,
+      null
+    ],
+    "build_summary": "西瓜虫（中期）",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Goggles",
+      "Sirens",
+      "Pillbuggy",
+      "Ornithopter"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Lowroller",
+      "Targeting Drone",
+      "Observatory",
+      "Jetpack"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "xiguachong": {
+    "hero": "Stelle",
+    "display_name": "西瓜虫",
+    "applicable_stages": [
+      "late"
+    ],
+    "day_range": [
+      7,
+      null
+    ],
+    "build_summary": "西瓜虫",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Goggles",
+      "Pillbuggy"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Sirens",
+      "Ornithopter",
+      "Lowroller",
+      "Stelle's Workshop",
+      "Radar Dome",
+      "Observatory",
+      "Hydrogen Tank"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "shayudaodan": {
+    "hero": "Stelle",
+    "display_name": "鲨鱼导弹",
+    "applicable_stages": [
+      "late"
+    ],
+    "day_range": [
+      7,
+      null
+    ],
+    "build_summary": "鲨鱼导弹",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Buster",
+      "Freefall Simulator",
+      "Ornithopter",
+      "Pogo Stick",
+      "Repair Drone",
+      "Lightning Butterfly",
+      "Headset"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "MagShield",
+      "Ignition",
+      "Ni-Kola"
     ],
     "wanted_tags": [],
     "event_priorities": [],

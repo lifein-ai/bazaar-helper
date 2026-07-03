@@ -1,6 +1,7 @@
 ﻿from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import time
 from http import HTTPStatus
@@ -36,6 +37,16 @@ OFFICIAL_CARDS_PATH = (
 )
 OBSERVED_EVENT_GRAPH_PATH = RUNTIME_DIR / "observed_event_graph.json"
 AUTO_BUILD_PREFIX = "Auto"
+ANALYSIS_CACHE_MAX_ENTRIES = 16
+VOLATILE_STATE_KEYS = {
+    "updated_at_utc",
+    "captured_at_utc",
+    "timestamp",
+    "last_updated",
+    "frame",
+    "frame_count",
+}
+ANALYSIS_CACHE: dict[tuple[int, str, str, int | None], dict[str, Any]] = {}
 STAGE_LABELS_ZH = {
     "early": "前期",
     "mid": "中期",
@@ -111,6 +122,41 @@ def runtime_state_is_plugin_owned(path: Path = STATE_PATH) -> bool:
     except (OSError, ValueError, TypeError):
         return False
     return isinstance(payload, dict) and payload.get("source") == "bepinex"
+
+
+def stable_cache_value(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {
+            str(key): stable_cache_value(child)
+            for key, child in sorted(value.items(), key=lambda item: str(item[0]))
+            if str(key) not in VOLATILE_STATE_KEYS
+        }
+
+    if isinstance(value, list):
+        return [stable_cache_value(item) for item in value]
+
+    return value
+
+
+def analysis_cache_signature(payload: dict[str, Any]) -> str:
+    stable_payload = stable_cache_value(payload)
+    encoded = json.dumps(
+        stable_payload,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def remember_analysis_cache(
+    cache_key: tuple[int, str, str, int | None],
+    response: dict[str, Any],
+) -> None:
+    if len(ANALYSIS_CACHE) >= ANALYSIS_CACHE_MAX_ENTRIES:
+        oldest_key = next(iter(ANALYSIS_CACHE))
+        ANALYSIS_CACHE.pop(oldest_key, None)
+    ANALYSIS_CACHE[cache_key] = response
 
 
 def available_heroes(data: dict[str, Any]) -> list[str]:
@@ -1406,6 +1452,14 @@ def analyze_payload(
     include_ai: bool = False,
     top: int | None = None,
 ) -> dict[str, Any]:
+    cache_signature = analysis_cache_signature(payload)
+    cache_key = (id(data), cache_signature, build_override or "", top)
+    render_signature = f"{cache_signature}:{build_override or ''}:{top or ''}"
+    if not include_ai and cache_key in ANALYSIS_CACHE:
+        cached = dict(ANALYSIS_CACHE[cache_key])
+        cached["cache_hit"] = True
+        return cached
+
     observation_warning: str | None = None
     try:
         auto_observe_event_graph(data, payload)
@@ -1548,6 +1602,8 @@ def analyze_payload(
             for item in result.recommendations
         ],
         "build_analysis": build_analysis,
+        "analysis_signature": render_signature,
+        "cache_hit": False,
     }
 
     if include_ai and (
@@ -1590,6 +1646,9 @@ def analyze_payload(
 
     if observation_warning:
         response["warnings"] = [observation_warning, *response["warnings"]]
+
+    if not include_ai:
+        remember_analysis_cache(cache_key, response)
 
     return response
 
@@ -1983,6 +2042,8 @@ HTML_PAGE = r"""<!doctype html>
     let currentBuildIds = [];
     let currentOptionsHero = null;
     let buildDetailOpen = false;
+    let analysisRequestInFlight = false;
+    let lastRenderedSignature = null;
 
     function pct(value) {
       return `${Math.round((value || 0) * 100)}%`;
@@ -2025,10 +2086,14 @@ HTML_PAGE = r"""<!doctype html>
     }
 
     async function analyze(includeAi = false) {
+      if (!includeAi && document.hidden) return;
+      if (!includeAi && analysisRequestInFlight) return;
       messageEl.innerHTML = "";
       if (includeAi) {
         aiRequestInFlight = true;
         aiBox.innerHTML = `<div class="ai">AI 分析中...</div>`;
+      } else {
+        analysisRequestInFlight = true;
       }
 
       const selectedBuild = buildSelect.value || "";
@@ -2046,6 +2111,7 @@ HTML_PAGE = r"""<!doctype html>
           aiRequestInFlight = false;
         } else {
           messageEl.innerHTML = `<div class="error">刷新失败：${error.message}</div>`;
+          analysisRequestInFlight = false;
         }
         return;
       }
@@ -2053,8 +2119,16 @@ HTML_PAGE = r"""<!doctype html>
       if (data.error) {
         messageEl.innerHTML = `<div class="error">${data.error}</div>`;
         if (includeAi) aiRequestInFlight = false;
+        if (!includeAi) analysisRequestInFlight = false;
         return;
       }
+
+      const responseSignature = data.analysis_signature || null;
+      if (!includeAi && responseSignature && responseSignature === lastRenderedSignature) {
+        analysisRequestInFlight = false;
+        return;
+      }
+      if (responseSignature) lastRenderedSignature = responseSignature;
 
       const state = data.state || {};
       if (state.hero && currentOptionsHero !== state.hero) {
@@ -2088,6 +2162,8 @@ HTML_PAGE = r"""<!doctype html>
       }
       if (includeAi) {
         aiRequestInFlight = false;
+      } else {
+        analysisRequestInFlight = false;
       }
 
       const eventCards = (data.recommendations || []).map((item) => {
@@ -2274,6 +2350,7 @@ HTML_PAGE = r"""<!doctype html>
     buildSelect.addEventListener("change", () => {
       localStorage.setItem("bazaar_selected_build", buildSelect.value);
       aiBox.innerHTML = "";
+      lastRenderedSignature = null;
       analyze(false);
     });
     buildMetric.addEventListener("click", toggleBuildDetail);
@@ -2287,7 +2364,10 @@ HTML_PAGE = r"""<!doctype html>
     loadState()
       .then((state) => loadOptions(state && state.hero ? state.hero : null))
       .then(() => analyze(false));
-    setInterval(() => analyze(false), 3000);
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) analyze(false);
+    });
+    setInterval(() => analyze(false), 5000);
   </script>
 </body>
 </html>

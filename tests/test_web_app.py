@@ -177,6 +177,26 @@ class WebAppResilienceTests(unittest.TestCase):
         self.assertEqual(detail["optional_cards"][0]["display_name"], "可选一")
         self.assertEqual(detail["wanted_tags"], ["ammo"])
 
+    def test_analysis_cache_ignores_volatile_timestamp(self) -> None:
+        web_app.ANALYSIS_CACHE.clear()
+        data = load_all_data(DATA_DIR)
+        payload = {
+            "source": "bepinex",
+            "updated_at_utc": "2026-07-04T00:00:00Z",
+            "hero": "Vanessa",
+            "day": 6,
+            "event_options": ["Colt"],
+        }
+
+        with patch.object(web_app, "auto_observe_event_graph") as observe:
+            first = web_app.analyze_payload(data, payload, top=3)
+            payload["updated_at_utc"] = "2026-07-04T00:00:01Z"
+            second = web_app.analyze_payload(data, payload, top=3)
+
+        self.assertFalse(first["cache_hit"])
+        self.assertTrue(second["cache_hit"])
+        self.assertEqual(observe.call_count, 1)
+
     def test_owned_items_and_skills_are_displayed_separately(self) -> None:
         data = {
             "events": {},
