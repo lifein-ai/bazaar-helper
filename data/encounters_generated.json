@@ -531,8 +531,8 @@
     "isReselectable": false
   },
   "Abandoned Property": {
-    "id": "fed8adb8-8fc6-49be-88da-a6fa8496ad2f",
-    "internal_name": "Abandoned Property",
+    "id": "538290f0-a363-4c05-8efa-ff68932d43bb",
+    "internal_name": "Abandoned Property (Diamond)",
     "name": "Abandoned Property",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -541,7 +541,49 @@
       "Karnok"
     ],
     "tags": [],
-    "description": "Get a Property",
+    "description": "Get a Diamond-tier Property",
+    "isReselectable": false
+  },
+  "Abandoned Property <6391c95c>": {
+    "id": "6391c95c-1dc1-420e-ab5e-ab99c6db4267",
+    "internal_name": "Abandoned Property (Silver)",
+    "name": "Abandoned Property",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Pygmalien",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Silver-tier Property",
+    "isReselectable": false
+  },
+  "Abandoned Property <db927fd4>": {
+    "id": "db927fd4-b1b4-4587-b295-d0d1e4e15d0c",
+    "internal_name": "Abandoned Property (Gold)",
+    "name": "Abandoned Property",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Pygmalien",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Gold-tier Property",
+    "isReselectable": false
+  },
+  "Abandoned Property <fed8adb8>": {
+    "id": "fed8adb8-8fc6-49be-88da-a6fa8496ad2f",
+    "internal_name": "Abandoned Property (Bronze)",
+    "name": "Abandoned Property",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Pygmalien",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Bronze-tier Property",
     "isReselectable": false
   },
   "Absorb Memories": {
@@ -593,7 +635,7 @@
       "Common"
     ],
     "tags": [],
-    "description": "One of your slots becomes a Cooler (The item here is Chilled)",
+    "description": "One of your slots becomes a Cooler (The item here is Chilled) and get a Chilled item",
     "isReselectable": false
   },
   "Add It to Your Basket": {
@@ -645,7 +687,7 @@
       "Common"
     ],
     "tags": [],
-    "description": "One of your slots becomes a Stove (The items here is Heated)",
+    "description": "One of your slots becomes a Stove (The item here is Heated) and get a Heated item",
     "isReselectable": false
   },
   "Adira": {
@@ -856,8 +898,8 @@
     "isReselectable": false
   },
   "Alchemy Lab": {
-    "id": "2ff9137c-1089-43f2-a389-120860aec5ea",
-    "internal_name": "Alchemy Lab",
+    "id": "0dc4e708-415a-4ee5-ba1f-4cda9b880ebd",
+    "internal_name": "Alchemy Lab (Gold)",
     "name": "Alchemy Lab",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -865,7 +907,46 @@
       "Mak"
     ],
     "tags": [],
-    "description": "Get a Potion",
+    "description": "Get a Gold-tier Potion",
+    "isReselectable": false
+  },
+  "Alchemy Lab <2ff9137c>": {
+    "id": "2ff9137c-1089-43f2-a389-120860aec5ea",
+    "internal_name": "Alchemy Lab (Bronze)",
+    "name": "Alchemy Lab",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Mak"
+    ],
+    "tags": [],
+    "description": "Get a Bronze-tier Potion",
+    "isReselectable": false
+  },
+  "Alchemy Lab <3016cd02>": {
+    "id": "3016cd02-8221-4d9b-9572-89af7705184f",
+    "internal_name": "Alchemy Lab (Diamond)",
+    "name": "Alchemy Lab",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Mak"
+    ],
+    "tags": [],
+    "description": "Get a Diamond-tier Potion",
+    "isReselectable": false
+  },
+  "Alchemy Lab <52419a5c>": {
+    "id": "52419a5c-f565-4e6d-9827-baa65c6d9d92",
+    "internal_name": "Alchemy Lab (Silver)",
+    "name": "Alchemy Lab",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Mak"
+    ],
+    "tags": [],
+    "description": "Get a Silver-tier Potion",
     "isReselectable": false
   },
   "Aldric": {
@@ -1063,6 +1144,19 @@
     "description": "",
     "isReselectable": false
   },
+  "Annexed Army": {
+    "id": "921d3a60-82d7-445f-8ff0-0d4bccdc6c1e",
+    "internal_name": "Annexed Army",
+    "name": "Annexed Army",
+    "cache_type": "TCardEncounterCombat",
+    "type": "CombatEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "",
+    "isReselectable": false
+  },
   "Apothecary": {
     "id": "04ac552f-c292-455e-bf5f-438119dfa196",
     "internal_name": "Apothecary",
@@ -1234,7 +1328,7 @@
   },
   "Armory": {
     "id": "7c179f37-5845-4041-b123-0c7da0fdabbd",
-    "internal_name": "Armory",
+    "internal_name": "Armory (Bronze)",
     "name": "Armory",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -1242,7 +1336,33 @@
       "Common"
     ],
     "tags": [],
-    "description": "Get a Weapon",
+    "description": "Get a Bronze-tier Weapon",
+    "isReselectable": false
+  },
+  "Armory <ae1d3ea7>": {
+    "id": "ae1d3ea7-71d8-498c-b607-9cb12e3555cd",
+    "internal_name": "Armory (Gold)",
+    "name": "Armory",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Get a Gold-tier Weapon",
+    "isReselectable": false
+  },
+  "Armory <bfa6d377>": {
+    "id": "bfa6d377-2fbe-4c8f-82ab-685e93dde1cb",
+    "internal_name": "Armory (Silver)",
+    "name": "Armory",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Get a Silver-tier Weapon",
     "isReselectable": false
   },
   "Armory <c9fe4d57>": {
@@ -1256,6 +1376,19 @@
     ],
     "tags": [],
     "description": "Get a Weapon",
+    "isReselectable": false
+  },
+  "Armory <d277e30d>": {
+    "id": "d277e30d-2be8-4026-b0af-e1c11413e8a0",
+    "internal_name": "Armory (Diamond)",
+    "name": "Armory",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Get a Diamond-tier Weapon",
     "isReselectable": false
   },
   "Arms Locker": {
@@ -1427,6 +1560,19 @@
     ],
     "tags": [],
     "description": "",
+    "isReselectable": false
+  },
+  "Aurora Dome": {
+    "id": "7495fc68-4444-4fef-96f0-000000000000",
+    "internal_name": "Aurora Dome (Encounter)",
+    "name": "Aurora Dome",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Improve your items without a Cooldown",
     "isReselectable": false
   },
   "Awakened District": {
@@ -1601,8 +1747,8 @@
     "isReselectable": false
   },
   "Battlefield": {
-    "id": "9ba94af3-54c6-4e34-99eb-32d4309118ec",
-    "internal_name": "Battlefield",
+    "id": "488df2ed-b698-4fe6-814f-5adcde618208",
+    "internal_name": "Battlefield (Gold)",
     "name": "Battlefield",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -1610,7 +1756,46 @@
       "Common"
     ],
     "tags": [],
-    "description": "Get a Small Weapon",
+    "description": "Get a Small Gold-tier Weapon",
+    "isReselectable": false
+  },
+  "Battlefield <8e61f266>": {
+    "id": "8e61f266-d58a-45ec-9560-76bf27afd1ca",
+    "internal_name": "Battlefield (Diamond)",
+    "name": "Battlefield",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Get a Small Diamond-tier Weapon",
+    "isReselectable": false
+  },
+  "Battlefield <9037d88a>": {
+    "id": "9037d88a-5e05-4ba6-8219-69360d402759",
+    "internal_name": "Battlefield (Silver)",
+    "name": "Battlefield",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Get a Small Silver-tier Weapon",
+    "isReselectable": false
+  },
+  "Battlefield <9ba94af3>": {
+    "id": "9ba94af3-54c6-4e34-99eb-32d4309118ec",
+    "internal_name": "Battlefield (Bronze)",
+    "name": "Battlefield",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Get a Small Bronze-tier Weapon",
     "isReselectable": false
   },
   "BazaarCON": {
@@ -1817,8 +2002,8 @@
     "isReselectable": false
   },
   "Block Party": {
-    "id": "efdb2b8a-7475-47fe-ad84-8a40ab49c27e",
-    "internal_name": "Block Party",
+    "id": "57a90bd8-9ece-4917-a2e7-fb8925fe231a",
+    "internal_name": "Block Party (Diamond)",
     "name": "Block Party",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -1828,7 +2013,52 @@
       "Karnok"
     ],
     "tags": [],
-    "description": "Get a Friend",
+    "description": "Get a Diamond-tier Friend",
+    "isReselectable": false
+  },
+  "Block Party <71c529a8>": {
+    "id": "71c529a8-7366-4f69-b2ab-4f0eec8573b5",
+    "internal_name": "Block Party (Silver)",
+    "name": "Block Party",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Silver-tier Friend",
+    "isReselectable": false
+  },
+  "Block Party <db314574>": {
+    "id": "db314574-3ebe-49e1-8b87-c6b3678a7368",
+    "internal_name": "Block Party (Gold)",
+    "name": "Block Party",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Gold-tier Friend",
+    "isReselectable": false
+  },
+  "Block Party <efdb2b8a>": {
+    "id": "efdb2b8a-7475-47fe-ad84-8a40ab49c27e",
+    "internal_name": "Block Party (Bronze)",
+    "name": "Block Party",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Bronze-tier Friend",
     "isReselectable": false
   },
   "Blood Price": {
@@ -1974,32 +2204,6 @@
     "description": "Lose {ability.0} Income and gain {ability.1} Gold",
     "isReselectable": false
   },
-  "Borrow <41dbae7b>": {
-    "id": "41dbae7b-38ec-4e27-9964-92ff0b0ee4d1",
-    "internal_name": "Borrow (Day 3-4)",
-    "name": "Borrow",
-    "cache_type": "TCardEncounterEvent",
-    "type": "EventEncounter",
-    "heroes": [
-      "Common"
-    ],
-    "tags": [],
-    "description": "Lose {ability.0} Income and gain {ability.1} Gold",
-    "isReselectable": false
-  },
-  "Borrow <f32d036c>": {
-    "id": "f32d036c-8468-4b4d-aecb-49d3e1302ba7",
-    "internal_name": "Borrow (Day 5-6)",
-    "name": "Borrow",
-    "cache_type": "TCardEncounterEvent",
-    "type": "EventEncounter",
-    "heroes": [
-      "Common"
-    ],
-    "tags": [],
-    "description": "Lose {ability.0} Income and gain {ability.1} Gold",
-    "isReselectable": false
-  },
   "Boss Harrow": {
     "id": "4ccdd72f-cfce-4ea6-9bda-caabd5b0fbf8",
     "internal_name": "Boss Harrow",
@@ -2027,8 +2231,8 @@
     "isReselectable": false
   },
   "Botanical Gardens": {
-    "id": "8251155c-f8b0-4dbc-9a42-fd2448a30171",
-    "internal_name": "Botanical Gardens",
+    "id": "1bd4edc9-0cb9-49f7-bc03-703c36835de1",
+    "internal_name": "Botanical Gardens (Silver)",
     "name": "Botanical Gardens",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -2037,7 +2241,49 @@
       "Mak"
     ],
     "tags": [],
-    "description": "Get a Poison item",
+    "description": "Get a Silver-tier Poison item",
+    "isReselectable": false
+  },
+  "Botanical Gardens <8251155c>": {
+    "id": "8251155c-f8b0-4dbc-9a42-fd2448a30171",
+    "internal_name": "Botanical Gardens (Bronze)",
+    "name": "Botanical Gardens",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Vanessa",
+      "Mak"
+    ],
+    "tags": [],
+    "description": "Get a Bronze-tier Poison item",
+    "isReselectable": false
+  },
+  "Botanical Gardens <b4d4dae0>": {
+    "id": "b4d4dae0-708a-452e-87a2-cb87b308c1ac",
+    "internal_name": "Botanical Gardens (Gold)",
+    "name": "Botanical Gardens",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Vanessa",
+      "Mak"
+    ],
+    "tags": [],
+    "description": "Get a Gold-tier Poison item",
+    "isReselectable": false
+  },
+  "Botanical Gardens <b6baa6f3>": {
+    "id": "b6baa6f3-7321-4d14-9412-68acdab57d9c",
+    "internal_name": "Botanical Gardens (Diamond)",
+    "name": "Botanical Gardens",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Vanessa",
+      "Mak"
+    ],
+    "tags": [],
+    "description": "Get a Diamond-tier Poison item",
     "isReselectable": false
   },
   "Botul": {
@@ -2109,8 +2355,8 @@
     "isReselectable": false
   },
   "Bountiful Harvest": {
-    "id": "facaa0bc-ddb9-48dc-8be7-f44b8a07df00",
-    "internal_name": "Bountiful Harvest",
+    "id": "1a508bee-0dba-4110-9402-f372bb6c6137",
+    "internal_name": "Bountiful Harvest (Silver)",
     "name": "Bountiful Harvest",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -2118,7 +2364,46 @@
       "Jules"
     ],
     "tags": [],
-    "description": "Get a Food",
+    "description": "Get a Silver-tier Food",
+    "isReselectable": false
+  },
+  "Bountiful Harvest <9dea6b33>": {
+    "id": "9dea6b33-264c-4550-9282-80ec297fb070",
+    "internal_name": "Bountiful Harvest (Diamond)",
+    "name": "Bountiful Harvest",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Jules"
+    ],
+    "tags": [],
+    "description": "Get a Diamond-tier Food",
+    "isReselectable": false
+  },
+  "Bountiful Harvest <ec7fa0bf>": {
+    "id": "ec7fa0bf-dc6b-4019-b199-253a1475abf7",
+    "internal_name": "Bountiful Harvest (Gold)",
+    "name": "Bountiful Harvest",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Jules"
+    ],
+    "tags": [],
+    "description": "Get a Gold-tier Food",
+    "isReselectable": false
+  },
+  "Bountiful Harvest <facaa0bc>": {
+    "id": "facaa0bc-ddb9-48dc-8be7-f44b8a07df00",
+    "internal_name": "Bountiful Harvest (Bronze)",
+    "name": "Bountiful Harvest",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Jules"
+    ],
+    "tags": [],
+    "description": "Get a Bronze-tier Food",
     "isReselectable": false
   },
   "Bounty Hunter": {
@@ -2294,7 +2579,7 @@
   },
   "Cabin Fishing": {
     "id": "0c77d216-69de-4a92-9893-5f4b154128dc",
-    "internal_name": "Cabin Fishing",
+    "internal_name": "Cabin Fishing (Bronze)",
     "name": "Cabin Fishing",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -2302,7 +2587,46 @@
       "Vanessa"
     ],
     "tags": [],
-    "description": "Get a Small Aquatic item",
+    "description": "Get a Small Bronze-tier Aquatic item",
+    "isReselectable": false
+  },
+  "Cabin Fishing <3845dfe7>": {
+    "id": "3845dfe7-e077-46a4-9534-02ddb895060a",
+    "internal_name": "Cabin Fishing (Gold)",
+    "name": "Cabin Fishing",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Vanessa"
+    ],
+    "tags": [],
+    "description": "Get a Small Gold-tier Aquatic item",
+    "isReselectable": false
+  },
+  "Cabin Fishing <987abc50>": {
+    "id": "987abc50-90a5-416b-ac98-9220a31737e5",
+    "internal_name": "Cabin Fishing (Silver)",
+    "name": "Cabin Fishing",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Vanessa"
+    ],
+    "tags": [],
+    "description": "Get a Small Silver-tier Aquatic item",
+    "isReselectable": false
+  },
+  "Cabin Fishing <f10a4289>": {
+    "id": "f10a4289-ddb2-46e2-9985-dfefff459951",
+    "internal_name": "Cabin Fishing (Diamond)",
+    "name": "Cabin Fishing",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Vanessa"
+    ],
+    "tags": [],
+    "description": "Get a Small Diamond-tier Aquatic item",
     "isReselectable": false
   },
   "Cache of Riches": {
@@ -2524,6 +2848,19 @@
     ],
     "tags": [],
     "description": "Gain {ability.0} Income. If you have at least 25 Gold, gain an additional {ability.1}",
+    "isReselectable": false
+  },
+  "Capital Punisher": {
+    "id": "e5e65711-035e-4e95-9017-4110aad06f9a",
+    "internal_name": "Capital Punisher",
+    "name": "Capital Punisher",
+    "cache_type": "TCardEncounterCombat",
+    "type": "CombatEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "",
     "isReselectable": false
   },
   "Car Conductor": {
@@ -2779,7 +3116,7 @@
   },
   "Cinder Chase": {
     "id": "168a04a9-d761-4df4-b9d9-0be88fe90f53",
-    "internal_name": "Cinder Chase",
+    "internal_name": "Cinder Chase (Silver)",
     "name": "Cinder Chase",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -2787,12 +3124,12 @@
       "Common"
     ],
     "tags": [],
-    "description": "Get a Cinders (+Burn)",
+    "description": "Get a Silver-tier Cinders (+Burn)",
     "isReselectable": false
   },
-  "Cinder Chase <5f5d089d>": {
-    "id": "5f5d089d-28f1-4d87-afff-37b23f98c819",
-    "internal_name": "Cinder Chase (Day 4-6)",
+  "Cinder Chase <176ebe3f>": {
+    "id": "176ebe3f-4e14-4b8e-9704-98cd8e95190c",
+    "internal_name": "Cinder Chase (Bronze)",
     "name": "Cinder Chase",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -2800,12 +3137,12 @@
       "Common"
     ],
     "tags": [],
-    "description": "Get a Silver-tier Cinders",
+    "description": "Get a Bronze-tier Cinders (+Burn)",
     "isReselectable": false
   },
-  "Cinder Chase <66cb2add>": {
-    "id": "66cb2add-3b1a-47d9-99a9-07123eee28f3",
-    "internal_name": "Cinder Chase (Day 10)",
+  "Cinder Chase <3ee61d8b>": {
+    "id": "3ee61d8b-775f-4d75-a043-1975e1cbb55f",
+    "internal_name": "Cinder Chase (Gold)",
     "name": "Cinder Chase",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -2813,12 +3150,12 @@
       "Common"
     ],
     "tags": [],
-    "description": "Get a Diamond-tier Cinders",
+    "description": "Get a Gold-tier Cinders (+Burn)",
     "isReselectable": false
   },
-  "Cinder Chase <e394b35f>": {
-    "id": "e394b35f-0ab3-4947-a7f8-67bfda70153e",
-    "internal_name": "Cinder Chase (Day 7-9)",
+  "Cinder Chase <9c8fa101>": {
+    "id": "9c8fa101-03e7-4e29-aca6-01c05f47faf8",
+    "internal_name": "Cinder Chase (Diamond)",
     "name": "Cinder Chase",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -2826,7 +3163,7 @@
       "Common"
     ],
     "tags": [],
-    "description": "Get a Gold-tier Cinders",
+    "description": "Get a Diamond-tier Cinders (+Burn)",
     "isReselectable": false
   },
   "Cinders": {
@@ -3390,7 +3727,7 @@
   },
   "Cupboard": {
     "id": "13b4c0cd-313d-4e0f-9a51-eb4d288f32a5",
-    "internal_name": "Cupboard",
+    "internal_name": "Cupboard (Bronze)",
     "name": "Cupboard",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -3398,7 +3735,46 @@
       "Jules"
     ],
     "tags": [],
-    "description": "Get a Small Food",
+    "description": "Get a Small Bronze-tier Food",
+    "isReselectable": false
+  },
+  "Cupboard <6de772fb>": {
+    "id": "6de772fb-6a02-4b8c-a2c2-26023472ca31",
+    "internal_name": "Cupboard (Diamond)",
+    "name": "Cupboard",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Jules"
+    ],
+    "tags": [],
+    "description": "Get a Small Diamond-tier Food",
+    "isReselectable": false
+  },
+  "Cupboard <7421cca5>": {
+    "id": "7421cca5-1d3e-4cf8-afa0-a3ce0c06e1c1",
+    "internal_name": "Cupboard (Gold)",
+    "name": "Cupboard",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Jules"
+    ],
+    "tags": [],
+    "description": "Get a Small Gold-tier Food",
+    "isReselectable": false
+  },
+  "Cupboard <f0a36d78>": {
+    "id": "f0a36d78-d446-4d57-81e0-9dfe942e4307",
+    "internal_name": "Cupboard (Silver)",
+    "name": "Cupboard",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Jules"
+    ],
+    "tags": [],
+    "description": "Get a Small Silver-tier Food",
     "isReselectable": false
   },
   "Curio": {
@@ -3564,8 +3940,8 @@
     "isReselectable": false
   },
   "Deep Sea Fishing": {
-    "id": "9e3c43fe-0205-4bf6-9da9-2b9bbbef8a65",
-    "internal_name": "Deep Sea Fishing",
+    "id": "2584cba4-fa60-4132-9e46-40f7eb9ee95d",
+    "internal_name": "Deep Sea Fishing (Gold)",
     "name": "Deep Sea Fishing",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -3573,7 +3949,46 @@
       "Vanessa"
     ],
     "tags": [],
-    "description": "Get an Aquatic item",
+    "description": "Get a Gold-tier Aquatic item",
+    "isReselectable": false
+  },
+  "Deep Sea Fishing <36b24aae>": {
+    "id": "36b24aae-977a-40f4-a5d1-05deae478215",
+    "internal_name": "Deep Sea Fishing (Silver)",
+    "name": "Deep Sea Fishing",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Vanessa"
+    ],
+    "tags": [],
+    "description": "Get a Silver-tier Aquatic item",
+    "isReselectable": false
+  },
+  "Deep Sea Fishing <6a8a9d37>": {
+    "id": "6a8a9d37-f88b-4da8-a1fa-3584a4bd5c3d",
+    "internal_name": "Deep Sea Fishing (Diamond)",
+    "name": "Deep Sea Fishing",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Vanessa"
+    ],
+    "tags": [],
+    "description": "Get a Diamond-tier Aquatic item",
+    "isReselectable": false
+  },
+  "Deep Sea Fishing <9e3c43fe>": {
+    "id": "9e3c43fe-0205-4bf6-9da9-2b9bbbef8a65",
+    "internal_name": "Deep Sea Fishing (Bronze)",
+    "name": "Deep Sea Fishing",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Vanessa"
+    ],
+    "tags": [],
+    "description": "Get a Bronze-tier Aquatic item",
     "isReselectable": false
   },
   "Defensive Drills": {
@@ -3642,8 +4057,8 @@
     "isReselectable": false
   },
   "Dino Trapping": {
-    "id": "ae81a2e5-66c3-4bda-82ad-f9657add738a",
-    "internal_name": "Dino Trapping",
+    "id": "4e6d3224-affa-49a8-90ef-c6c9c986f786",
+    "internal_name": "Dino Trapping (Diamond)",
     "name": "Dino Trapping",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -3651,7 +4066,46 @@
       "Dooley"
     ],
     "tags": [],
-    "description": "Get a Dinosaur",
+    "description": "Get a Diamond-tier Dinosaur",
+    "isReselectable": false
+  },
+  "Dino Trapping <88416f83>": {
+    "id": "88416f83-e642-4a1f-82ad-d80d9a9a57bb",
+    "internal_name": "Dino Trapping (Silver)",
+    "name": "Dino Trapping",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Dooley"
+    ],
+    "tags": [],
+    "description": "Get a Silver-tier Dinosaur",
+    "isReselectable": false
+  },
+  "Dino Trapping <ae81a2e5>": {
+    "id": "ae81a2e5-66c3-4bda-82ad-f9657add738a",
+    "internal_name": "Dino Trapping (Bronze)",
+    "name": "Dino Trapping",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Dooley"
+    ],
+    "tags": [],
+    "description": "Get a Bronze-tier Dinosaur",
+    "isReselectable": false
+  },
+  "Dino Trapping <f785c906>": {
+    "id": "f785c906-9f01-4641-80a6-b7cc360c271a",
+    "internal_name": "Dino Trapping (Gold)",
+    "name": "Dino Trapping",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Dooley"
+    ],
+    "tags": [],
+    "description": "Get a Gold-tier Dinosaur",
     "isReselectable": false
   },
   "Dinosaur Training": {
@@ -4066,6 +4520,32 @@
     "description": "Enchant your leftmost Burn item",
     "isReselectable": false
   },
+  "Enchant <472d42cc>": {
+    "id": "472d42cc-6d6b-4302-a3f7-a516d8ea447f",
+    "internal_name": "Enchant (Launch Tower)",
+    "name": "Enchant",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Enchant your leftmost Flying item",
+    "isReselectable": false
+  },
+  "Enchant <68d636dc>": {
+    "id": "68d636dc-41ce-4b27-a78b-2d8a48832b17",
+    "internal_name": "Enchant (Robotics Factory)",
+    "name": "Enchant",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Enchant your leftmost Tech item",
+    "isReselectable": false
+  },
   "Enchant <6dd18408>": {
     "id": "6dd18408-93e7-46d3-9835-6b93d3294c0a",
     "internal_name": "Enchant (Form)",
@@ -4077,6 +4557,45 @@
     ],
     "tags": [],
     "description": "Enchant your leftmost Weapon",
+    "isReselectable": false
+  },
+  "Enchant <701ae479>": {
+    "id": "701ae479-3ccc-4519-bd91-4a455020a218",
+    "internal_name": "Enchant (Farmer's Market)",
+    "name": "Enchant",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Enchant your leftmost Food",
+    "isReselectable": false
+  },
+  "Enchant <b643022f>": {
+    "id": "b643022f-5be3-4348-8f92-555021377d94",
+    "internal_name": "Enchant (Aurora Dome)",
+    "name": "Enchant",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Enchant your leftmost item without a Cooldown",
+    "isReselectable": false
+  },
+  "Enchant <d1ecfe55>": {
+    "id": "d1ecfe55-0a61-4dc8-a38f-a3d3f76dba29",
+    "internal_name": "Enchant (Tomb of the Ancients)",
+    "name": "Enchant",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Enchant your leftmost Relic",
     "isReselectable": false
   },
   "Enchant <d811b730>": {
@@ -4158,6 +4677,19 @@
     "isReselectable": false
   },
   "Engrave": {
+    "id": "3f882d8b-e4ca-4196-8b25-d51ded702a60",
+    "internal_name": "Engrave (Aurora Dome)",
+    "name": "Engrave",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Your leftmost Shield, Damage or Heal item without a Cooldown gains +{ability.0}, +{ability.1}, and +{ability.2}",
+    "isReselectable": false
+  },
+  "Engrave <5c32f19b>": {
     "id": "5c32f19b-114c-44fe-a4a5-cb96b99f0917",
     "internal_name": "Engrave (Form)",
     "name": "Engrave",
@@ -4353,8 +4885,8 @@
     "isReselectable": false
   },
   "Excavation": {
-    "id": "8f83e037-1420-4210-a2b0-b4d80f7d86f5",
-    "internal_name": "Excavation",
+    "id": "287ff00b-37f3-4c58-aafe-70272b9b150f",
+    "internal_name": "Excavation (Silver)",
     "name": "Excavation",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -4362,7 +4894,20 @@
       "Common"
     ],
     "tags": [],
-    "description": "Get a Relic from any hero",
+    "description": "Get a Silver-tier Relic from any Hero",
+    "isReselectable": false
+  },
+  "Excavation <8f83e037>": {
+    "id": "8f83e037-1420-4210-a2b0-b4d80f7d86f5",
+    "internal_name": "Excavation (Bronze)",
+    "name": "Excavation",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Get a Bronze-tier Relic from any Hero",
     "isReselectable": false
   },
   "Excavation <91b039eb>": {
@@ -4376,6 +4921,32 @@
     ],
     "tags": [],
     "description": "Get a Relic from any hero.",
+    "isReselectable": false
+  },
+  "Excavation <aebbf2cb>": {
+    "id": "aebbf2cb-acbc-4cc7-86a8-ac9f49756d35",
+    "internal_name": "Excavation (Gold)",
+    "name": "Excavation",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Get a Gold-tier Relic from any Hero",
+    "isReselectable": false
+  },
+  "Excavation <c2ecd101>": {
+    "id": "c2ecd101-b69d-42ed-a0e9-f8bb84b0fa09",
+    "internal_name": "Excavation (Diamond)",
+    "name": "Excavation",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Get a Diamond-tier Relic from any Hero",
     "isReselectable": false
   },
   "Exceed": {
@@ -4392,6 +4963,19 @@
     "isReselectable": false
   },
   "Expand": {
+    "id": "749fcc70-6a37-4fb9-a7de-312764ade5ea",
+    "internal_name": "Expand (Aurora Dome)",
+    "name": "Expand",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Your leftmost Burn, Poison or Regen item without a Cooldown gains +{ability.0}, +{ability.1}, and +{ability.2}",
+    "isReselectable": false
+  },
+  "Expand <837a39d6>": {
     "id": "837a39d6-e366-437e-b69a-56f44d359e67",
     "internal_name": "Expand (Form)",
     "name": "Expand",
@@ -4482,6 +5066,58 @@
     "description": "Your leftmost Poison item gains {ability.0}% Crit Chance",
     "isReselectable": false
   },
+  "Exploit <6cadc8d8>": {
+    "id": "6cadc8d8-1330-4774-af84-11a1ed9930b4",
+    "internal_name": "Exploit (Farmer's Market)",
+    "name": "Exploit",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Your leftmost Food gains {ability.0}% Crit Chance",
+    "isReselectable": false
+  },
+  "Exploit <8c504902>": {
+    "id": "8c504902-831c-4948-b160-c7f4a0f53f76",
+    "internal_name": "Exploit (Launch Tower)",
+    "name": "Exploit",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Your leftmost Flying item gains {ability.0}% Crit Chance",
+    "isReselectable": false
+  },
+  "Exploit <972a2a7d>": {
+    "id": "972a2a7d-890e-4cfb-b87a-457c58d503c3",
+    "internal_name": "Exploit (Robotics Factory)",
+    "name": "Exploit",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Your leftmost Tech item gains {ability.0}% Crit Chance",
+    "isReselectable": false
+  },
+  "Exploit <ddae6310>": {
+    "id": "ddae6310-7863-44f4-9709-1d65e810a2dc",
+    "internal_name": "Exploit (Tomb of the Ancients)",
+    "name": "Exploit",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Your leftmost Relic gains {ability.0}% Crit Chance",
+    "isReselectable": false
+  },
   "Explore the Zoology Lab": {
     "id": "b594f459-30db-442f-aa19-62804e466e43",
     "internal_name": "[Crash Site Expedition] Zoology",
@@ -4524,8 +5160,8 @@
     "isReselectable": false
   },
   "Extract Extract": {
-    "id": "d896d88c-91e8-4950-9670-0c42f9fd5a92",
-    "internal_name": "Extract Extract",
+    "id": "30101d11-aff6-430e-a2e4-57c261111933",
+    "internal_name": "Extract Extract (Diamond)",
     "name": "Extract Extract",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -4536,7 +5172,107 @@
       "Karnok"
     ],
     "tags": [],
-    "description": "Get an Extract (+Poison)",
+    "description": "Get an Diamond-tier Extract (+Poison)",
+    "isReselectable": false
+  },
+  "Extract Extract <9ed55b8e>": {
+    "id": "9ed55b8e-6ac3-4fdf-898e-30e181e6c88c",
+    "internal_name": "Extract Extract (Gold)",
+    "name": "Extract Extract",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Mak",
+      "Dooley",
+      "Vanessa",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get an Gold-tier Extract (+Poison)",
+    "isReselectable": false
+  },
+  "Extract Extract <adeccad5>": {
+    "id": "adeccad5-0430-4a3a-a305-d007788f7627",
+    "internal_name": "Extract Extract (Bronze)",
+    "name": "Extract Extract",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Mak",
+      "Dooley",
+      "Vanessa",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get an Bronze-tier Extract (+Poison)",
+    "isReselectable": false
+  },
+  "Extract Extract <d896d88c>": {
+    "id": "d896d88c-91e8-4950-9670-0c42f9fd5a92",
+    "internal_name": "Extract Extract (Silver)",
+    "name": "Extract Extract",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Mak",
+      "Dooley",
+      "Vanessa",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get an Silver-tier Extract (+Poison)",
+    "isReselectable": false
+  },
+  "Extract Loot": {
+    "id": "4ad0d780-c2b9-45cf-9da8-37a7daae72e7",
+    "internal_name": "Extract Loot (Salvage Yard) - Variant 4",
+    "name": "Extract Loot",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Transform your Stash items into Loot items based on their tags",
+    "isReselectable": false
+  },
+  "Extract Loot <7b3a2f43>": {
+    "id": "7b3a2f43-e22e-4c7f-bc40-f034c3347473",
+    "internal_name": "Extract Loot (Salvage Yard) - Variant 2",
+    "name": "Extract Loot",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Transform your Stash items into Loot items based on their tags",
+    "isReselectable": false
+  },
+  "Extract Loot <d775190c>": {
+    "id": "d775190c-1dd8-4f1b-a4d0-b79ff900a973",
+    "internal_name": "Extract Loot (Salvage Yard) - Variant 3",
+    "name": "Extract Loot",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Transform your Stash items into Loot items based on their tags",
+    "isReselectable": false
+  },
+  "Extract Loot <ee9e54e4>": {
+    "id": "ee9e54e4-dc74-46df-95a6-a2e9b83e7116",
+    "internal_name": "Extract Loot (Salvage Yard)",
+    "name": "Extract Loot",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Transform your Stash items into Loot items based on their tags",
     "isReselectable": false
   },
   "Fairy Circle": {
@@ -4643,6 +5379,19 @@
     "description": "(if you have Farmer's Market)\nPermanently gain 5% Max Health [{ability.0}] and gain {ability.1} Gold",
     "isReselectable": false
   },
+  "Farmer's Market": {
+    "id": "f40135ba-ddcb-405e-aefb-c085c4a397cd",
+    "internal_name": "Farmer's Market (Encounter)",
+    "name": "Farmer's Market",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Jules"
+    ],
+    "tags": [],
+    "description": "Improve your Food",
+    "isReselectable": false
+  },
   "Fate's Bounty": {
     "id": "1de21736-989a-48ec-aee5-0a4c2134afa3",
     "internal_name": "Fate's Bounty",
@@ -4692,7 +5441,7 @@
       "Common"
     ],
     "tags": [],
-    "description": "Upgrade your Bronze-tier and Silver-tier items to Gold",
+    "description": "Upgrade all your items",
     "isReselectable": false
   },
   "Feather": {
@@ -5240,8 +5989,8 @@
     "isReselectable": false
   },
   "Freezer": {
-    "id": "24633cbe-9198-4d1c-be90-0108cd170fb2",
-    "internal_name": "Freezer",
+    "id": "1b34f123-434c-4b88-bfc8-5fb2d245e1b1",
+    "internal_name": "Freezer (Gold)",
     "name": "Freezer",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -5251,7 +6000,52 @@
       "Mak"
     ],
     "tags": [],
-    "description": "Get a Freeze item",
+    "description": "Get a Gold-tier Freeze item",
+    "isReselectable": false
+  },
+  "Freezer <1f56ada9>": {
+    "id": "1f56ada9-2f87-469e-ad8b-29f7bc5754f2",
+    "internal_name": "Freezer (Silver)",
+    "name": "Freezer",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Pygmalien",
+      "Jules",
+      "Mak"
+    ],
+    "tags": [],
+    "description": "Get a Silver-tier Freeze item",
+    "isReselectable": false
+  },
+  "Freezer <24633cbe>": {
+    "id": "24633cbe-9198-4d1c-be90-0108cd170fb2",
+    "internal_name": "Freezer (Bronze)",
+    "name": "Freezer",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Pygmalien",
+      "Jules",
+      "Mak"
+    ],
+    "tags": [],
+    "description": "Get a Bronze-tier Freeze item",
+    "isReselectable": false
+  },
+  "Freezer <3b70cc4c>": {
+    "id": "3b70cc4c-867d-4a04-a9c4-e09726d8b211",
+    "internal_name": "Freezer (Diamond)",
+    "name": "Freezer",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Pygmalien",
+      "Jules",
+      "Mak"
+    ],
+    "tags": [],
+    "description": "Get a Diamond-tier Freeze item",
     "isReselectable": false
   },
   "Freiya": {
@@ -5349,7 +6143,7 @@
   },
   "Furnace": {
     "id": "086e814f-5525-4747-b783-3279f1e67880",
-    "internal_name": "Furnace",
+    "internal_name": "Furnace (Bronze)",
     "name": "Furnace",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -5361,7 +6155,58 @@
       "Mak"
     ],
     "tags": [],
-    "description": "Get a Small Burn item",
+    "description": "Get a Small Bronze-tier Burn item",
+    "isReselectable": false
+  },
+  "Furnace <3f758597>": {
+    "id": "3f758597-56ae-400e-bc5b-92978fbe6b2c",
+    "internal_name": "Furnace (Gold)",
+    "name": "Furnace",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [],
+    "description": "Get a Small Gold-tier Burn item",
+    "isReselectable": false
+  },
+  "Furnace <69a2a91d>": {
+    "id": "69a2a91d-326d-44de-bfd6-a8ad68440a40",
+    "internal_name": "Furnace (Diamond)",
+    "name": "Furnace",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [],
+    "description": "Get a Small Diamond-tier Burn item",
+    "isReselectable": false
+  },
+  "Furnace <8b4d74f6>": {
+    "id": "8b4d74f6-6491-40d6-87da-023672144e03",
+    "internal_name": "Furnace (Silver)",
+    "name": "Furnace",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [],
+    "description": "Get a Small Silver-tier Burn item",
     "isReselectable": false
   },
   "Futura": {
@@ -6284,7 +7129,7 @@
   },
   "Guard Locker": {
     "id": "97147e21-62ef-4067-b7d5-d0cb0736775f",
-    "internal_name": "Guard Locker",
+    "internal_name": "Guard Locker (Bronze)",
     "name": "Guard Locker",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -6297,7 +7142,61 @@
       "Karnok"
     ],
     "tags": [],
-    "description": "Get a Small Shield item",
+    "description": "Get a Small Bronze-tier Shield item",
+    "isReselectable": false
+  },
+  "Guard Locker <bc1ed5b8>": {
+    "id": "bc1ed5b8-9603-41f2-9d03-b1ff423484aa",
+    "internal_name": "Guard Locker (Gold)",
+    "name": "Guard Locker",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Small Gold-tier Shield item",
+    "isReselectable": false
+  },
+  "Guard Locker <f7467c4b>": {
+    "id": "f7467c4b-87c5-4e55-957b-813ac703a3c1",
+    "internal_name": "Guard Locker (Silver)",
+    "name": "Guard Locker",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Small Silver-tier Shield item",
+    "isReselectable": false
+  },
+  "Guard Locker <fbc087d9>": {
+    "id": "fbc087d9-f0d5-48a2-8c83-f9fccd572b4b",
+    "internal_name": "Guard Locker (Diamond)",
+    "name": "Guard Locker",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Small Diamond-tier Shield item",
     "isReselectable": false
   },
   "Guardian's Gorge": {
@@ -6379,8 +7278,8 @@
     "isReselectable": false
   },
   "Gunpowder Cache": {
-    "id": "acaf7c4f-ecd4-4af1-a79c-c5b0b20ee21f",
-    "internal_name": "Gunpowder Cache",
+    "id": "55cb2028-845d-476b-8e28-8cba27cc22d9",
+    "internal_name": "Gunpowder Cache (Gold)",
     "name": "Gunpowder Cache",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -6390,7 +7289,37 @@
       "Karnok"
     ],
     "tags": [],
-    "description": "Get a Gunpowder (+Ammo)",
+    "description": "Get a Gold-tier Gunpowder (+Ammo)",
+    "isReselectable": false
+  },
+  "Gunpowder Cache <57db7d4b>": {
+    "id": "57db7d4b-421a-4869-b7be-d969b494f508",
+    "internal_name": "Gunpowder Cache (Diamond)",
+    "name": "Gunpowder Cache",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Mak",
+      "Vanessa",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Diamond-tier Gunpowder (+Ammo)",
+    "isReselectable": false
+  },
+  "Gunpowder Cache <acaf7c4f>": {
+    "id": "acaf7c4f-ecd4-4af1-a79c-c5b0b20ee21f",
+    "internal_name": "Gunpowder Cache (Silver)",
+    "name": "Gunpowder Cache",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Mak",
+      "Vanessa",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Silver-tier Gunpowder (+Ammo)",
     "isReselectable": false
   },
   "Hack the Mainframe": {
@@ -6484,6 +7413,58 @@
     ],
     "tags": [],
     "description": "",
+    "isReselectable": false
+  },
+  "Hasten": {
+    "id": "0b4e6187-ab67-4e55-8495-a918ff44ec65",
+    "internal_name": "Hasten (Farmer's Market)",
+    "name": "Hasten",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Reduce your Foods' Cooldowns by {ability.0}%",
+    "isReselectable": false
+  },
+  "Hasten <8f92e02e>": {
+    "id": "8f92e02e-a826-4a00-a5d9-b1f9a0cf4739",
+    "internal_name": "Hasten (Tomb of the Ancients)",
+    "name": "Hasten",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Reduce your Relics' Cooldowns by {ability.0}%",
+    "isReselectable": false
+  },
+  "Hasten <c43289d9>": {
+    "id": "c43289d9-e488-4cb5-955c-170e1c00edff",
+    "internal_name": "Hasten (Launch Tower)",
+    "name": "Hasten",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Reduce your Flying items' Cooldowns by {ability.0}%",
+    "isReselectable": false
+  },
+  "Hasten <d0eeae5c>": {
+    "id": "d0eeae5c-67ee-4276-a37e-15783da3ab55",
+    "internal_name": "Hasten (Robotics Factory)",
+    "name": "Hasten",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Reduce your Tech items' Cooldowns by {ability.0}%",
     "isReselectable": false
   },
   "Haunted Kimono": {
@@ -6733,7 +7714,7 @@
   },
   "Hospital": {
     "id": "a79c70c6-44a8-4553-b715-2e25c83c3b8c",
-    "internal_name": "Hospital",
+    "internal_name": "Hospital (Bronze)",
     "name": "Hospital",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -6743,7 +7724,52 @@
       "Karnok"
     ],
     "tags": [],
-    "description": "Get a Heal or Regen item",
+    "description": "Get a Bronze-tier Heal or Regen item",
+    "isReselectable": false
+  },
+  "Hospital <c1c4c655>": {
+    "id": "c1c4c655-4c5b-4873-bdce-3832c65e4d8e",
+    "internal_name": "Hospital (Diamond)",
+    "name": "Hospital",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Pygmalien",
+      "Mak",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Diamond-tier Heal or Regen item",
+    "isReselectable": false
+  },
+  "Hospital <d36cb96b>": {
+    "id": "d36cb96b-be1a-418c-985a-1a49cb5a7036",
+    "internal_name": "Hospital (Silver)",
+    "name": "Hospital",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Pygmalien",
+      "Mak",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Silver-tier Heal or Regen item",
+    "isReselectable": false
+  },
+  "Hospital <faae3bd7>": {
+    "id": "faae3bd7-8d8f-4561-b127-78e6420a67a5",
+    "internal_name": "Hospital (Gold)",
+    "name": "Hospital",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Pygmalien",
+      "Mak",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Gold-tier Heal or Regen item",
     "isReselectable": false
   },
   "Hostile Takeover": {
@@ -6761,7 +7787,7 @@
   },
   "House Party": {
     "id": "07dabb08-156e-486e-96e2-c0d0e2aaa904",
-    "internal_name": "House Party",
+    "internal_name": "House Party (Bronze)",
     "name": "House Party",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -6771,7 +7797,52 @@
       "Karnok"
     ],
     "tags": [],
-    "description": "Get a Small Friend",
+    "description": "Get a Small Bronze-tier Friend",
+    "isReselectable": false
+  },
+  "House Party <25543cb9>": {
+    "id": "25543cb9-e918-4e8b-98e3-10b07c475162",
+    "internal_name": "House Party (Gold)",
+    "name": "House Party",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Small Gold-tier Friend",
+    "isReselectable": false
+  },
+  "House Party <2b3bbe43>": {
+    "id": "2b3bbe43-06b7-4dcd-b486-a9d9b337ace1",
+    "internal_name": "House Party (Silver)",
+    "name": "House Party",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Small Silver-tier Friend",
+    "isReselectable": false
+  },
+  "House Party <4ecd92f8>": {
+    "id": "4ecd92f8-43d3-419d-9abf-95d3a53d3e0f",
+    "internal_name": "House Party (Diamond)",
+    "name": "House Party",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Small Diamond-tier Friend",
     "isReselectable": false
   },
   "Hoverbike Hooligan": {
@@ -7155,7 +8226,20 @@
   },
   "Invest in Yourself": {
     "id": "8ece0ce0-1b20-41da-a3d9-262f2038af58",
-    "internal_name": "Invest in Yourself (Day 4-6)",
+    "internal_name": "Invest in Yourself (Day 3-4)",
+    "name": "Invest in Yourself",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Gain {ability.0} Income",
+    "isReselectable": false
+  },
+  "Invest in Yourself <b69e0b6d>": {
+    "id": "b69e0b6d-d4c2-4017-a4b4-43e4369600b1",
+    "internal_name": "Invest in Yourself (Day 5-6)",
     "name": "Invest in Yourself",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -7168,7 +8252,7 @@
   },
   "Invest in Yourself <f6430efe>": {
     "id": "f6430efe-8452-475b-8c8f-5d789b914a3f",
-    "internal_name": "Invest in Yourself (Day 1-3)",
+    "internal_name": "Invest in Yourself (Day 1-2)",
     "name": "Invest in Yourself",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -7793,6 +8877,19 @@
     "description": "Look for opportunities in the Financial District",
     "isReselectable": false
   },
+  "Launch Tower": {
+    "id": "df8ff0c9-05cc-4797-aa70-f648e4b283df",
+    "internal_name": "Launch Tower (Encounter)",
+    "name": "Launch Tower",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Stelle"
+    ],
+    "tags": [],
+    "description": "Improve your Flying items",
+    "isReselectable": false
+  },
   "Laurel's Night Terrors": {
     "id": "2d23952b-f0e4-4a7a-ac65-11c7def01679",
     "internal_name": "Laurel's Night Terrors",
@@ -8028,8 +9125,8 @@
     "isReselectable": false
   },
   "Lost and Found": {
-    "id": "ff66c76e-34aa-42fa-99b7-cbd0fba31ecb",
-    "internal_name": "Lost and Found",
+    "id": "4ebea557-6912-4082-9e04-a4c02472fc45",
+    "internal_name": "Lost and Found (Gold)",
     "name": "Lost and Found",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -8037,7 +9134,46 @@
       "Common"
     ],
     "tags": [],
-    "description": "Get a Small non-Weapon item",
+    "description": "Get a Small Gold-tier non-Weapon item",
+    "isReselectable": false
+  },
+  "Lost and Found <592c3f31>": {
+    "id": "592c3f31-a6a0-4b1a-a1d9-4016224f09ab",
+    "internal_name": "Lost and Found (Silver)",
+    "name": "Lost and Found",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Get a Small Silver-tier non-Weapon item",
+    "isReselectable": false
+  },
+  "Lost and Found <9297f1eb>": {
+    "id": "9297f1eb-0435-4483-b530-5b1074210720",
+    "internal_name": "Lost and Found (Diamond)",
+    "name": "Lost and Found",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Get a Small Diamond-tier non-Weapon item",
+    "isReselectable": false
+  },
+  "Lost and Found <ff66c76e>": {
+    "id": "ff66c76e-34aa-42fa-99b7-cbd0fba31ecb",
+    "internal_name": "Lost and Found (Bronze)",
+    "name": "Lost and Found",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Get a Small Bronze-tier non-Weapon item",
     "isReselectable": false
   },
   "Lost Hero": {
@@ -8124,7 +9260,7 @@
   },
   "Mag Storage": {
     "id": "045c8751-0395-4b3b-b703-b11bc96a1944",
-    "internal_name": "Mag Storage",
+    "internal_name": "Mag Storage (Bronze)",
     "name": "Mag Storage",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -8132,7 +9268,46 @@
       "Dooley"
     ],
     "tags": [],
-    "description": "Get a Tech item",
+    "description": "Get a Bronze-tier Tech item",
+    "isReselectable": false
+  },
+  "Mag Storage <17493eb4>": {
+    "id": "17493eb4-2d8c-4bbd-9e9e-8220269dd323",
+    "internal_name": "Mag Storage (Silver)",
+    "name": "Mag Storage",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Dooley"
+    ],
+    "tags": [],
+    "description": "Get a Silver-tier Tech item",
+    "isReselectable": false
+  },
+  "Mag Storage <1f14ebe7>": {
+    "id": "1f14ebe7-5c23-4439-a787-3ca6933ee2ff",
+    "internal_name": "Mag Storage (Diamond)",
+    "name": "Mag Storage",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Dooley"
+    ],
+    "tags": [],
+    "description": "Get a Diamond-tier Tech item",
+    "isReselectable": false
+  },
+  "Mag Storage <497c2eb4>": {
+    "id": "497c2eb4-2b38-4dd9-b41f-a2553416622c",
+    "internal_name": "Mag Storage (Gold)",
+    "name": "Mag Storage",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Dooley"
+    ],
+    "tags": [],
+    "description": "Get a Gold-tier Tech item",
     "isReselectable": false
   },
   "Magic Mirror": {
@@ -8179,6 +9354,305 @@
     ],
     "tags": [],
     "description": "Your journey begins here",
+    "isReselectable": false
+  },
+  "Make a Wish": {
+    "id": "0a677c2c-a3f4-5916-a39b-96b956ee287e",
+    "internal_name": "Make a Wish 3 Day 6 (Wishing Fountain)",
+    "name": "Make a Wish",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "(Cost 12 Gold) Get 5 random items",
+    "isReselectable": false
+  },
+  "Make a Wish <1020c56d>": {
+    "id": "1020c56d-dea7-544b-b1ef-3cf3fdbefb9a",
+    "internal_name": "Make a Wish 2 Day 5 (Wishing Fountain)",
+    "name": "Make a Wish",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "(Cost 5 Gold) Get 3 random items",
+    "isReselectable": false
+  },
+  "Make a Wish <19c53795>": {
+    "id": "19c53795-0082-5cdb-88c3-1356af760233",
+    "internal_name": "Make a Wish 3 Day 4 (Wishing Fountain)",
+    "name": "Make a Wish",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "(Cost 8 Gold) Get 5 random items",
+    "isReselectable": false
+  },
+  "Make a Wish <1e0ab3a3>": {
+    "id": "1e0ab3a3-d3f5-56e1-b56a-1db71362bd26",
+    "internal_name": "Make a Wish 3 Day 1 (Wishing Fountain)",
+    "name": "Make a Wish",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "(Cost 2 Gold) Get 5 random items",
+    "isReselectable": false
+  },
+  "Make a Wish <20864d31>": {
+    "id": "20864d31-edfe-57ec-bd78-a33e792d85d3",
+    "internal_name": "Make a Wish 3 Day 7 (Wishing Fountain)",
+    "name": "Make a Wish",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "(Cost 14 Gold) Get 5 random items",
+    "isReselectable": false
+  },
+  "Make a Wish <3aaaaccc>": {
+    "id": "3aaaaccc-98a6-4d3b-8585-469d8abef2df",
+    "internal_name": "Make a Wish 2 (Wishing Fountain)",
+    "name": "Make a Wish",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "(Cost 4 Gold) Get 3 random items",
+    "isReselectable": false
+  },
+  "Make a Wish <3b5e2b57>": {
+    "id": "3b5e2b57-bb9a-5b57-8fb4-25caa3a5288d",
+    "internal_name": "Make a Wish 2 Day 3 (Wishing Fountain)",
+    "name": "Make a Wish",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "(Cost 3 Gold) Get 3 random items",
+    "isReselectable": false
+  },
+  "Make a Wish <3c360900>": {
+    "id": "3c360900-f224-5bac-9754-0c881e6763f9",
+    "internal_name": "Make a Wish 2 Day 10 (Wishing Fountain)",
+    "name": "Make a Wish",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "(Cost 10 Gold) Get 3 random items",
+    "isReselectable": false
+  },
+  "Make a Wish <42c840b1>": {
+    "id": "42c840b1-24ee-5abe-a9e7-b1cc6f386543",
+    "internal_name": "Make a Wish 3 Day 8 (Wishing Fountain)",
+    "name": "Make a Wish",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "(Cost 16 Gold) Get 5 random items",
+    "isReselectable": false
+  },
+  "Make a Wish <59ee7b73>": {
+    "id": "59ee7b73-4da2-409b-9e6a-8a5363304559",
+    "internal_name": "Make a Wish (Wishing Fountain)",
+    "name": "Make a Wish",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Get a random item",
+    "isReselectable": false
+  },
+  "Make a Wish <5eca3c0f>": {
+    "id": "5eca3c0f-bf7e-5b19-865e-e7edd40307e6",
+    "internal_name": "Make a Wish 2 Day 7 (Wishing Fountain)",
+    "name": "Make a Wish",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "(Cost 7 Gold) Get 3 random items",
+    "isReselectable": false
+  },
+  "Make a Wish <70a1fbba>": {
+    "id": "70a1fbba-ed95-574f-9f51-8e43f2247c47",
+    "internal_name": "Make a Wish 3 Day 10 (Wishing Fountain)",
+    "name": "Make a Wish",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "(Cost 20 Gold) Get 5 random items",
+    "isReselectable": false
+  },
+  "Make a Wish <805821ad>": {
+    "id": "805821ad-24c6-5edf-b1bd-d87cc865d1ec",
+    "internal_name": "Make a Wish 3 Day 5 (Wishing Fountain)",
+    "name": "Make a Wish",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "(Cost 10 Gold) Get 5 random items",
+    "isReselectable": false
+  },
+  "Make a Wish <88947780>": {
+    "id": "88947780-7a0b-5955-a3da-cbc1096f49c5",
+    "internal_name": "Make a Wish 2 Day 4 (Wishing Fountain)",
+    "name": "Make a Wish",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "(Cost 4 Gold) Get 3 random items",
+    "isReselectable": false
+  },
+  "Make a Wish <9167d8ae>": {
+    "id": "9167d8ae-9774-51bc-8825-df0404052853",
+    "internal_name": "Make a Wish 2 Day 6 (Wishing Fountain)",
+    "name": "Make a Wish",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "(Cost 6 Gold) Get 3 random items",
+    "isReselectable": false
+  },
+  "Make a Wish <97e94b2a>": {
+    "id": "97e94b2a-c5ca-534b-99d9-7fa0282fa285",
+    "internal_name": "Make a Wish 2 Day 9 (Wishing Fountain)",
+    "name": "Make a Wish",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "(Cost 9 Gold) Get 3 random items",
+    "isReselectable": false
+  },
+  "Make a Wish <a248fc5b>": {
+    "id": "a248fc5b-0a10-5722-ba49-13597551203a",
+    "internal_name": "Make a Wish 2 Day 1 (Wishing Fountain)",
+    "name": "Make a Wish",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "(Cost 1 Gold) Get 3 random items",
+    "isReselectable": false
+  },
+  "Make a Wish <a65b9508>": {
+    "id": "a65b9508-3557-52aa-b28a-1fc72d459e95",
+    "internal_name": "Make a Wish 3 Day 9 (Wishing Fountain)",
+    "name": "Make a Wish",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "(Cost 18 Gold) Get 5 random items",
+    "isReselectable": false
+  },
+  "Make a Wish <d88e218a>": {
+    "id": "d88e218a-654b-5a1b-ac5c-80eacf899a51",
+    "internal_name": "Make a Wish 3 Day 2 (Wishing Fountain)",
+    "name": "Make a Wish",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "(Cost 4 Gold) Get 5 random items",
+    "isReselectable": false
+  },
+  "Make a Wish <ee183b01>": {
+    "id": "ee183b01-26e2-5ce5-b4ea-7862f22aeb9f",
+    "internal_name": "Make a Wish 3 Day 3 (Wishing Fountain)",
+    "name": "Make a Wish",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "(Cost 6 Gold) Get 5 random items",
+    "isReselectable": false
+  },
+  "Make a Wish <ef41cd7a>": {
+    "id": "ef41cd7a-1648-510a-be1e-bb7cef6a0d6d",
+    "internal_name": "Make a Wish 2 Day 8 (Wishing Fountain)",
+    "name": "Make a Wish",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "(Cost 8 Gold) Get 3 random items",
+    "isReselectable": false
+  },
+  "Make a Wish <f2011693>": {
+    "id": "f2011693-2253-4386-910d-6ee492a8e185",
+    "internal_name": "Make a Wish 3 (Wishing Fountain)",
+    "name": "Make a Wish",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "(Cost 7 Gold) Get 5 random items",
+    "isReselectable": false
+  },
+  "Make a Wish <fdf4ce6b>": {
+    "id": "fdf4ce6b-3cca-59eb-9905-df27de11132b",
+    "internal_name": "Make a Wish 2 Day 2 (Wishing Fountain)",
+    "name": "Make a Wish",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "(Cost 2 Gold) Get 3 random items",
     "isReselectable": false
   },
   "Malafang": {
@@ -8308,8 +9782,8 @@
     "isReselectable": false
   },
   "Medicine Cabinet": {
-    "id": "76da2ed3-caa0-4420-82a6-a4f5211d012c",
-    "internal_name": "Medicine Cabinet",
+    "id": "0e0a056f-ad2f-4049-b17d-8031393402ec",
+    "internal_name": "Medicine Cabinet (Diamond)",
     "name": "Medicine Cabinet",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -8319,7 +9793,52 @@
       "Karnok"
     ],
     "tags": [],
-    "description": "Get a Small Heal or Regen item",
+    "description": "Get a Small Diamond-tier Heal or Regen item",
+    "isReselectable": false
+  },
+  "Medicine Cabinet <76da2ed3>": {
+    "id": "76da2ed3-caa0-4420-82a6-a4f5211d012c",
+    "internal_name": "Medicine Cabinet (Bronze)",
+    "name": "Medicine Cabinet",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Pygmalien",
+      "Mak",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Small Bronze-tier Heal or Regen item",
+    "isReselectable": false
+  },
+  "Medicine Cabinet <a5980f5b>": {
+    "id": "a5980f5b-4f19-4826-8919-8d88077d6ba0",
+    "internal_name": "Medicine Cabinet (Silver)",
+    "name": "Medicine Cabinet",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Pygmalien",
+      "Mak",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Small Silver-tier Heal or Regen item",
+    "isReselectable": false
+  },
+  "Medicine Cabinet <d237472b>": {
+    "id": "d237472b-0d0e-47d2-b51d-37def1e201dd",
+    "internal_name": "Medicine Cabinet (Gold)",
+    "name": "Medicine Cabinet",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Pygmalien",
+      "Mak",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Small Gold-tier Heal or Regen item",
     "isReselectable": false
   },
   "Meditation": {
@@ -8407,8 +9926,47 @@
     "isReselectable": false
   },
   "Mimic": {
+    "id": "193c4970-1f8e-4c52-8b58-42d11eb8ee03",
+    "internal_name": "Mimic (Diamond)",
+    "name": "Mimic",
+    "cache_type": "TCardEncounterCombat",
+    "type": "CombatEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "",
+    "isReselectable": false
+  },
+  "Mimic <85420ae1>": {
     "id": "85420ae1-363b-4e84-8405-cc1a306b00fb",
-    "internal_name": "Mimic",
+    "internal_name": "Mimic (Bronze)",
+    "name": "Mimic",
+    "cache_type": "TCardEncounterCombat",
+    "type": "CombatEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "",
+    "isReselectable": false
+  },
+  "Mimic <cd2a68cd>": {
+    "id": "cd2a68cd-bc2f-4a4d-b5c0-27905dcd3011",
+    "internal_name": "Mimic (Silver)",
+    "name": "Mimic",
+    "cache_type": "TCardEncounterCombat",
+    "type": "CombatEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "",
+    "isReselectable": false
+  },
+  "Mimic <ea7cb329>": {
+    "id": "ea7cb329-3bb5-4f5c-bbb0-a29135d7aade",
+    "internal_name": "Mimic (Gold)",
     "name": "Mimic",
     "cache_type": "TCardEncounterCombat",
     "type": "CombatEncounter",
@@ -8545,8 +10103,8 @@
     "isReselectable": false
   },
   "Moonlit Meadow": {
-    "id": "8d1dda63-1fb9-44e5-9ed6-e8050d4d65d7",
-    "internal_name": "Moonlit Meadow",
+    "id": "3cb5a1a2-819e-433e-9f41-f5ed77cb04b0",
+    "internal_name": "Moonlit Meadow (Diamond)",
     "name": "Moonlit Meadow",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -8555,7 +10113,49 @@
       "Jules"
     ],
     "tags": [],
-    "description": "Get a Moon Lily (+Regen)",
+    "description": "Get a Diamond-tier Moon Lily (+Regen)",
+    "isReselectable": false
+  },
+  "Moonlit Meadow <4d64d6cd>": {
+    "id": "4d64d6cd-d42a-4a08-bac9-5f1563d6b7eb",
+    "internal_name": "Moonlit Meadow (Bronze)",
+    "name": "Moonlit Meadow",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Mak",
+      "Jules"
+    ],
+    "tags": [],
+    "description": "Get a Bronze-tier Moon Lily (+Regen)",
+    "isReselectable": false
+  },
+  "Moonlit Meadow <8d1dda63>": {
+    "id": "8d1dda63-1fb9-44e5-9ed6-e8050d4d65d7",
+    "internal_name": "Moonlit Meadow (Silver)",
+    "name": "Moonlit Meadow",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Mak",
+      "Jules"
+    ],
+    "tags": [],
+    "description": "Get a Silver-tier Moon Lily (+Regen)",
+    "isReselectable": false
+  },
+  "Moonlit Meadow <9178c378>": {
+    "id": "9178c378-9e59-4e92-9023-17105e0686d3",
+    "internal_name": "Moonlit Meadow (Gold)",
+    "name": "Moonlit Meadow",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Mak",
+      "Jules"
+    ],
+    "tags": [],
+    "description": "Get a Gold-tier Moon Lily (+Regen)",
     "isReselectable": false
   },
   "Morguloth": {
@@ -9099,7 +10699,7 @@
   },
   "Obstacle Course": {
     "id": "3bb35f2f-3474-4edb-98a7-d7588fb20f74",
-    "internal_name": "Obstacle Course",
+    "internal_name": "Obstacle Course (Bronze)",
     "name": "Obstacle Course",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -9110,7 +10710,23 @@
       "Karnok"
     ],
     "tags": [],
-    "description": "Get a Slow item",
+    "description": "Get a Bronze-tier Slow item",
+    "isReselectable": false
+  },
+  "Obstacle Course <6e4b782d>": {
+    "id": "6e4b782d-d4e4-43ac-93cd-4ee46d680d48",
+    "internal_name": "Obstacle Course (Diamond)",
+    "name": "Obstacle Course",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Diamond-tier Slow item",
     "isReselectable": false
   },
   "Obstacle Course <7077c578>": {
@@ -9124,6 +10740,38 @@
     ],
     "tags": [],
     "description": "Get a Slow item.",
+    "isReselectable": false
+  },
+  "Obstacle Course <7b5bd866>": {
+    "id": "7b5bd866-3b46-4bc0-b5dc-e5458c67cf9d",
+    "internal_name": "Obstacle Course (Gold)",
+    "name": "Obstacle Course",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Gold-tier Slow item",
+    "isReselectable": false
+  },
+  "Obstacle Course <d21fae9a>": {
+    "id": "d21fae9a-1cb4-40f2-8574-9c72b51a1ce1",
+    "internal_name": "Obstacle Course (Silver)",
+    "name": "Obstacle Course",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Silver-tier Slow item",
     "isReselectable": false
   },
   "Old Memories": {
@@ -9337,7 +10985,7 @@
       "Common"
     ],
     "tags": [],
-    "description": "Transform and upgrade all your non-Legendary items into items from any Hero",
+    "description": "Transform and upgrade all your non-Legendary items into items from any Hero, then gain {ability.4} Prestige",
     "isReselectable": false
   },
   "Pearl's Dig Site": {
@@ -9926,6 +11574,21 @@
     "description": "Visit one of 3 Diamond-tier Merchants",
     "isReselectable": false
   },
+  "Private Pitchfork": {
+    "id": "15b88e74-024e-40a3-a811-aa5810e68ca2",
+    "internal_name": "Private Pitchfork",
+    "name": "Private Pitchfork",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [
+      "merchant"
+    ],
+    "description": "Sells Neutral items",
+    "isReselectable": false
+  },
   "Proceed to the Vault": {
     "id": "3580fc86-3a8c-48b6-8f24-f732908077bd",
     "internal_name": "[Jungle Expedition] Exit Trap Room",
@@ -9940,8 +11603,8 @@
     "isReselectable": false
   },
   "Procure Medkit": {
-    "id": "9f7cbbaf-aeed-4170-9400-e1da445fe101",
-    "internal_name": "Procure Medkit",
+    "id": "1ff79367-b005-43e2-81cc-a9f3b2e55b49",
+    "internal_name": "Procure Medkit (Bronze)",
     "name": "Procure Medkit",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -9951,7 +11614,52 @@
       "Karnok"
     ],
     "tags": [],
-    "description": "Get a Medkit (+Heal)",
+    "description": "Get a Bronze-tier Medkit (+Heal)",
+    "isReselectable": false
+  },
+  "Procure Medkit <9f7cbbaf>": {
+    "id": "9f7cbbaf-aeed-4170-9400-e1da445fe101",
+    "internal_name": "Procure Medkit (Silver)",
+    "name": "Procure Medkit",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Silver-tier Medkit (+Heal)",
+    "isReselectable": false
+  },
+  "Procure Medkit <cb280097>": {
+    "id": "cb280097-2346-43e0-b6ef-bf7ba2b01b2f",
+    "internal_name": "Procure Medkit (Gold)",
+    "name": "Procure Medkit",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Gold-tier Medkit (+Heal)",
+    "isReselectable": false
+  },
+  "Procure Medkit <e750af0e>": {
+    "id": "e750af0e-60f1-4da1-838a-a0ac41ca6a73",
+    "internal_name": "Procure Medkit (Diamond)",
+    "name": "Procure Medkit",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Diamond-tier Medkit (+Heal)",
     "isReselectable": false
   },
   "Product Demonstrator": {
@@ -10189,7 +11897,7 @@
   },
   "Pyre": {
     "id": "1005cb9f-87f3-4087-a695-a54b7315d586",
-    "internal_name": "Pyre",
+    "internal_name": "Pyre (Bronze)",
     "name": "Pyre",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -10201,7 +11909,41 @@
       "Mak"
     ],
     "tags": [],
-    "description": "Get a Burn item",
+    "description": "Get a Bronze-tier Burn item",
+    "isReselectable": false
+  },
+  "Pyre <4afc594c>": {
+    "id": "4afc594c-9213-47e2-b869-82bab1882490",
+    "internal_name": "Pyre (Gold)",
+    "name": "Pyre",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [],
+    "description": "Get a Gold-tier Burn item",
+    "isReselectable": false
+  },
+  "Pyre <731fdecd>": {
+    "id": "731fdecd-bc3f-48a7-bdf9-4096f3eaa963",
+    "internal_name": "Pyre (Silver)",
+    "name": "Pyre",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [],
+    "description": "Get a Silver-tier Burn item",
     "isReselectable": false
   },
   "Pyre <733355b4>": {
@@ -10215,6 +11957,23 @@
     ],
     "tags": [],
     "description": "Get a Burn item.",
+    "isReselectable": false
+  },
+  "Pyre <904bd867>": {
+    "id": "904bd867-a3e8-444f-94e1-0f13acef8536",
+    "internal_name": "Pyre (Diamond)",
+    "name": "Pyre",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Mak"
+    ],
+    "tags": [],
+    "description": "Get a Diamond-tier Burn item",
     "isReselectable": false
   },
   "Pyro": {
@@ -10314,9 +12073,9 @@
     "description": "Get a Haste item.",
     "isReselectable": false
   },
-  "Racetrack <bfc22038>": {
-    "id": "bfc22038-04da-41a1-97c9-7cb8c3608747",
-    "internal_name": "Racetrack",
+  "Racetrack <406a9513>": {
+    "id": "406a9513-35b3-4a12-96ab-48c0710b415b",
+    "internal_name": "Racetrack (Gold)",
     "name": "Racetrack",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -10328,7 +12087,58 @@
       "Karnok"
     ],
     "tags": [],
-    "description": "Get a Haste item",
+    "description": "Get a Gold-tier Haste item",
+    "isReselectable": false
+  },
+  "Racetrack <ab256aab>": {
+    "id": "ab256aab-9578-4eb8-a821-85b5c9e892d8",
+    "internal_name": "Racetrack (Silver)",
+    "name": "Racetrack",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Silver-tier Haste item",
+    "isReselectable": false
+  },
+  "Racetrack <ae4a5d1a>": {
+    "id": "ae4a5d1a-edc7-4a0a-b357-65e051e6a80e",
+    "internal_name": "Racetrack (Diamond)",
+    "name": "Racetrack",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Diamond-tier Haste item",
+    "isReselectable": false
+  },
+  "Racetrack <bfc22038>": {
+    "id": "bfc22038-04da-41a1-97c9-7cb8c3608747",
+    "internal_name": "Racetrack (Bronze)",
+    "name": "Racetrack",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Bronze-tier Haste item",
     "isReselectable": false
   },
   "Radiant Corsair": {
@@ -10436,8 +12246,8 @@
     "isReselectable": false
   },
   "Reagent Harvesting": {
-    "id": "d637adc9-3b1d-4aef-b238-07c3bafe057f",
-    "internal_name": "Reagent Harvesting",
+    "id": "4e683fef-313e-40ba-9aa9-b2848d7b6b72",
+    "internal_name": "Reagent Harvesting (Silver)",
     "name": "Reagent Harvesting",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -10445,7 +12255,46 @@
       "Mak"
     ],
     "tags": [],
-    "description": "Get a Reagent",
+    "description": "Get a Silver-tier Reagent",
+    "isReselectable": false
+  },
+  "Reagent Harvesting <52e66fe1>": {
+    "id": "52e66fe1-78f0-4ee1-a3fe-2f2fe21efbb7",
+    "internal_name": "Reagent Harvesting (Gold)",
+    "name": "Reagent Harvesting",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Mak"
+    ],
+    "tags": [],
+    "description": "Get a Gold-tier Reagent",
+    "isReselectable": false
+  },
+  "Reagent Harvesting <bdd66fcc>": {
+    "id": "bdd66fcc-98dc-47aa-81df-1282a4bbef05",
+    "internal_name": "Reagent Harvesting (Diamond)",
+    "name": "Reagent Harvesting",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Mak"
+    ],
+    "tags": [],
+    "description": "Get a Diamond-tier Reagent",
+    "isReselectable": false
+  },
+  "Reagent Harvesting <d637adc9>": {
+    "id": "d637adc9-3b1d-4aef-b238-07c3bafe057f",
+    "internal_name": "Reagent Harvesting (Bronze)",
+    "name": "Reagent Harvesting",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Mak"
+    ],
+    "tags": [],
+    "description": "Get a Bronze-tier Reagent",
     "isReselectable": false
   },
   "Reagent Shelf": {
@@ -10568,7 +12417,7 @@
   },
   "Recycling Center": {
     "id": "12a50b2d-340f-4603-a5a4-a3d63d80c504",
-    "internal_name": "Recycling Center",
+    "internal_name": "Recycling Center (Bronze)",
     "name": "Recycling Center",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -10576,7 +12425,46 @@
       "Common"
     ],
     "tags": [],
-    "description": "Get a non-Weapon item",
+    "description": "Get a Bronze-tier non-Weapon item",
+    "isReselectable": false
+  },
+  "Recycling Center <42a96476>": {
+    "id": "42a96476-afc7-420f-bc06-34872b57b534",
+    "internal_name": "Recycling Center (Gold)",
+    "name": "Recycling Center",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Get a Gold-tier non-Weapon item",
+    "isReselectable": false
+  },
+  "Recycling Center <4e4c3fd4>": {
+    "id": "4e4c3fd4-666d-4796-8ef1-43e2aa771f42",
+    "internal_name": "Recycling Center (Diamond)",
+    "name": "Recycling Center",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Get a Diamond-tier non-Weapon item",
+    "isReselectable": false
+  },
+  "Recycling Center <ea7f99f9>": {
+    "id": "ea7f99f9-a143-43d8-a74d-933a439a4b60",
+    "internal_name": "Recycling Center (Silver)",
+    "name": "Recycling Center",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Get a Silver-tier non-Weapon item",
     "isReselectable": false
   },
   "Reflecting Pool": {
@@ -11024,6 +12912,20 @@
     "description": "(if you have a Wild Boar) Permanently gain 10% Max Health [{ability.0}] and transform your Wild Boar into Boar Roast and Cinders",
     "isReselectable": false
   },
+  "Robotics Factory": {
+    "id": "874fa28f-c349-463c-aec6-b3572a71b6ee",
+    "internal_name": "Robotics Factory (Encounter)",
+    "name": "Robotics Factory",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Dooley",
+      "Stelle"
+    ],
+    "tags": [],
+    "description": "Improve your Tech items",
+    "isReselectable": false
+  },
   "Rogue Scrapper": {
     "id": "1eabe08b-2949-407d-b22d-c6e579e0cd14",
     "internal_name": "Rogue Scrapper (Silver)",
@@ -11206,6 +13108,19 @@
     "description": "Study the Merchant in the front of his shop, mingling with the customers",
     "isReselectable": false
   },
+  "Salvage Yard": {
+    "id": "a79a4688-752d-4b4f-90b3-c92b3a4d1a92",
+    "internal_name": "Salvage Yard (Encounter)",
+    "name": "Salvage Yard",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Transform your Stash items into Loot items based on their tags",
+    "isReselectable": false
+  },
   "Sandwich Artist": {
     "id": "e8782aea-3511-4a9d-98d4-e25c62120547",
     "internal_name": "Sandwich Artist",
@@ -11311,8 +13226,8 @@
     "isReselectable": false
   },
   "Scrap Salvage": {
-    "id": "3db126be-6a4f-48b7-81e0-793287e9eeeb",
-    "internal_name": "Scrap Salvage",
+    "id": "1d08f4e5-146f-415d-958f-5a93a84dfbc2",
+    "internal_name": "Scrap Salvage (Bronze)",
     "name": "Scrap Salvage",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -11324,7 +13239,58 @@
       "Jules"
     ],
     "tags": [],
-    "description": "Get a Scrap (+Shield)",
+    "description": "Get a Bronze-tier Scrap (+Shield)",
+    "isReselectable": false
+  },
+  "Scrap Salvage <3db126be>": {
+    "id": "3db126be-6a4f-48b7-81e0-793287e9eeeb",
+    "internal_name": "Scrap Salvage (Silver)",
+    "name": "Scrap Salvage",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Pygmalien",
+      "Stelle",
+      "Dooley",
+      "Karnok",
+      "Jules"
+    ],
+    "tags": [],
+    "description": "Get a Silver-tier Scrap (+Shield)",
+    "isReselectable": false
+  },
+  "Scrap Salvage <65ff28de>": {
+    "id": "65ff28de-67a6-4c51-adf4-f3f9379ff96a",
+    "internal_name": "Scrap Salvage (Diamond)",
+    "name": "Scrap Salvage",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Pygmalien",
+      "Stelle",
+      "Dooley",
+      "Karnok",
+      "Jules"
+    ],
+    "tags": [],
+    "description": "Get a Diamond-tier Scrap (+Shield)",
+    "isReselectable": false
+  },
+  "Scrap Salvage <d0c544fe>": {
+    "id": "d0c544fe-36a7-4887-98c0-bfa949a0f472",
+    "internal_name": "Scrap Salvage (Gold)",
+    "name": "Scrap Salvage",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Pygmalien",
+      "Stelle",
+      "Dooley",
+      "Karnok",
+      "Jules"
+    ],
+    "tags": [],
+    "description": "Get a Gold-tier Scrap (+Shield)",
     "isReselectable": false
   },
   "Search for Abandoned Tools": {
@@ -11370,7 +13336,7 @@
   },
   "Security Center": {
     "id": "0370b2b5-e856-457e-a8dc-b7fd0ab098fc",
-    "internal_name": "Security Center",
+    "internal_name": "Security Center (Bronze)",
     "name": "Security Center",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -11383,7 +13349,7 @@
       "Karnok"
     ],
     "tags": [],
-    "description": "Get a Shield item",
+    "description": "Get a Bronze-tier Shield item",
     "isReselectable": false
   },
   "Security Center <7dc74429>": {
@@ -11398,6 +13364,60 @@
     ],
     "tags": [],
     "description": "Get a Shield item",
+    "isReselectable": false
+  },
+  "Security Center <8445b23f>": {
+    "id": "8445b23f-b1ed-48bc-aeec-0b70be4e4030",
+    "internal_name": "Security Center (Gold)",
+    "name": "Security Center",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Gold-tier Shield item",
+    "isReselectable": false
+  },
+  "Security Center <bbd7fab5>": {
+    "id": "bbd7fab5-9bf1-4de4-bd27-bed7f7fd5c97",
+    "internal_name": "Security Center (Silver)",
+    "name": "Security Center",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Silver-tier Shield item",
+    "isReselectable": false
+  },
+  "Security Center <d2167751>": {
+    "id": "d2167751-e2ce-439c-995a-3282452e2f14",
+    "internal_name": "Security Center (Diamond)",
+    "name": "Security Center",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Pygmalien",
+      "Vanessa",
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Karnok"
+    ],
+    "tags": [],
+    "description": "Get a Diamond-tier Shield item",
     "isReselectable": false
   },
   "Security Center <ea510bb8>": {
@@ -11640,7 +13660,7 @@
   },
   "Sharpening Kit": {
     "id": "79557839-d5cc-4638-ba7b-234f0142a38a",
-    "internal_name": "Sharpening Kit",
+    "internal_name": "Sharpening Kit (Silver)",
     "name": "Sharpening Kit",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -11648,7 +13668,46 @@
       "Common"
     ],
     "tags": [],
-    "description": "Get a Sharpening Stone (+Damage)",
+    "description": "Get a Silver-tier Sharpening Stone (+Damage)",
+    "isReselectable": false
+  },
+  "Sharpening Kit <b6634697>": {
+    "id": "b6634697-588b-4131-883b-c9cf20967760",
+    "internal_name": "Sharpening Kit (Bronze)",
+    "name": "Sharpening Kit",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Get a Bronze-tier Sharpening Stone (+Damage)",
+    "isReselectable": false
+  },
+  "Sharpening Kit <d0a0f491>": {
+    "id": "d0a0f491-e1f2-433b-b2d9-caee00202e09",
+    "internal_name": "Sharpening Kit (Diamond)",
+    "name": "Sharpening Kit",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Get a Diamond-tier Sharpening Stone (+Damage)",
+    "isReselectable": false
+  },
+  "Sharpening Kit <fab18db9>": {
+    "id": "fab18db9-38b4-438a-a87f-3dfc931ae679",
+    "internal_name": "Sharpening Kit (Gold)",
+    "name": "Sharpening Kit",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Get a Gold-tier Sharpening Stone (+Damage)",
     "isReselectable": false
   },
   "Shelter Shelby": {
@@ -12424,8 +14483,8 @@
     "isReselectable": false
   },
   "Tech Salvage": {
-    "id": "a8c7d852-f117-43d2-b7a6-76d78866321e",
-    "internal_name": "Tech Salvage",
+    "id": "5e607777-7ce3-467a-9eaf-fab0ee41e905",
+    "internal_name": "Tech Salvage (Silver)",
     "name": "Tech Salvage",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -12433,7 +14492,46 @@
       "Dooley"
     ],
     "tags": [],
-    "description": "Get a Small Tech item",
+    "description": "Get a Small Silver-tier Tech item",
+    "isReselectable": false
+  },
+  "Tech Salvage <8998de52>": {
+    "id": "8998de52-cc59-4588-885c-39a60ca3faf7",
+    "internal_name": "Tech Salvage (Gold)",
+    "name": "Tech Salvage",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Dooley"
+    ],
+    "tags": [],
+    "description": "Get a Small Gold-tier Tech item",
+    "isReselectable": false
+  },
+  "Tech Salvage <a8c7d852>": {
+    "id": "a8c7d852-f117-43d2-b7a6-76d78866321e",
+    "internal_name": "Tech Salvage (Bronze)",
+    "name": "Tech Salvage",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Dooley"
+    ],
+    "tags": [],
+    "description": "Get a Small Bronze-tier Tech item",
+    "isReselectable": false
+  },
+  "Tech Salvage <cdb02a2a>": {
+    "id": "cdb02a2a-603c-416e-bcb1-9fc71632b08a",
+    "internal_name": "Tech Salvage (Diamond)",
+    "name": "Tech Salvage",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Dooley"
+    ],
+    "tags": [],
+    "description": "Get a Small Diamond-tier Tech item",
     "isReselectable": false
   },
   "Tech Training": {
@@ -12840,13 +14938,12 @@
     "type": "EventEncounter",
     "heroes": [
       "Dooley",
-      "Vanessa",
       "Stelle"
     ],
     "tags": [
       "merchant"
     ],
-    "description": "Sells Tech items from any Hero",
+    "description": "Sells Tech items",
     "isReselectable": false
   },
   "The Travel Agent": {
@@ -12973,6 +15070,19 @@
     ],
     "tags": [],
     "description": "Enter the Thieves Guild",
+    "isReselectable": false
+  },
+  "Tomb of the Ancients": {
+    "id": "385dab86-65c1-40e8-8798-49865ad2353a",
+    "internal_name": "Tomb of the Ancients (Encounter)",
+    "name": "Tomb of the Ancients",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Mak"
+    ],
+    "tags": [],
+    "description": "Improve your Relics",
     "isReselectable": false
   },
   "Too Dangerous": {
@@ -13221,7 +15331,7 @@
       "Common"
     ],
     "tags": [],
-    "description": "Gain a Neutral item",
+    "description": "Get a Medium item",
     "isReselectable": false
   },
   "Trained with a Traveling Monk": {
@@ -13407,8 +15517,8 @@
     "isReselectable": false
   },
   "Treasure Chest": {
-    "id": "71e387b6-bcb5-4c39-aa65-957ee5f6fbec",
-    "internal_name": "Treasure Chest",
+    "id": "213c6a72-de3d-445c-8950-3c922f0fff46",
+    "internal_name": "Treasure Chest (Gold)",
     "name": "Treasure Chest",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -13416,12 +15526,12 @@
       "Common"
     ],
     "tags": [],
-    "description": "Get an item",
+    "description": "Get a Gold-tier item",
     "isReselectable": false
   },
-  "Treasure Chest <988b8aae>": {
-    "id": "988b8aae-6b68-44ab-acd8-50b941dc4592",
-    "internal_name": "Treasure Chest (Mimic)",
+  "Treasure Chest <246ba7e6>": {
+    "id": "246ba7e6-f593-4a3c-a57a-c23c77b9532b",
+    "internal_name": "Treasure Chest (Silver)",
     "name": "Treasure Chest",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -13429,7 +15539,33 @@
       "Common"
     ],
     "tags": [],
-    "description": "Get an item",
+    "description": "Get a Silver-tier item",
+    "isReselectable": false
+  },
+  "Treasure Chest <59eee473>": {
+    "id": "59eee473-a870-43ef-9a87-ac26c99474c1",
+    "internal_name": "Treasure Chest (Diamond)",
+    "name": "Treasure Chest",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Get a Diamond-tier item",
+    "isReselectable": false
+  },
+  "Treasure Chest <71e387b6>": {
+    "id": "71e387b6-bcb5-4c39-aa65-957ee5f6fbec",
+    "internal_name": "Treasure Chest (Bronze)",
+    "name": "Treasure Chest",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Get a Bronze-tier item",
     "isReselectable": false
   },
   "Treasure Chest <a8500ea3>": {
@@ -13541,8 +15677,8 @@
     "isReselectable": false
   },
   "Truffle Farming": {
-    "id": "c1d4c505-4c97-47b5-b205-ae28c1415cd2",
-    "internal_name": "Truffle Farming",
+    "id": "0cd9ac04-bd59-45f1-b997-3e06a495b5e3",
+    "internal_name": "Truffle Farming (Diamond)",
     "name": "Truffle Farming",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -13550,7 +15686,46 @@
       "Pygmalien"
     ],
     "tags": [],
-    "description": "Get a Truffle",
+    "description": "Get 2 Diamond-tier Truffles",
+    "isReselectable": false
+  },
+  "Truffle Farming <76f58c75>": {
+    "id": "76f58c75-f822-4d06-bcba-f4d39529fa99",
+    "internal_name": "Truffle Farming (Gold)",
+    "name": "Truffle Farming",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [],
+    "description": "Get 2 Gold-tier Truffles",
+    "isReselectable": false
+  },
+  "Truffle Farming <c1d4c505>": {
+    "id": "c1d4c505-4c97-47b5-b205-ae28c1415cd2",
+    "internal_name": "Truffle Farming (Silver)",
+    "name": "Truffle Farming",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [],
+    "description": "Get 2 Silver-tier Truffles",
+    "isReselectable": false
+  },
+  "Truffle Farming <c2a5bdf3>": {
+    "id": "c2a5bdf3-bc7f-466a-93c3-ee02d45e4ac0",
+    "internal_name": "Truffle Farming (Bronze)",
+    "name": "Truffle Farming",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Pygmalien"
+    ],
+    "tags": [],
+    "description": "Get 2 Bronze-tier Truffles",
     "isReselectable": false
   },
   "Uncle Odi": {
@@ -13605,6 +15780,19 @@
     "description": "Upgrade your leftmost Ammo item",
     "isReselectable": false
   },
+  "Upgrade <160391bd>": {
+    "id": "160391bd-a795-4d6a-8d1d-175b0728279c",
+    "internal_name": "Upgrade (Launch Tower)",
+    "name": "Upgrade",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Upgrade your leftmost Flying item",
+    "isReselectable": false
+  },
   "Upgrade <284f8b8e>": {
     "id": "284f8b8e-780b-4bf9-95ee-c9900c0e68d5",
     "internal_name": "Upgrade (Flambe)",
@@ -13616,6 +15804,19 @@
     ],
     "tags": [],
     "description": "Upgrade your leftmost Burn item",
+    "isReselectable": false
+  },
+  "Upgrade <2e34d6b7>": {
+    "id": "2e34d6b7-d0d2-4a23-8430-03b720380df8",
+    "internal_name": "Upgrade (Farmer's Market)",
+    "name": "Upgrade",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Upgrade your leftmost Food",
     "isReselectable": false
   },
   "Upgrade <31315598>": {
@@ -13670,6 +15871,19 @@
     "description": "Upgrade your leftmost Poison item",
     "isReselectable": false
   },
+  "Upgrade <5ca0a220>": {
+    "id": "5ca0a220-3375-4a33-9b8a-dc92298bce8b",
+    "internal_name": "Upgrade (Aurora Dome)",
+    "name": "Upgrade",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Upgrade your leftmost item without a Cooldown",
+    "isReselectable": false
+  },
   "Upgrade <75bba937>": {
     "id": "75bba937-96dd-4fe4-b2f5-4f4535d8bf6e",
     "internal_name": "Upgrade (Level Up)",
@@ -13681,6 +15895,32 @@
     ],
     "tags": [],
     "description": "Upgrade your leftmost item",
+    "isReselectable": false
+  },
+  "Upgrade <9cbc1593>": {
+    "id": "9cbc1593-6cb5-4ce0-bb5d-e43b3a6f5b85",
+    "internal_name": "Upgrade (Tomb of the Ancients)",
+    "name": "Upgrade",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Upgrade your leftmost Relic",
+    "isReselectable": false
+  },
+  "Upgrade <aa3a8b32>": {
+    "id": "aa3a8b32-c19e-4b46-b8d6-d3488c77e53f",
+    "internal_name": "Upgrade (Robotics Factory)",
+    "name": "Upgrade",
+    "cache_type": "TCardEncounterStep",
+    "type": "EncounterStep",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Upgrade your leftmost Tech item",
     "isReselectable": false
   },
   "Upgrade <b28ac3ca>": {
@@ -13775,8 +16015,8 @@
     "isReselectable": false
   },
   "Utility Box": {
-    "id": "e016221d-cc17-4a93-aabb-00155bbbeb46",
-    "internal_name": "Utility Box",
+    "id": "46f665ff-c67b-4b8f-9ea1-4fceb086ceb5",
+    "internal_name": "Utility Box (Gold)",
     "name": "Utility Box",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -13784,7 +16024,46 @@
       "Common"
     ],
     "tags": [],
-    "description": "Get a Small Tool",
+    "description": "Get a Small Gold-tier Tool",
+    "isReselectable": false
+  },
+  "Utility Box <d70c7e92>": {
+    "id": "d70c7e92-3eff-4cb3-ba01-f9e8c179e407",
+    "internal_name": "Utility Box (Silver)",
+    "name": "Utility Box",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Get a Small Silver-tier Tool",
+    "isReselectable": false
+  },
+  "Utility Box <e016221d>": {
+    "id": "e016221d-cc17-4a93-aabb-00155bbbeb46",
+    "internal_name": "Utility Box (Bronze)",
+    "name": "Utility Box",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Get a Small Bronze-tier Tool",
+    "isReselectable": false
+  },
+  "Utility Box <f531a553>": {
+    "id": "f531a553-d578-40d5-a3da-1159ab2a096f",
+    "internal_name": "Utility Box (Diamond)",
+    "name": "Utility Box",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Get a Small Diamond-tier Tool",
     "isReselectable": false
   },
   "Valpak": {
@@ -14428,6 +16707,19 @@
     "description": "Gain {ability.0} Gold",
     "isReselectable": false
   },
+  "Wishing Fountain": {
+    "id": "3212ade4-8e23-49cd-b9b5-f729280ba0b5",
+    "internal_name": "Wishing Fountain",
+    "name": "Wishing Fountain",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Make a wish for random items",
+    "isReselectable": false
+  },
   "Wolverine": {
     "id": "e82f2b78-f445-4782-b35b-7d6d4058f3be",
     "internal_name": "Wolverine (monster)",
@@ -14546,8 +16838,8 @@
     "isReselectable": false
   },
   "Workshop": {
-    "id": "08111534-157d-4603-b157-03ac0f6d02cf",
-    "internal_name": "Workshop",
+    "id": "011b22fa-4a25-48a6-93e0-7602ceffcd13",
+    "internal_name": "Workshop (Silver)",
     "name": "Workshop",
     "cache_type": "TCardEncounterEvent",
     "type": "EventEncounter",
@@ -14555,7 +16847,46 @@
       "Common"
     ],
     "tags": [],
-    "description": "Get a Tool",
+    "description": "Get a Silver-tier Tool",
+    "isReselectable": false
+  },
+  "Workshop <08111534>": {
+    "id": "08111534-157d-4603-b157-03ac0f6d02cf",
+    "internal_name": "Workshop (Bronze)",
+    "name": "Workshop",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Get a Bronze-tier Tool",
+    "isReselectable": false
+  },
+  "Workshop <79dc6e4f>": {
+    "id": "79dc6e4f-1e05-43af-b6e8-b8ac8c791f3f",
+    "internal_name": "Workshop (Diamond)",
+    "name": "Workshop",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Get a Diamond-tier Tool",
+    "isReselectable": false
+  },
+  "Workshop <d8733ee2>": {
+    "id": "d8733ee2-22f0-498d-ac26-11f93d84fef3",
+    "internal_name": "Workshop (Gold)",
+    "name": "Workshop",
+    "cache_type": "TCardEncounterEvent",
+    "type": "EventEncounter",
+    "heroes": [
+      "Common"
+    ],
+    "tags": [],
+    "description": "Get a Gold-tier Tool",
     "isReselectable": false
   },
   "Worry Wart": {

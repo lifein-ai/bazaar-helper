@@ -845,5 +845,39 @@
       "health": 0
     },
     "notes": "Fight a Monster. Reward: 3 XP and 5 Gold."
+  },
+  "Salvage Yard": {
+    "_override_reason": "Manual correction: transforms stash items into Loot based on their tags; value depends on owned stash items.",
+    "event_type": "item_event",
+    "event_category": "item_events",
+    "effect": "transform_items",
+    "target_sections": ["stash"],
+    "target_tags": ["loot"],
+    "_dynamic_reward": true,
+    "qualitative_rewards": ["stash_items_to_loot"],
+    "resource_rewards": {},
+    "notes": "Transform your Stash items into Loot items based on their tags."
+  },
+  "Wishing Fountain": {
+    "_override_reason": "Manual correction: random item reward event.",
+    "event_type": "item_reward",
+    "event_category": "item_rewards",
+    "card_reward": {
+      "enabled": true,
+      "exact_names": [],
+      "reward_tags": [],
+      "match_mode": "any",
+      "rarity_filter": null,
+      "rarity_rule": "normal_shop_by_day",
+      "excluded_tags": ["legendary"],
+      "hero_scope": "current",
+      "count": 1
+    },
+    "resource_rewards": {
+      "gold": 0,
+      "exp": 0,
+      "health": 0
+    },
+    "notes": "Make a wish for random items."
   }
 }

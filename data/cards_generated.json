@@ -47,11 +47,10 @@
     ],
     "type": "Item",
     "size": "Large",
-    "min_rarity": "Gold",
+    "min_rarity": "Diamond",
     "max_rarity": "Diamond",
-    "rarity": "Gold",
+    "rarity": "Diamond",
     "tiers": [
-      "Gold",
       "Diamond"
     ],
     "tags": [
@@ -1028,10 +1027,13 @@
       "Diamond"
     ],
     "tags": [
+      "weapon",
       "damagereference",
       "poisonreference"
     ],
-    "visible_tags": [],
+    "visible_tags": [
+      "weapon"
+    ],
     "hidden_tags": [
       "damagereference",
       "poisonreference"
@@ -1199,13 +1201,15 @@
     ],
     "tags": [
       "tool",
-      "economyreference"
+      "economyreference",
+      "value"
     ],
     "visible_tags": [
       "tool"
     ],
     "hidden_tags": [
-      "economyreference"
+      "economyreference",
+      "value"
     ],
     "buy_prices": {},
     "sell_prices": {},
@@ -2324,10 +2328,13 @@
       "Diamond"
     ],
     "tags": [
+      "weapon",
       "damagereference",
       "healthreference"
     ],
-    "visible_tags": [],
+    "visible_tags": [
+      "weapon"
+    ],
     "hidden_tags": [
       "damagereference",
       "healthreference"
@@ -2806,17 +2813,15 @@
       "Diamond"
     ],
     "tags": [
-      "tech",
       "relic"
     ],
     "visible_tags": [
-      "tech",
       "relic"
     ],
     "hidden_tags": [],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Your Relics are Tech",
+    "description": "Your leftmost Relic has +{aura.0} Multicast",
     "card_pack_id": ""
   },
   "Ancient Toxins": {
@@ -2874,10 +2879,12 @@
     ],
     "tags": [
       "relic",
+      "weapon",
       "charge"
     ],
     "visible_tags": [
-      "relic"
+      "relic",
+      "weapon"
     ],
     "hidden_tags": [
       "charge"
@@ -2909,10 +2916,12 @@
     ],
     "tags": [
       "relic",
+      "weapon",
       "damagereference"
     ],
     "visible_tags": [
-      "relic"
+      "relic",
+      "weapon"
     ],
     "hidden_tags": [
       "damagereference"
@@ -3177,7 +3186,7 @@
     "hidden_tags": [],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "The effects of Annexian Sabotage have dissipated",
+    "description": "Items and skills have their Charge, Freeze, Slow, and Haste durations reduced by half",
     "card_pack_id": ""
   },
   "Antimatter Chamber": {
@@ -4469,9 +4478,12 @@
       "Diamond"
     ],
     "tags": [
+      "merchant",
       "health"
     ],
-    "visible_tags": [],
+    "visible_tags": [
+      "merchant"
+    ],
     "hidden_tags": [
       "health"
     ],
@@ -4687,11 +4699,13 @@
     ],
     "tags": [
       "friend",
+      "weapon",
       "shieldreference",
       "damagereference"
     ],
     "visible_tags": [
-      "friend"
+      "friend",
+      "weapon"
     ],
     "hidden_tags": [
       "shieldreference",
@@ -5977,7 +5991,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Haste adjacent Friends for {ability.0} second(s)",
+    "description": "Haste an adjacent Friend for {ability.0} second(s)",
     "card_pack_id": ""
   },
   "Beast of Burden": {
@@ -6119,10 +6133,12 @@
     ],
     "tags": [
       "friend",
+      "weapon",
       "damagereference"
     ],
     "visible_tags": [
-      "friend"
+      "friend",
+      "weapon"
     ],
     "hidden_tags": [
       "damagereference"
@@ -6594,11 +6610,13 @@
       "Diamond"
     ],
     "tags": [
-      "poison"
+      "poison",
+      "poisonreference"
     ],
     "visible_tags": [],
     "hidden_tags": [
-      "poison"
+      "poison",
+      "poisonreference"
     ],
     "buy_prices": {},
     "sell_prices": {},
@@ -7008,15 +7026,13 @@
     ],
     "tags": [
       "relic",
-      "quest",
-      "charge"
+      "quest"
     ],
     "visible_tags": [
       "relic"
     ],
     "hidden_tags": [
-      "quest",
-      "charge"
+      "quest"
     ],
     "buy_prices": {},
     "sell_prices": {},
@@ -8338,13 +8354,15 @@
     "tags": [
       "weapon",
       "drone",
+      "tech",
       "damage",
       "burnreference",
       "flyingreference"
     ],
     "visible_tags": [
       "weapon",
-      "drone"
+      "drone",
+      "tech"
     ],
     "hidden_tags": [
       "damage",
@@ -8954,13 +8972,11 @@
       "Diamond"
     ],
     "tags": [
-      "damagereference",
-      "cooldown"
+      "damagereference"
     ],
     "visible_tags": [],
     "hidden_tags": [
-      "damagereference",
-      "cooldown"
+      "damagereference"
     ],
     "buy_prices": {},
     "sell_prices": {},
@@ -9931,7 +9947,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Burn {ability.0}\nThis has +{aura.1.mod} for each Reagent you have transformed this run [{aura.1}]\nAt the start of each day, spend {ability.3} Gold to get a Chunk of Lead",
+    "description": "Burn {ability.0}\nThis has +{aura.1.mod} for each Reagent you have transformed this run [{aura.1}]\nAt the start of each day, get a Chunk of Lead",
     "card_pack_id": ""
   },
   "Calico": {
@@ -10176,19 +10192,17 @@
     ],
     "tags": [
       "food",
-      "shieldreference",
-      "ammo"
+      "shieldreference"
     ],
     "visible_tags": [
       "food"
     ],
     "hidden_tags": [
-      "shieldreference",
-      "ammo"
+      "shieldreference"
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Adjacent Shield items permanently gain {ability.0}\nThis permanently loses {ability.1} Max Ammo\nAt the end of each fight, if this has no Ammo, permanently destroy it",
+    "description": "At the end of a fight with this, adjacent items permanently gain {ability.0} and permanently Destroy this",
     "card_pack_id": ""
   },
   "Cannon": {
@@ -11985,7 +11999,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Your Aquatic items gain +{ability.0}% Crit Chance\nWhen you buy this, get a Piranha",
+    "description": "Your Aquatic and Food items gain +{ability.0}% Crit Chance\nWhen you buy this, get a Piranha",
     "card_pack_id": ""
   },
   "Chunk of Gold": {
@@ -12312,7 +12326,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Deal {ability.0} Damage\nThis deals double Crit Damage",
+    "description": "Deal {ability.0} Damage\nThis has double Crit Damage",
     "card_pack_id": ""
   },
   "Clean Storefront": {
@@ -12926,16 +12940,14 @@
     "tags": [
       "property",
       "freeze",
-      "regen",
-      "charge"
+      "regen"
     ],
     "visible_tags": [
       "property"
     ],
     "hidden_tags": [
       "freeze",
-      "regen",
-      "charge"
+      "regen"
     ],
     "buy_prices": {},
     "sell_prices": {},
@@ -13723,7 +13735,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Shield {ability.0}\nWhen you Freeze, this is Chilled for 2 seconds and gains {ability.2}\nChilled: When you use a Small item, Charge this {ability.1} second(s)",
+    "description": "Shield {ability.0}\nWhen you Freeze, this becomes Chilled and gains {ability.2}\nChilled: When you use a Small item, Charge this {ability.1} second(s)",
     "card_pack_id": ""
   },
   "Cooling Fan": {
@@ -13947,7 +13959,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Heated: Charge your other Heated items {ability.0} second(s)\nChilled: Charge your other Chilled items {ability.1} second(s)",
+    "description": "Heated: Charge your other Chilled items {ability.0} second(s)\nChilled: Charge your other Heated items {ability.1} second(s)",
     "card_pack_id": ""
   },
   "Corrosive Toxins": {
@@ -13970,9 +13982,12 @@
       "Diamond"
     ],
     "tags": [
+      "weapon",
       "poisonreference"
     ],
-    "visible_tags": [],
+    "visible_tags": [
+      "weapon"
+    ],
     "hidden_tags": [
       "poisonreference"
     ],
@@ -14117,9 +14132,12 @@
       "Diamond"
     ],
     "tags": [
+      "weapon",
       "charge"
     ],
-    "visible_tags": [],
+    "visible_tags": [
+      "weapon"
+    ],
     "hidden_tags": [
       "charge"
     ],
@@ -14199,6 +14217,38 @@
     "buy_prices": {},
     "sell_prices": {},
     "description": "Shield equal to this {aura.9} times this item's value\nWhen you sell an item, this permanently gains {ability.1} value",
+    "card_pack_id": ""
+  },
+  "Covering Fire": {
+    "id": "d3a045b3-e858-427a-b83b-32e20937b085",
+    "source_id": "d3a045b3-e858-427a-b83b-32e20937b085",
+    "template_id": "d3a045b3-e858-427a-b83b-32e20937b085",
+    "internal_name": "Covering Fire",
+    "name": "Covering Fire",
+    "hero": "Common",
+    "heroes": [
+      "Common"
+    ],
+    "type": "Skill",
+    "size": "Medium",
+    "min_rarity": "Diamond",
+    "max_rarity": "Diamond",
+    "rarity": "Diamond",
+    "tiers": [
+      "Diamond"
+    ],
+    "tags": [
+      "shield",
+      "critreference"
+    ],
+    "visible_tags": [],
+    "hidden_tags": [
+      "shield",
+      "critreference"
+    ],
+    "buy_prices": {},
+    "sell_prices": {},
+    "description": "When you Crit, Shield equal to that item's Crit Chance",
     "card_pack_id": ""
   },
   "Covetous Raven": {
@@ -14548,12 +14598,15 @@
       "Diamond"
     ],
     "tags": [
-      "loot"
+      "loot",
+      "damagereference"
     ],
     "visible_tags": [
       "loot"
     ],
-    "hidden_tags": [],
+    "hidden_tags": [
+      "damagereference"
+    ],
     "buy_prices": {},
     "sell_prices": {},
     "description": "When you sell this, your leftmost Weapon permanently gains Lifesteal",
@@ -14898,7 +14951,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Charge your Tech items {ability.0} second\nIf you have only 1 Tech item this item's Cooldown is reduced by {aura.1} seconds",
+    "description": "Charge your other Tech and Relic items {ability.0} second",
     "card_pack_id": ""
   },
   "Cruise Ship": {
@@ -15413,7 +15466,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Deal {ability.0} Damage\nThis deals double Crit Damage",
+    "description": "Deal {ability.0} Damage\nThis has double Crit Damage",
     "card_pack_id": ""
   },
   "Cutlery Forge": {
@@ -15601,7 +15654,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Deal {ability.0} Damage\nThis has +{aura.1.mod} Damage for each other Weapon and Tech item you have\nThis deals triple Damage if it is your only Friend",
+    "description": "Deal {ability.0} Damage\nThis has +{aura.1.mod} Damage for each other Weapon and Tech item you have\nThis has triple Damage if it is your only Friend",
     "card_pack_id": ""
   },
   "Cyclops Eye": {
@@ -15842,26 +15895,22 @@
       "Diamond"
     ],
     "tags": [
-      "weapon",
       "tech",
-      "damage",
       "slow",
       "poison",
       "poisonreference"
     ],
     "visible_tags": [
-      "weapon",
       "tech"
     ],
     "hidden_tags": [
-      "damage",
       "slow",
       "poison",
       "poisonreference"
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Deal {ability.0} Damage\nIf this is adjacent to a Slow item, Slow {ability.1.targets} item(s) for {ability.1} second(s)\nIf this is adjacent to a Poison item, Poison {ability.2}",
+    "description": "Slow {ability.1.targets} item(s) for {ability.1} second(s)\nPoison {ability.2}",
     "card_pack_id": ""
   },
   "Darts": {
@@ -15901,7 +15950,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "This starts Flying\nDeal {ability.2} Damage\nEvery 3rd hit, this deals +50% Damage",
+    "description": "This starts Flying\nDeal {ability.2} Damage\nEvery 3rd hit, this has +50% Damage",
     "card_pack_id": ""
   },
   "Data Transfer": {
@@ -15926,12 +15975,14 @@
     ],
     "tags": [
       "tech",
+      "weapon",
       "damagereference",
       "shieldreference",
       "healreference"
     ],
     "visible_tags": [
-      "tech"
+      "tech",
+      "weapon"
     ],
     "hidden_tags": [
       "damagereference",
@@ -15940,7 +15991,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "When you use a Tech item, adjacent items gain +{ability.0}, +{ability.1} and +{ability.2}",
+    "description": "When you use a Tech item, your items gain +{ability.0}, +{ability.1} and +{ability.2}",
     "card_pack_id": ""
   },
   "Deadly Eye": {
@@ -16008,10 +16059,12 @@
     ],
     "tags": [
       "aquatic",
+      "weapon",
       "damagereference"
     ],
     "visible_tags": [
-      "aquatic"
+      "aquatic",
+      "weapon"
     ],
     "hidden_tags": [
       "damagereference"
@@ -16578,9 +16631,19 @@
     "tiers": [
       "Diamond"
     ],
-    "tags": [],
+    "tags": [
+      "burnreference",
+      "poisonreference",
+      "freezereference",
+      "slowreference"
+    ],
     "visible_tags": [],
-    "hidden_tags": [],
+    "hidden_tags": [
+      "burnreference",
+      "poisonreference",
+      "freezereference",
+      "slowreference"
+    ],
     "buy_prices": {},
     "sell_prices": {},
     "description": "The first time you fall below half Health each fight, remove Freeze and Slow from your items and Cleanse half your Burn and Poison",
@@ -17691,7 +17754,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Burn {ability.0}\nHeated: This has +Burn equal to its Crit Chance",
+    "description": "Burn equal to this item's Crit Chance\nHeated: Your other items have +{aura.1}% Crit Chance",
     "card_pack_id": ""
   },
   "Dragon Tooth": {
@@ -18032,16 +18095,14 @@
     "tags": [
       "friend",
       "heal",
-      "ragereference",
-      "charge"
+      "ragereference"
     ],
     "visible_tags": [
       "friend"
     ],
     "hidden_tags": [
       "heal",
-      "ragereference",
-      "charge"
+      "ragereference"
     ],
     "buy_prices": {},
     "sell_prices": {},
@@ -18106,9 +18167,12 @@
       "Diamond"
     ],
     "tags": [
+      "weapon",
       "crit"
     ],
-    "visible_tags": [],
+    "visible_tags": [
+      "weapon"
+    ],
     "hidden_tags": [
       "crit"
     ],
@@ -18203,10 +18267,11 @@
     ],
     "type": "Item",
     "size": "Medium",
-    "min_rarity": "Silver",
+    "min_rarity": "Bronze",
     "max_rarity": "Diamond",
-    "rarity": "Silver",
+    "rarity": "Bronze",
     "tiers": [
+      "Bronze",
       "Silver",
       "Gold",
       "Diamond"
@@ -19149,19 +19214,17 @@
     ],
     "tags": [
       "food",
-      "damagereference",
-      "ammo"
+      "damagereference"
     ],
     "visible_tags": [
       "food"
     ],
     "hidden_tags": [
-      "damagereference",
-      "ammo"
+      "damagereference"
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Adjacent Weapons permanently gain {ability.0}\nThis permanently loses {ability.1} Max Ammo\nAt the end of each fight, if this has no Ammo, permanently destroy it",
+    "description": "At the end of a fight with this, adjacent items permanently gain {ability.0} and permanently Destroy this",
     "card_pack_id": ""
   },
   "Epsilon Ray": {
@@ -19369,15 +19432,55 @@
       "Diamond"
     ],
     "tags": [
+      "drone",
+      "vehicle",
       "shieldreference"
     ],
-    "visible_tags": [],
+    "visible_tags": [
+      "drone",
+      "vehicle"
+    ],
     "hidden_tags": [
       "shieldreference"
     ],
     "buy_prices": {},
     "sell_prices": {},
     "description": "When you use a Vehicle or Drone, your items gain +{ability.0}",
+    "card_pack_id": ""
+  },
+  "Event Poster": {
+    "id": "47c2b54e-188b-4ec8-83d6-db089eed0a40",
+    "source_id": "47c2b54e-188b-4ec8-83d6-db089eed0a40",
+    "template_id": "47c2b54e-188b-4ec8-83d6-db089eed0a40",
+    "internal_name": "Event Poster",
+    "name": "Event Poster",
+    "hero": "Hero8",
+    "heroes": [
+      "Hero8"
+    ],
+    "type": "Item",
+    "size": "Small",
+    "min_rarity": "Silver",
+    "max_rarity": "Diamond",
+    "rarity": "Silver",
+    "tiers": [
+      "Silver",
+      "Gold",
+      "Diamond"
+    ],
+    "tags": [
+      "dragon",
+      "charge"
+    ],
+    "visible_tags": [
+      "dragon"
+    ],
+    "hidden_tags": [
+      "charge"
+    ],
+    "buy_prices": {},
+    "sell_prices": {},
+    "description": "Charge {ability.0.targets} other Dragons {ability.0} second\nAdjacent items are Dragons",
     "card_pack_id": ""
   },
   "Everlasting Life": {
@@ -19562,7 +19665,41 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Deal {ability.0} Damage\nYour items have +Crit Chance equal to the Rage you've gained this fight\nWhile your enemy is below half Health, this deals double Damage",
+    "description": "Deal {ability.0} Damage\nYour items have +Crit Chance equal to the Rage you've gained this fight\nWhile your enemy is below half Health, this has double Damage",
+    "card_pack_id": ""
+  },
+  "Executioner's Mark": {
+    "id": "32ab32a4-33d4-4e63-b3a4-a61c0cf6560c",
+    "source_id": "32ab32a4-33d4-4e63-b3a4-a61c0cf6560c",
+    "template_id": "32ab32a4-33d4-4e63-b3a4-a61c0cf6560c",
+    "internal_name": "Executioner's Mark",
+    "name": "Executioner's Mark",
+    "hero": "Common",
+    "heroes": [
+      "Common"
+    ],
+    "type": "Skill",
+    "size": "Medium",
+    "min_rarity": "Gold",
+    "max_rarity": "Diamond",
+    "rarity": "Gold",
+    "tiers": [
+      "Gold",
+      "Diamond"
+    ],
+    "tags": [
+      "weapon",
+      "cooldown"
+    ],
+    "visible_tags": [
+      "weapon"
+    ],
+    "hidden_tags": [
+      "cooldown"
+    ],
+    "buy_prices": {},
+    "sell_prices": {},
+    "description": "While your enemy is below half health, your Weapons' Cooldowns are reduced by {aura.0}%",
     "card_pack_id": ""
   },
   "Exoskeleton": {
@@ -19981,7 +20118,6 @@
     ],
     "tags": [
       "property",
-      "heal",
       "freezereference",
       "slowreference",
       "charge"
@@ -19990,14 +20126,13 @@
       "property"
     ],
     "hidden_tags": [
-      "heal",
       "freezereference",
       "slowreference",
       "charge"
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "When one of your items is Frozen or Slowed, Charge it {ability.2} second and Heal {ability.0}",
+    "description": "When you Slow or Freeze one of your items, Charge it {ability.2} second(s)",
     "card_pack_id": ""
   },
   "Fairy Haze": {
@@ -20158,7 +20293,6 @@
     "tags": [
       "property",
       "regenreference",
-      "health",
       "economyreference",
       "value"
     ],
@@ -20167,13 +20301,12 @@
     ],
     "hidden_tags": [
       "regenreference",
-      "health",
       "economyreference",
       "value"
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Adjacent Regen items have +Regen equal to 1% of your Max Health\nWhen you sell a Food, gain Max Health equal to {aura.9} times that Food's Value\nYour Food have +{aura.1} sell value",
+    "description": "Adjacent Regen items have +Regen equal to 1% of your Max Health\nYour Food have +{aura.1} sell value",
     "card_pack_id": ""
   },
   "Fast Food": {
@@ -20232,17 +20365,21 @@
     ],
     "tags": [
       "toy",
+      "weapon",
       "damage",
       "shield",
-      "heal"
+      "heal",
+      "damagereference"
     ],
     "visible_tags": [
-      "toy"
+      "toy",
+      "weapon"
     ],
     "hidden_tags": [
       "damage",
       "shield",
-      "heal"
+      "heal",
+      "damagereference"
     ],
     "buy_prices": {},
     "sell_prices": {},
@@ -20687,32 +20824,36 @@
     "template_id": "8c16e6c8-2f44-4335-b31e-5b2268bf790e",
     "internal_name": "Finesse Shield",
     "name": "Finesse Shield",
-    "hero": "Dooley",
+    "hero": "",
     "heroes": [
-      "Dooley"
+      "Dooley",
+      "Jules",
+      "Stelle",
+      "Karnok"
     ],
     "type": "Skill",
     "size": "Medium",
-    "min_rarity": "Silver",
+    "min_rarity": "Gold",
     "max_rarity": "Diamond",
-    "rarity": "Silver",
+    "rarity": "Gold",
     "tiers": [
-      "Silver",
       "Gold",
       "Diamond"
     ],
     "tags": [
       "shieldreference",
-      "cooldown"
+      "hastereference",
+      "charge"
     ],
     "visible_tags": [],
     "hidden_tags": [
       "shieldreference",
-      "cooldown"
+      "hastereference",
+      "charge"
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "While your enemy has more Health than you, your Shield items have their Cooldowns are reduced by {aura.0}%",
+    "description": "The first {aura.9} times you Haste each fight, Charge a Shield item {ability.0} second(s)",
     "card_pack_id": ""
   },
   "Fire Bomb": {
@@ -20996,10 +21137,12 @@
     ],
     "tags": [
       "core",
+      "weapon",
       "damagereference"
     ],
     "visible_tags": [
-      "core"
+      "core",
+      "weapon"
     ],
     "hidden_tags": [
       "damagereference"
@@ -21414,7 +21557,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Deal {ability.0} Damage\nThis deals quadruple Crit Damage",
+    "description": "Deal {ability.0} Damage\nThis has quadruple Crit Damage",
     "card_pack_id": ""
   },
   "Flame Jet Drone": {
@@ -21441,12 +21584,14 @@
     "tags": [
       "tool",
       "drone",
+      "tech",
       "burn",
       "flyingreference"
     ],
     "visible_tags": [
       "tool",
-      "drone"
+      "drone",
+      "tech"
     ],
     "hidden_tags": [
       "burn",
@@ -22576,11 +22721,13 @@
       "Diamond"
     ],
     "tags": [
-      "crit"
+      "crit",
+      "charge"
     ],
     "visible_tags": [],
     "hidden_tags": [
-      "crit"
+      "crit",
+      "charge"
     ],
     "buy_prices": {},
     "sell_prices": {},
@@ -23079,7 +23226,8 @@
       "aquatic",
       "slow",
       "charge",
-      "healreference"
+      "healreference",
+      "regenreference"
     ],
     "visible_tags": [
       "property",
@@ -23088,7 +23236,8 @@
     "hidden_tags": [
       "slow",
       "charge",
-      "healreference"
+      "healreference",
+      "regenreference"
     ],
     "buy_prices": {},
     "sell_prices": {},
@@ -23890,17 +24039,19 @@
     ],
     "tags": [
       "relic",
-      "freeze"
+      "freezereference",
+      "charge"
     ],
     "visible_tags": [
       "relic"
     ],
     "hidden_tags": [
-      "freeze"
+      "freezereference",
+      "charge"
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "The first {aura.9} times you use a Relic each fight, Freeze an item for {ability.0} second",
+    "description": "The first {aura.9} times you use a Relic each fight, Charge a Freeze item {ability.0} second(s)",
     "card_pack_id": ""
   },
   "Frozen Shot": {
@@ -24746,7 +24897,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Deal {ability.0} Damage\nWhile you are Enraged, this deals five times Damage",
+    "description": "Deal {ability.0} Damage\nWhile you are Enraged, this has five times Damage",
     "card_pack_id": ""
   },
   "Giant Sub": {
@@ -25282,11 +25433,10 @@
     ],
     "type": "Item",
     "size": "Small",
-    "min_rarity": "Bronze",
+    "min_rarity": "Silver",
     "max_rarity": "Diamond",
-    "rarity": "Bronze",
+    "rarity": "Silver",
     "tiers": [
-      "Bronze",
       "Silver",
       "Gold",
       "Diamond"
@@ -25556,7 +25706,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "When you use a Potion or a Relic, another item starts Flying\nWhen you use a Flying item, Regen {ability.1}",
+    "description": "When you use a Potion or Relic item, another item starts Flying\nWhen you use a Flying item, Regen {ability.1}",
     "card_pack_id": ""
   },
   "Grease Fire": {
@@ -27128,12 +27278,16 @@
     ],
     "tags": [
       "health",
-      "heal"
+      "heal",
+      "burnreference",
+      "poisonreference"
     ],
     "visible_tags": [],
     "hidden_tags": [
       "health",
-      "heal"
+      "heal",
+      "burnreference",
+      "poisonreference"
     ],
     "buy_prices": {},
     "sell_prices": {},
@@ -28033,9 +28187,12 @@
       "Diamond"
     ],
     "tags": [
+      "weapon",
       "damagereference"
     ],
-    "visible_tags": [],
+    "visible_tags": [
+      "weapon"
+    ],
     "hidden_tags": [
       "damagereference"
     ],
@@ -28350,8 +28507,7 @@
       "weapon",
       "friend",
       "damage",
-      "ragereference",
-      "charge"
+      "ragereference"
     ],
     "visible_tags": [
       "weapon",
@@ -28359,8 +28515,7 @@
     ],
     "hidden_tags": [
       "damage",
-      "ragereference",
-      "charge"
+      "ragereference"
     ],
     "buy_prices": {},
     "sell_prices": {},
@@ -28500,12 +28655,12 @@
       "Diamond"
     ],
     "tags": [
-      "burn",
+      "burnreference",
       "flying"
     ],
     "visible_tags": [],
     "hidden_tags": [
-      "burn",
+      "burnreference",
       "flying"
     ],
     "buy_prices": {},
@@ -28756,9 +28911,14 @@
       "Diamond"
     ],
     "tags": [
+      "drone",
+      "vehicle",
       "burnreference"
     ],
-    "visible_tags": [],
+    "visible_tags": [
+      "drone",
+      "vehicle"
+    ],
     "hidden_tags": [
       "burnreference"
     ],
@@ -28893,9 +29053,12 @@
       "Diamond"
     ],
     "tags": [
+      "relic",
       "poison"
     ],
-    "visible_tags": [],
+    "visible_tags": [
+      "relic"
+    ],
     "hidden_tags": [
       "poison"
     ],
@@ -28996,8 +29159,7 @@
       "property",
       "tool",
       "shield",
-      "slowreference",
-      "charge"
+      "slowreference"
     ],
     "visible_tags": [
       "property",
@@ -29005,8 +29167,7 @@
     ],
     "hidden_tags": [
       "shield",
-      "slowreference",
-      "charge"
+      "slowreference"
     ],
     "buy_prices": {},
     "sell_prices": {},
@@ -29626,19 +29787,19 @@
       "Diamond"
     ],
     "tags": [
-      "freeze",
-      "ammo",
-      "damagereference"
+      "freezereference",
+      "charge",
+      "ammo"
     ],
     "visible_tags": [],
     "hidden_tags": [
-      "freeze",
-      "ammo",
-      "damagereference"
+      "freezereference",
+      "charge",
+      "ammo"
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "The first {aura.9} times you use an Ammo item each fight, Freeze an item for {ability.0} second",
+    "description": "The first {aura.9} times you use an Ammo item each fight, Charge a Freeze item {ability.0} second(s)",
     "card_pack_id": ""
   },
   "Ice Claw": {
@@ -30031,11 +30192,10 @@
     ],
     "type": "Item",
     "size": "Small",
-    "min_rarity": "Bronze",
+    "min_rarity": "Silver",
     "max_rarity": "Diamond",
-    "rarity": "Bronze",
+    "rarity": "Silver",
     "tiers": [
-      "Bronze",
       "Silver",
       "Gold",
       "Diamond"
@@ -30265,13 +30425,10 @@
       "Diamond"
     ],
     "tags": [
-      "potion",
       "poisonreference",
       "healthreference"
     ],
-    "visible_tags": [
-      "potion"
-    ],
+    "visible_tags": [],
     "hidden_tags": [
       "poisonreference",
       "healthreference"
@@ -30756,7 +30913,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "The Cooldown of your Properties are reduced by {aura.0}%",
+    "description": "The Cooldown of your Properties and Vehicles are reduced by {aura.0}%",
     "card_pack_id": ""
   },
   "Inertial Dampener": {
@@ -30854,11 +31011,13 @@
       "Diamond"
     ],
     "tags": [
-      "burn"
+      "burn",
+      "ammo"
     ],
     "visible_tags": [],
     "hidden_tags": [
-      "burn"
+      "burn",
+      "ammo"
     ],
     "buy_prices": {},
     "sell_prices": {},
@@ -31646,11 +31805,14 @@
       "Diamond"
     ],
     "tags": [
+      "relic",
       "slow",
       "slowreference",
       "charge"
     ],
-    "visible_tags": [],
+    "visible_tags": [
+      "relic"
+    ],
     "hidden_tags": [
       "slow",
       "slowreference",
@@ -31820,10 +31982,11 @@
     ],
     "type": "Item",
     "size": "Large",
-    "min_rarity": "Gold",
+    "min_rarity": "Silver",
     "max_rarity": "Diamond",
-    "rarity": "Gold",
+    "rarity": "Silver",
     "tiers": [
+      "Silver",
       "Gold",
       "Diamond"
     ],
@@ -32519,7 +32682,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Deal {ability.0} Damage\nWhen you sell this, your items permanently gain {ability.1}",
+    "description": "Deal {ability.0} Damage\nWhen you sell this, get 2 Loot items",
     "card_pack_id": ""
   },
   "Junkyard Lance": {
@@ -32595,7 +32758,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Repair an item\nHeal {ability.0}\nWhen you sell this, your leftmost Heal item permanently gains {ability.1}",
+    "description": "Repair an item\nHeal {ability.0}\nWhen you sell this, get 2 Loot items",
     "card_pack_id": ""
   },
   "Jury Rigger": {
@@ -33689,11 +33852,10 @@
     ],
     "type": "Item",
     "size": "Small",
-    "min_rarity": "Bronze",
+    "min_rarity": "Silver",
     "max_rarity": "Diamond",
-    "rarity": "Bronze",
+    "rarity": "Silver",
     "tiers": [
-      "Bronze",
       "Silver",
       "Gold",
       "Diamond"
@@ -34018,7 +34180,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Regen {ability.0}\nHeated: Burn equal to this item's Regen\nChilled: This has +{aura.2}% Crit chance",
+    "description": "Regen {ability.0}\nHeated: Burn equal to this item's Regen\nChilled: This item's Cooldown is reduced by 2 seconds",
     "card_pack_id": ""
   },
   "Launch Pad": {
@@ -34385,7 +34547,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "When you sell a Truffle, adjacent items permanently gain {ability.0} value\nWhen you buy this and at the start of each day, get a Truffle",
+    "description": "When you sell a Truffle, your leftmost and rightmost items permanently gain {ability.0} value\nWhen you buy this and at the start of each day, get a Truffle",
     "card_pack_id": ""
   },
   "Leeches": {
@@ -34506,7 +34668,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Your leftmost Weapon deals +{aura.0}",
+    "description": "Your leftmost Weapon has +{aura.0}",
     "card_pack_id": ""
   },
   "Lefty Loosey": {
@@ -34893,7 +35055,6 @@
     ],
     "tags": [
       "food",
-      "heal",
       "burnreference",
       "poisonreference",
       "ragereference"
@@ -34902,7 +35063,6 @@
       "food"
     ],
     "hidden_tags": [
-      "heal",
       "burnreference",
       "poisonreference",
       "ragereference"
@@ -35436,7 +35596,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "The first {aura.9} times use a Core each fight, Freeze an item of equal or Smaller size for {ability.0} second(s)",
+    "description": "The first {aura.9} times use a Core each fight, Freeze an item {ability.0} second(s)",
     "card_pack_id": ""
   },
   "Living Flame": {
@@ -35497,10 +35657,13 @@
       "Diamond"
     ],
     "tags": [
+      "weapon",
       "ammo",
       "damagereference"
     ],
-    "visible_tags": [],
+    "visible_tags": [
+      "weapon"
+    ],
     "hidden_tags": [
       "ammo",
       "damagereference"
@@ -35718,7 +35881,8 @@
       "weapon",
       "relic",
       "damage",
-      "healthreference"
+      "healthreference",
+      "slowreference"
     ],
     "visible_tags": [
       "weapon",
@@ -35726,7 +35890,8 @@
     ],
     "hidden_tags": [
       "damage",
-      "healthreference"
+      "healthreference",
+      "slowreference"
     ],
     "buy_prices": {},
     "sell_prices": {},
@@ -36320,11 +36485,10 @@
     ],
     "type": "Item",
     "size": "Small",
-    "min_rarity": "Bronze",
+    "min_rarity": "Silver",
     "max_rarity": "Diamond",
-    "rarity": "Bronze",
+    "rarity": "Silver",
     "tiers": [
-      "Bronze",
       "Silver",
       "Gold",
       "Diamond"
@@ -37055,10 +37219,11 @@
     ],
     "type": "Item",
     "size": "Medium",
-    "min_rarity": "Silver",
+    "min_rarity": "Bronze",
     "max_rarity": "Diamond",
-    "rarity": "Silver",
+    "rarity": "Bronze",
     "tiers": [
+      "Bronze",
       "Silver",
       "Gold",
       "Diamond"
@@ -37329,9 +37494,12 @@
       "Diamond"
     ],
     "tags": [
+      "merchant",
       "economyreference"
     ],
-    "visible_tags": [],
+    "visible_tags": [
+      "merchant"
+    ],
     "hidden_tags": [
       "economyreference"
     ],
@@ -39398,7 +39566,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Shield equal to this item's Ammo\nAt the start of each day, this permanently gains {ability.1} Max Ammo",
+    "description": "Shield equal to 5/10/15 times this item's Ammo\nAt the start of each day, this permanently gains {ability.1} Max Ammo",
     "card_pack_id": ""
   },
   "Net Launcher": {
@@ -40274,9 +40442,12 @@
       "Diamond"
     ],
     "tags": [
+      "weapon",
       "damagereference"
     ],
-    "visible_tags": [],
+    "visible_tags": [
+      "weapon"
+    ],
     "hidden_tags": [
       "damagereference"
     ],
@@ -40798,7 +40969,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "When you Crit, an item starts Flying\nYour Flying items have +{aura.1}% Crit Chance",
+    "description": "When you Crit, this and another item start Flying\nYour Flying items have +{aura.1}% Crit Chance",
     "card_pack_id": ""
   },
   "Ornithopter": {
@@ -40824,19 +40995,17 @@
     ],
     "tags": [
       "vehicle",
-      "flying",
-      "damagereference"
+      "flying"
     ],
     "visible_tags": [
       "vehicle"
     ],
     "hidden_tags": [
-      "flying",
-      "damagereference"
+      "flying"
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "An adjacent item starts Flying\nYour Flying items have +{aura.1}",
+    "description": "An adjacent item starts Flying",
     "card_pack_id": ""
   },
   "Ouroboros Statue": {
@@ -41097,7 +41266,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Shield {ability.0}\nWhen you use a Tool or Vehicle, Charge this {ability.1} second",
+    "description": "Shield {ability.0}\nWhen you use another item, Charge this {ability.1} second",
     "card_pack_id": ""
   },
   "Oxygen Tank": {
@@ -41628,13 +41797,9 @@
       "Diamond"
     ],
     "tags": [
-      "core",
-      "tech",
       "friend"
     ],
     "visible_tags": [
-      "core",
-      "tech",
       "friend"
     ],
     "hidden_tags": [],
@@ -42440,10 +42605,13 @@
       "Diamond"
     ],
     "tags": [
+      "weapon",
       "damagereference",
       "ragereference"
     ],
-    "visible_tags": [],
+    "visible_tags": [
+      "weapon"
+    ],
     "hidden_tags": [
       "damagereference",
       "ragereference"
@@ -42819,7 +42987,6 @@
     "tags": [
       "apparel",
       "haste",
-      "crit",
       "flyingreference"
     ],
     "visible_tags": [
@@ -42827,12 +42994,11 @@
     ],
     "hidden_tags": [
       "haste",
-      "crit",
       "flyingreference"
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Haste your Flying Drones and Vehicles for {ability.0} second(s)\nYour Flying Drones and Vehicles have +{aura.1}% Crit Chance",
+    "description": "When you use a Flying item, Haste it for {ability.0} second(s)",
     "card_pack_id": ""
   },
   "Pinata": {
@@ -43047,8 +43213,7 @@
       "aquatic",
       "weapon",
       "friend",
-      "damage",
-      "charge"
+      "damage"
     ],
     "visible_tags": [
       "aquatic",
@@ -43056,8 +43221,7 @@
       "friend"
     ],
     "hidden_tags": [
-      "damage",
-      "charge"
+      "damage"
     ],
     "buy_prices": {},
     "sell_prices": {},
@@ -44592,15 +44756,19 @@
     ],
     "tags": [
       "tool",
+      "weapon",
       "hastereference",
-      "damagereference"
+      "damagereference",
+      "slowreference"
     ],
     "visible_tags": [
-      "tool"
+      "tool",
+      "weapon"
     ],
     "hidden_tags": [
       "hastereference",
-      "damagereference"
+      "damagereference",
+      "slowreference"
     ],
     "buy_prices": {},
     "sell_prices": {},
@@ -44822,7 +44990,6 @@
     ],
     "tags": [
       "tool",
-      "charge",
       "shieldreference",
       "burnreference",
       "regenreference"
@@ -44831,7 +44998,6 @@
       "tool"
     ],
     "hidden_tags": [
-      "charge",
       "shieldreference",
       "burnreference",
       "regenreference"
@@ -44941,11 +45107,13 @@
     "tags": [
       "relic",
       "dinosaur",
+      "weapon",
       "damagereference"
     ],
     "visible_tags": [
       "relic",
-      "dinosaur"
+      "dinosaur",
+      "weapon"
     ],
     "hidden_tags": [
       "damagereference"
@@ -44987,7 +45155,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "When you use a Property, adjacent items gain {ability.0}% Crit Chance",
+    "description": "When you use a Property or Vehicle, adjacent items gain {ability.0}% Crit Chance",
     "card_pack_id": ""
   },
   "Private Hot Springs": {
@@ -46191,7 +46359,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Poison {ability.0}\nRegen {ability.1}\nIf you have no other Weapons, this has +1 Multicast",
+    "description": "Poison {ability.0}\nRegen {ability.1}\nIf this is not adjacent to a Weapon, it has +1 Multicast",
     "card_pack_id": ""
   },
   "Quixel's Package": {
@@ -46452,7 +46620,7 @@
     "hidden_tags": [],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "When you sell this, gain {aura.8} to {aura.9} Gold",
+    "description": "When you Level Up, set this item's value to a number between 0 and {aura.9}",
     "card_pack_id": ""
   },
   "Rage Extender": {
@@ -47035,10 +47203,12 @@
     ],
     "tags": [
       "tool",
+      "tech",
       "shield"
     ],
     "visible_tags": [
-      "tool"
+      "tool",
+      "tech"
     ],
     "hidden_tags": [
       "shield"
@@ -47564,10 +47734,11 @@
     ],
     "type": "Item",
     "size": "Medium",
-    "min_rarity": "Silver",
+    "min_rarity": "Bronze",
     "max_rarity": "Diamond",
-    "rarity": "Silver",
+    "rarity": "Bronze",
     "tiers": [
+      "Bronze",
       "Silver",
       "Gold",
       "Diamond"
@@ -47590,7 +47761,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "When you Freeze, Shield {ability.0} and Regen {ability.1}\nChilled: Adjacent items are Chilled",
+    "description": "When you use a Chilled item or Freeze, Shield {ability.0} and Regen {ability.1}\nChilled: Adjacent items are Chilled",
     "card_pack_id": ""
   },
   "Regal Blade": {
@@ -47758,11 +47929,13 @@
     ],
     "tags": [
       "property",
+      "weapon",
       "damagereference",
       "shieldreference"
     ],
     "visible_tags": [
-      "property"
+      "property",
+      "weapon"
     ],
     "hidden_tags": [
       "damagereference",
@@ -47770,7 +47943,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "When you use a Property, your items gain {ability.0} and your items gain {ability.1}",
+    "description": "When you use a Property or Vehicle, your items gain {ability.0} and {ability.1}",
     "card_pack_id": ""
   },
   "Relax Bro": {
@@ -47942,24 +48115,19 @@
     "id": "1798b189-818a-456d-b7c5-efddf8da15c2",
     "source_id": "1798b189-818a-456d-b7c5-efddf8da15c2",
     "template_id": "1798b189-818a-456d-b7c5-efddf8da15c2",
-    "internal_name": "Repair Mechanic",
+    "internal_name": "Master Mechanic",
     "name": "Repair Mechanic",
-    "hero": "",
+    "hero": "Stelle",
     "heroes": [
-      "Stelle",
-      "Dooley",
-      "Pygmalien",
-      "Jules",
-      "Mak",
-      "Vanessa",
-      "Karnok"
+      "Stelle"
     ],
     "type": "Skill",
     "size": "Medium",
-    "min_rarity": "Gold",
+    "min_rarity": "Silver",
     "max_rarity": "Diamond",
-    "rarity": "Gold",
+    "rarity": "Silver",
     "tiers": [
+      "Silver",
       "Gold",
       "Diamond"
     ],
@@ -48170,7 +48338,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Gain {ability.0} Max Health\nWhen you gain Rage, Charge this 1 second",
+    "description": "Gain {aura.9}% Max Health [{ability.0}]\nWhen you gain Rage, Charge this 1 second",
     "card_pack_id": ""
   },
   "Resonance Crystal": {
@@ -48195,15 +48363,12 @@
       "Diamond"
     ],
     "tags": [
-      "loot",
-      "cooldown"
+      "loot"
     ],
     "visible_tags": [
       "loot"
     ],
-    "hidden_tags": [
-      "cooldown"
-    ],
+    "hidden_tags": [],
     "buy_prices": {},
     "sell_prices": {},
     "description": "When you sell this, upgrade {ability.0.targets} of your items from other Heroes",
@@ -48308,7 +48473,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Poison {ability.0}\nThis has +{aura.1.mod} for each Reagent you have transformed this run [{aura.1}]\nAt the start of each day, spend {ability.3} Gold to get a Chunk of Lead",
+    "description": "Poison {ability.0}\nThis has +{aura.1.mod} for each Reagent you have transformed this run [{aura.1}]\nAt the start of each day, get a Chunk of Lead",
     "card_pack_id": ""
   },
   "Retro-Tech": {
@@ -48786,7 +48951,8 @@
       "relic",
       "apparel",
       "freezereference",
-      "charge"
+      "charge",
+      "damagereference"
     ],
     "visible_tags": [
       "relic",
@@ -48794,7 +48960,8 @@
     ],
     "hidden_tags": [
       "freezereference",
-      "charge"
+      "charge",
+      "damagereference"
     ],
     "buy_prices": {},
     "sell_prices": {},
@@ -49923,29 +50090,28 @@
     ],
     "type": "Item",
     "size": "Small",
-    "min_rarity": "Silver",
+    "min_rarity": "Gold",
     "max_rarity": "Diamond",
-    "rarity": "Silver",
+    "rarity": "Gold",
     "tiers": [
-      "Silver",
       "Gold",
       "Diamond"
     ],
     "tags": [
       "food",
       "crit",
-      "charge"
+      "burn"
     ],
     "visible_tags": [
       "food"
     ],
     "hidden_tags": [
       "crit",
-      "charge"
+      "burn"
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Adjacent items gain +{ability.0}% Crit Chance\nWhen you Crit with an adjacent item, Charge this {ability.1} second",
+    "description": "Adjacent items gain {ability.0}% Crit Chance\nWhen you Crit, Burn {ability.1}",
     "card_pack_id": ""
   },
   "Salvage Yard": {
@@ -50071,11 +50237,10 @@
     ],
     "type": "Item",
     "size": "Small",
-    "min_rarity": "Bronze",
+    "min_rarity": "Silver",
     "max_rarity": "Diamond",
-    "rarity": "Bronze",
+    "rarity": "Silver",
     "tiers": [
-      "Bronze",
       "Silver",
       "Gold",
       "Diamond"
@@ -50286,7 +50451,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Deal damage equal to double the Rage you have gained this fight\nThis deals double Crit damage",
+    "description": "Deal damage equal to double the Rage you have gained this fight\nThis has double Crit damage",
     "card_pack_id": ""
   },
   "Scales": {
@@ -50794,7 +50959,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Deal {ability.0} Damage\nIf an enemy is Shielded, this deals triple Damage",
+    "description": "Deal {ability.0} Damage\nIf an enemy is Shielded, this has triple Damage",
     "card_pack_id": ""
   },
   "Searing Flames": {
@@ -51165,14 +51330,16 @@
     "tags": [
       "tech",
       "drone",
-      "shield"
+      "shield",
+      "flyingreference"
     ],
     "visible_tags": [
       "tech",
       "drone"
     ],
     "hidden_tags": [
-      "shield"
+      "shield",
+      "flyingreference"
     ],
     "buy_prices": {},
     "sell_prices": {},
@@ -52502,16 +52669,14 @@
     "tags": [
       "tool",
       "burn",
-      "haste",
-      "charge"
+      "haste"
     ],
     "visible_tags": [
       "tool"
     ],
     "hidden_tags": [
       "burn",
-      "haste",
-      "charge"
+      "haste"
     ],
     "buy_prices": {},
     "sell_prices": {},
@@ -53106,7 +53271,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Deal Damage equal to {aura.9} times the value of your items\nThis has double value in combat\nIf you have 5 or fewer items, this has +{aura.4} Multicast",
+    "description": "Deal Damage equal to {aura.9} times the value of your items\nThis has double value in combat\nThis has +1 Multicast",
     "card_pack_id": ""
   },
   "Skyspirit Ashes": {
@@ -53758,7 +53923,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Deal {ability.0} Damage\nThis deals {aura.2} times more Damage if it is your only Weapon",
+    "description": "Deal {ability.0} Damage\nThis has {aura.2} times more Damage if it is your only Weapon",
     "card_pack_id": ""
   },
   "Snow Globe": {
@@ -53930,8 +54095,7 @@
       "vehicle",
       "weapon",
       "damage",
-      "freezereference",
-      "charge"
+      "freezereference"
     ],
     "visible_tags": [
       "vehicle",
@@ -53939,8 +54103,7 @@
     ],
     "hidden_tags": [
       "damage",
-      "freezereference",
-      "charge"
+      "freezereference"
     ],
     "buy_prices": {},
     "sell_prices": {},
@@ -54244,7 +54407,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Shield {ability.0}\nFreeze an item for {ability.1} second(s)\nChilled: When you Crit, Charge this {ability.2} second",
+    "description": "Shield {ability.0}\nFreeze an item for {ability.1} second(s)\nChilled: When you Crit with another item, Charge this {ability.2} second",
     "card_pack_id": ""
   },
   "Soul of the District": {
@@ -54382,10 +54545,12 @@
     ],
     "tags": [
       "food",
+      "tool",
       "haste"
     ],
     "visible_tags": [
-      "food"
+      "food",
+      "tool"
     ],
     "hidden_tags": [
       "haste"
@@ -54555,11 +54720,10 @@
     ],
     "type": "Item",
     "size": "Small",
-    "min_rarity": "Bronze",
+    "min_rarity": "Silver",
     "max_rarity": "Diamond",
-    "rarity": "Bronze",
+    "rarity": "Silver",
     "tiers": [
-      "Bronze",
       "Silver",
       "Gold",
       "Diamond"
@@ -54596,11 +54760,15 @@
       "Legendary"
     ],
     "tags": [
-      "heal"
+      "heal",
+      "burnreference",
+      "poisonreference"
     ],
     "visible_tags": [],
     "hidden_tags": [
-      "heal"
+      "heal",
+      "burnreference",
+      "poisonreference"
     ],
     "buy_prices": {},
     "sell_prices": {},
@@ -55471,7 +55639,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "When you win a fight with this, your Properties permanently gain {ability.0} value (including Stash)\nWhen you lose a fight with this, permanently destroy it\nIf you have 5 or fewer items, their Cooldowns are reduced by {aura.2}%",
+    "description": "When you win a fight with this, your Properties permanently gain {ability.0} value (including Stash)\nWhen you lose a fight with this, permanently destroy it\nYour items' Cooldowns are reduced by {aura.2}%",
     "card_pack_id": ""
   },
   "Stand Mixer": {
@@ -55719,11 +55887,13 @@
     ],
     "tags": [
       "tool",
+      "weapon",
       "heal",
       "healreference"
     ],
     "visible_tags": [
-      "tool"
+      "tool",
+      "weapon"
     ],
     "hidden_tags": [
       "heal",
@@ -55805,7 +55975,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "An item starts Flying\nYou take 10% less damage for each non-Glider Flying item you have [{aura.3}%]",
+    "description": "An item starts Flying\nYou take 25% less damage\nYour Flying items have their Cooldowns reduced by 1 second",
     "card_pack_id": ""
   },
   "Steam Hose": {
@@ -55933,11 +56103,10 @@
     ],
     "type": "Item",
     "size": "Small",
-    "min_rarity": "Silver",
+    "min_rarity": "Gold",
     "max_rarity": "Diamond",
-    "rarity": "Silver",
+    "rarity": "Gold",
     "tiers": [
-      "Silver",
       "Gold",
       "Diamond"
     ],
@@ -56278,11 +56447,14 @@
       "Diamond"
     ],
     "tags": [
+      "weapon",
       "regen",
       "damagereference",
       "burnreference"
     ],
-    "visible_tags": [],
+    "visible_tags": [
+      "weapon"
+    ],
     "hidden_tags": [
       "regen",
       "damagereference",
@@ -56412,6 +56584,7 @@
       "tech",
       "toy",
       "economyreference",
+      "value",
       "damagereference",
       "shieldreference",
       "healreference"
@@ -56423,6 +56596,7 @@
     ],
     "hidden_tags": [
       "economyreference",
+      "value",
       "damagereference",
       "shieldreference",
       "healreference"
@@ -57073,19 +57247,17 @@
     ],
     "tags": [
       "food",
-      "crit",
-      "ammo"
+      "crit"
     ],
     "visible_tags": [
       "food"
     ],
     "hidden_tags": [
-      "crit",
-      "ammo"
+      "crit"
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Adjacent items permanently gain {ability.0}% Crit Chance\nThis permanently loses {ability.1} Max Ammo\nAt the end of each fight, if this has no Ammo, permanently destroy it",
+    "description": "At the end of a fight with this, adjacent items permanently gain {ability.0}% Crit Chance and permanently Destroy this",
     "card_pack_id": ""
   },
   "Supply Cache": {
@@ -57431,10 +57603,13 @@
       "Diamond"
     ],
     "tags": [
+      "weapon",
       "damagereference",
       "shieldreference"
     ],
-    "visible_tags": [],
+    "visible_tags": [
+      "weapon"
+    ],
     "hidden_tags": [
       "damagereference",
       "shieldreference"
@@ -58034,9 +58209,12 @@
       "Diamond"
     ],
     "tags": [
+      "tech",
       "cooldown"
     ],
-    "visible_tags": [],
+    "visible_tags": [
+      "tech"
+    ],
     "hidden_tags": [
       "cooldown"
     ],
@@ -58270,7 +58448,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Shield {ability.0}\nWhen you sell a Small item, this permanently gains {ability.1}",
+    "description": "Shield {ability.0}\nWhen you sell this, get 2 Scrap",
     "card_pack_id": ""
   },
   "Tent": {
@@ -58862,9 +59040,12 @@
       "Diamond"
     ],
     "tags": [
+      "potion",
       "cooldown"
     ],
-    "visible_tags": [],
+    "visible_tags": [
+      "potion"
+    ],
     "hidden_tags": [
       "cooldown"
     ],
@@ -59132,8 +59313,12 @@
       "Gold",
       "Diamond"
     ],
-    "tags": [],
-    "visible_tags": [],
+    "tags": [
+      "merchant"
+    ],
+    "visible_tags": [
+      "merchant"
+    ],
     "hidden_tags": [],
     "buy_prices": {},
     "sell_prices": {},
@@ -59295,9 +59480,12 @@
       "Diamond"
     ],
     "tags": [
+      "trap",
       "slow"
     ],
-    "visible_tags": [],
+    "visible_tags": [
+      "trap"
+    ],
     "hidden_tags": [
       "slow"
     ],
@@ -59509,16 +59697,14 @@
     "tags": [
       "tool",
       "burn",
-      "ragereference",
-      "charge"
+      "ragereference"
     ],
     "visible_tags": [
       "tool"
     ],
     "hidden_tags": [
       "burn",
-      "ragereference",
-      "charge"
+      "ragereference"
     ],
     "buy_prices": {},
     "sell_prices": {},
@@ -59691,7 +59877,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Deal {ability.0} Damage\nThis deals double Crit Damage",
+    "description": "Deal {ability.0} Damage\nThis has double Crit Damage",
     "card_pack_id": ""
   },
   "Tiny Dancer": {
@@ -60441,9 +60627,12 @@
       "Diamond"
     ],
     "tags": [
+      "relic",
       "poison"
     ],
-    "visible_tags": [],
+    "visible_tags": [
+      "relic"
+    ],
     "hidden_tags": [
       "poison"
     ],
@@ -60904,11 +61093,15 @@
       "Diamond"
     ],
     "tags": [
-      "ragereference"
+      "ragereference",
+      "burnreference",
+      "poisonreference"
     ],
     "visible_tags": [],
     "hidden_tags": [
-      "ragereference"
+      "ragereference",
+      "burnreference",
+      "poisonreference"
     ],
     "buy_prices": {},
     "sell_prices": {},
@@ -61621,7 +61814,8 @@
       "tool",
       "damage",
       "crit",
-      "hastereference"
+      "hastereference",
+      "haste"
     ],
     "visible_tags": [
       "weapon",
@@ -61630,11 +61824,38 @@
     "hidden_tags": [
       "damage",
       "crit",
-      "hastereference"
+      "hastereference",
+      "haste"
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Deal {ability.0} Damage\nWhen you Haste this, it and adjacent items gains +{ability.1} Crit Chance",
+    "description": "Deal {ability.0} Damage\nWhen you Haste this, it and adjacent items gains +{ability.1} Crit Chance\nChilled: Haste this {ability.2} second",
+    "card_pack_id": ""
+  },
+  "Underground Resistance": {
+    "id": "254017cc-e3b9-486e-9276-850867ceba6b",
+    "source_id": "254017cc-e3b9-486e-9276-850867ceba6b",
+    "template_id": "254017cc-e3b9-486e-9276-850867ceba6b",
+    "internal_name": "Underground Resistance",
+    "name": "Underground Resistance",
+    "hero": "Common",
+    "heroes": [
+      "Common"
+    ],
+    "type": "Skill",
+    "size": "Medium",
+    "min_rarity": "Diamond",
+    "max_rarity": "Diamond",
+    "rarity": "Diamond",
+    "tiers": [
+      "Diamond"
+    ],
+    "tags": [],
+    "visible_tags": [],
+    "hidden_tags": [],
+    "buy_prices": {},
+    "sell_prices": {},
+    "description": "At the start of the run, get a random Package to deliver",
     "card_pack_id": ""
   },
   "Underwater Wonder": {
@@ -61897,7 +62118,6 @@
     ],
     "tags": [
       "apparel",
-      "charge",
       "rage",
       "shield",
       "haste",
@@ -61909,7 +62129,6 @@
       "apparel"
     ],
     "hidden_tags": [
-      "charge",
       "rage",
       "shield",
       "haste",
@@ -62202,13 +62421,19 @@
     ],
     "tags": [
       "drone",
-      "flying"
+      "weapon",
+      "vehicle",
+      "flying",
+      "damagereference"
     ],
     "visible_tags": [
-      "drone"
+      "drone",
+      "weapon",
+      "vehicle"
     ],
     "hidden_tags": [
-      "flying"
+      "flying",
+      "damagereference"
     ],
     "buy_prices": {},
     "sell_prices": {},
@@ -62726,7 +62951,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Haste adjacent Properties for {ability.0} second(s)\nWhen you use an adjacent Property, increase its value by {ability.1}",
+    "description": "Haste your highest value item for {ability.0} second(s)\nWhen you use an adjacent item, increase its value by {ability.1}",
     "card_pack_id": ""
   },
   "Viper Cane": {
@@ -63373,7 +63598,7 @@
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "Shield {ability.0}\nThis gains {ability.1}",
+    "description": "This gains {ability.0}\nShield {ability.1}",
     "card_pack_id": ""
   },
   "Walter Cooler": {
@@ -63985,8 +64210,7 @@
       "core",
       "tech",
       "weapon",
-      "damage",
-      "charge"
+      "damage"
     ],
     "visible_tags": [
       "core",
@@ -63994,8 +64218,7 @@
       "weapon"
     ],
     "hidden_tags": [
-      "damage",
-      "charge"
+      "damage"
     ],
     "buy_prices": {},
     "sell_prices": {},
@@ -64260,19 +64483,17 @@
     ],
     "tags": [
       "core",
-      "damagereference",
       "cooldown"
     ],
     "visible_tags": [
       "core"
     ],
     "hidden_tags": [
-      "damagereference",
       "cooldown"
     ],
     "buy_prices": {},
     "sell_prices": {},
-    "description": "When you use a Core, reduce an item's Cooldown by 5%",
+    "description": "When you use a Core, reduce an item's Cooldown by 8%",
     "card_pack_id": ""
   },
   "Wetware": {
@@ -64928,16 +65149,14 @@
     "tags": [
       "friend",
       "poison",
-      "slow",
-      "charge"
+      "slow"
     ],
     "visible_tags": [
       "friend"
     ],
     "hidden_tags": [
       "poison",
-      "slow",
-      "charge"
+      "slow"
     ],
     "buy_prices": {},
     "sell_prices": {},

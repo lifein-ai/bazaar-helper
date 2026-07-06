@@ -312,7 +312,10 @@ def is_item_modification_event(event: dict[str, Any]) -> bool:
     description = (event.get("description") or "").lower()
     return (
         str(event.get("cache_type", "")).startswith("TCardEncounter")
-        and "give types to your items" in description
+        and (
+            "give types to your items" in description
+            or description.startswith("transform your stash items")
+        )
     )
 
 
@@ -381,6 +384,7 @@ def is_item_reward_event(event: dict[str, Any]) -> bool:
         "you found ",
         "you easily take ",
         "take one of their items",
+        "make a wish for ",
     ]
     has_reward_starter = any(description.startswith(starter) for starter in reward_starters)
     if description.startswith("(if ") and " get " in description:

@@ -935,6 +935,30 @@
       "notes": "Sells Large items"
     },
     {
+      "name": "Private Pitchfork",
+      "source_id": "15b88e74-024e-40a3-a811-aa5810e68ca2",
+      "source_ids": [
+        "15b88e74-024e-40a3-a811-aa5810e68ca2"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "shop_type": "hero",
+      "hero_filter": "Common",
+      "shop_pool": {
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "fixed",
+        "hero_filter": "Common"
+      },
+      "notes": "Sells Neutral items"
+    },
+    {
       "name": "Prospero",
       "source_id": "bcdaa6d4-9057-4ea1-8110-a2dae217c55f",
       "source_ids": [
@@ -1260,7 +1284,6 @@
       ],
       "event_heroes": [
         "Dooley",
-        "Vanessa",
         "Stelle"
       ],
       "shop_type": "tech",
@@ -1275,9 +1298,9 @@
         "excluded_tags": [
           "legendary"
         ],
-        "hero_scope": "any"
+        "hero_scope": "current"
       },
-      "notes": "Sells Tech items from any Hero"
+      "notes": "Sells Tech items"
     },
     {
       "name": "The Travel Agent",
@@ -2584,8 +2607,11 @@
   "item_rewards": [
     {
       "name": "Abandoned Property",
-      "source_id": "fed8adb8-8fc6-49be-88da-a6fa8496ad2f",
+      "source_id": "538290f0-a363-4c05-8efa-ff68932d43bb",
       "source_ids": [
+        "538290f0-a363-4c05-8efa-ff68932d43bb",
+        "6391c95c-1dc1-420e-ab5e-ab99c6db4267",
+        "db927fd4-b1b4-4587-b295-d0d1e4e15d0c",
         "fed8adb8-8fc6-49be-88da-a6fa8496ad2f"
       ],
       "event_heroes": [
@@ -2604,8 +2630,11 @@
           "property"
         ],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary"
         ],
@@ -2616,13 +2645,16 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Property"
+      "notes": "Get a Diamond-tier Property"
     },
     {
       "name": "Alchemy Lab",
-      "source_id": "2ff9137c-1089-43f2-a389-120860aec5ea",
+      "source_id": "0dc4e708-415a-4ee5-ba1f-4cda9b880ebd",
       "source_ids": [
-        "2ff9137c-1089-43f2-a389-120860aec5ea"
+        "0dc4e708-415a-4ee5-ba1f-4cda9b880ebd",
+        "2ff9137c-1089-43f2-a389-120860aec5ea",
+        "3016cd02-8221-4d9b-9572-89af7705184f",
+        "52419a5c-f565-4e6d-9827-baa65c6d9d92"
       ],
       "event_heroes": [
         "Mak"
@@ -2639,8 +2671,11 @@
           "potion"
         ],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary"
         ],
@@ -2651,7 +2686,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Potion"
+      "notes": "Get a Gold-tier Potion"
     },
     {
       "name": "Ammo Cache",
@@ -2702,7 +2737,10 @@
       "source_id": "7c179f37-5845-4041-b123-0c7da0fdabbd",
       "source_ids": [
         "7c179f37-5845-4041-b123-0c7da0fdabbd",
-        "c9fe4d57-1e5e-40dc-b878-9243ac41d130"
+        "ae1d3ea7-71d8-498c-b607-9cb12e3555cd",
+        "bfa6d377-2fbe-4c8f-82ab-685e93dde1cb",
+        "c9fe4d57-1e5e-40dc-b878-9243ac41d130",
+        "d277e30d-2be8-4026-b0af-e1c11413e8a0"
       ],
       "event_heroes": [
         "Common"
@@ -2719,8 +2757,11 @@
           "weapon"
         ],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary"
         ],
@@ -2731,7 +2772,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Weapon"
+      "notes": "Get a Bronze-tier Weapon"
     },
     {
       "name": "Arms Locker",
@@ -2780,8 +2821,11 @@
     },
     {
       "name": "Battlefield",
-      "source_id": "9ba94af3-54c6-4e34-99eb-32d4309118ec",
+      "source_id": "488df2ed-b698-4fe6-814f-5adcde618208",
       "source_ids": [
+        "488df2ed-b698-4fe6-814f-5adcde618208",
+        "8e61f266-d58a-45ec-9560-76bf27afd1ca",
+        "9037d88a-5e05-4ba6-8219-69360d402759",
         "9ba94af3-54c6-4e34-99eb-32d4309118ec"
       ],
       "event_heroes": [
@@ -2799,8 +2843,11 @@
           "weapon"
         ],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary"
         ],
@@ -2814,7 +2861,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Small Weapon"
+      "notes": "Get a Small Gold-tier Weapon"
     },
     {
       "name": "BeFriend",
@@ -2861,8 +2908,11 @@
     },
     {
       "name": "Block Party",
-      "source_id": "efdb2b8a-7475-47fe-ad84-8a40ab49c27e",
+      "source_id": "57a90bd8-9ece-4917-a2e7-fb8925fe231a",
       "source_ids": [
+        "57a90bd8-9ece-4917-a2e7-fb8925fe231a",
+        "71c529a8-7366-4f69-b2ab-4f0eec8573b5",
+        "db314574-3ebe-49e1-8b87-c6b3678a7368",
         "efdb2b8a-7475-47fe-ad84-8a40ab49c27e"
       ],
       "event_heroes": [
@@ -2882,8 +2932,11 @@
           "friend"
         ],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary"
         ],
@@ -2894,13 +2947,16 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Friend"
+      "notes": "Get a Diamond-tier Friend"
     },
     {
       "name": "Botanical Gardens",
-      "source_id": "8251155c-f8b0-4dbc-9a42-fd2448a30171",
+      "source_id": "1bd4edc9-0cb9-49f7-bc03-703c36835de1",
       "source_ids": [
-        "8251155c-f8b0-4dbc-9a42-fd2448a30171"
+        "1bd4edc9-0cb9-49f7-bc03-703c36835de1",
+        "8251155c-f8b0-4dbc-9a42-fd2448a30171",
+        "b4d4dae0-708a-452e-87a2-cb87b308c1ac",
+        "b6baa6f3-7321-4d14-9412-68acdab57d9c"
       ],
       "event_heroes": [
         "Vanessa",
@@ -2918,8 +2974,11 @@
           "poison"
         ],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary"
         ],
@@ -2930,13 +2989,16 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Poison item"
+      "notes": "Get a Silver-tier Poison item"
     },
     {
       "name": "Cabin Fishing",
       "source_id": "0c77d216-69de-4a92-9893-5f4b154128dc",
       "source_ids": [
-        "0c77d216-69de-4a92-9893-5f4b154128dc"
+        "0c77d216-69de-4a92-9893-5f4b154128dc",
+        "3845dfe7-e077-46a4-9534-02ddb895060a",
+        "987abc50-90a5-416b-ac98-9220a31737e5",
+        "f10a4289-ddb2-46e2-9985-dfefff459951"
       ],
       "event_heroes": [
         "Vanessa"
@@ -2953,8 +3015,11 @@
           "aquatic"
         ],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary"
         ],
@@ -2968,7 +3033,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Small Aquatic item"
+      "notes": "Get a Small Bronze-tier Aquatic item"
     },
     {
       "name": "Candy Stash",
@@ -3016,9 +3081,9 @@
       "source_id": "168a04a9-d761-4df4-b9d9-0be88fe90f53",
       "source_ids": [
         "168a04a9-d761-4df4-b9d9-0be88fe90f53",
-        "5f5d089d-28f1-4d87-afff-37b23f98c819",
-        "66cb2add-3b1a-47d9-99a9-07123eee28f3",
-        "e394b35f-0ab3-4947-a7f8-67bfda70153e"
+        "176ebe3f-4e14-4b8e-9704-98cd8e95190c",
+        "3ee61d8b-775f-4d75-a043-1975e1cbb55f",
+        "9c8fa101-03e7-4e29-aca6-01c05f47faf8"
       ],
       "event_heroes": [
         "Common"
@@ -3039,8 +3104,11 @@
           "burn"
         ],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary"
         ],
@@ -3051,7 +3119,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Cinders (+Burn)"
+      "notes": "Get a Silver-tier Cinders (+Burn)"
     },
     {
       "name": "Core Initialization",
@@ -3086,8 +3154,11 @@
     },
     {
       "name": "Deep Sea Fishing",
-      "source_id": "9e3c43fe-0205-4bf6-9da9-2b9bbbef8a65",
+      "source_id": "2584cba4-fa60-4132-9e46-40f7eb9ee95d",
       "source_ids": [
+        "2584cba4-fa60-4132-9e46-40f7eb9ee95d",
+        "36b24aae-977a-40f4-a5d1-05deae478215",
+        "6a8a9d37-f88b-4da8-a1fa-3584a4bd5c3d",
         "9e3c43fe-0205-4bf6-9da9-2b9bbbef8a65"
       ],
       "event_heroes": [
@@ -3105,8 +3176,11 @@
           "aquatic"
         ],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary"
         ],
@@ -3117,7 +3191,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get an Aquatic item"
+      "notes": "Get a Gold-tier Aquatic item"
     },
     {
       "name": "Eating Contest",
@@ -3156,8 +3230,11 @@
     },
     {
       "name": "Extract Extract",
-      "source_id": "d896d88c-91e8-4950-9670-0c42f9fd5a92",
+      "source_id": "30101d11-aff6-430e-a2e4-57c261111933",
       "source_ids": [
+        "30101d11-aff6-430e-a2e4-57c261111933",
+        "9ed55b8e-6ac3-4fdf-898e-30e181e6c88c",
+        "adeccad5-0430-4a3a-a305-d007788f7627",
         "d896d88c-91e8-4950-9670-0c42f9fd5a92"
       ],
       "event_heroes": [
@@ -3182,8 +3259,11 @@
           "poison"
         ],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary"
         ],
@@ -3194,13 +3274,16 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get an Extract (+Poison)"
+      "notes": "Get an Diamond-tier Extract (+Poison)"
     },
     {
       "name": "Freezer",
-      "source_id": "24633cbe-9198-4d1c-be90-0108cd170fb2",
+      "source_id": "1b34f123-434c-4b88-bfc8-5fb2d245e1b1",
       "source_ids": [
-        "24633cbe-9198-4d1c-be90-0108cd170fb2"
+        "1b34f123-434c-4b88-bfc8-5fb2d245e1b1",
+        "1f56ada9-2f87-469e-ad8b-29f7bc5754f2",
+        "24633cbe-9198-4d1c-be90-0108cd170fb2",
+        "3b70cc4c-867d-4a04-a9c4-e09726d8b211"
       ],
       "event_heroes": [
         "Pygmalien",
@@ -3219,8 +3302,11 @@
           "freeze"
         ],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary"
         ],
@@ -3231,13 +3317,16 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Freeze item"
+      "notes": "Get a Gold-tier Freeze item"
     },
     {
       "name": "Furnace",
       "source_id": "086e814f-5525-4747-b783-3279f1e67880",
       "source_ids": [
-        "086e814f-5525-4747-b783-3279f1e67880"
+        "086e814f-5525-4747-b783-3279f1e67880",
+        "3f758597-56ae-400e-bc5b-92978fbe6b2c",
+        "69a2a91d-326d-44de-bfd6-a8ad68440a40",
+        "8b4d74f6-6491-40d6-87da-023672144e03"
       ],
       "event_heroes": [
         "Vanessa",
@@ -3258,8 +3347,11 @@
           "burn"
         ],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary"
         ],
@@ -3273,7 +3365,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Small Burn item"
+      "notes": "Get a Small Bronze-tier Burn item"
     },
     {
       "name": "Get Bronze Loot",
@@ -3670,7 +3762,10 @@
       "name": "Guard Locker",
       "source_id": "97147e21-62ef-4067-b7d5-d0cb0736775f",
       "source_ids": [
-        "97147e21-62ef-4067-b7d5-d0cb0736775f"
+        "97147e21-62ef-4067-b7d5-d0cb0736775f",
+        "bc1ed5b8-9603-41f2-9d03-b1ff423484aa",
+        "f7467c4b-87c5-4e55-957b-813ac703a3c1",
+        "fbc087d9-f0d5-48a2-8c83-f9fccd572b4b"
       ],
       "event_heroes": [
         "Pygmalien",
@@ -3692,8 +3787,11 @@
           "shield"
         ],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary"
         ],
@@ -3707,7 +3805,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Small Shield item"
+      "notes": "Get a Small Bronze-tier Shield item"
     },
     {
       "name": "Gumball Machine",
@@ -3752,8 +3850,10 @@
     },
     {
       "name": "Gunpowder Cache",
-      "source_id": "acaf7c4f-ecd4-4af1-a79c-c5b0b20ee21f",
+      "source_id": "55cb2028-845d-476b-8e28-8cba27cc22d9",
       "source_ids": [
+        "55cb2028-845d-476b-8e28-8cba27cc22d9",
+        "57db7d4b-421a-4869-b7be-d969b494f508",
         "acaf7c4f-ecd4-4af1-a79c-c5b0b20ee21f"
       ],
       "event_heroes": [
@@ -3777,8 +3877,11 @@
           "ammo"
         ],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "silver",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary"
         ],
@@ -3789,13 +3892,16 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Gunpowder (+Ammo)"
+      "notes": "Get a Gold-tier Gunpowder (+Ammo)"
     },
     {
       "name": "Hospital",
       "source_id": "a79c70c6-44a8-4553-b715-2e25c83c3b8c",
       "source_ids": [
-        "a79c70c6-44a8-4553-b715-2e25c83c3b8c"
+        "a79c70c6-44a8-4553-b715-2e25c83c3b8c",
+        "c1c4c655-4c5b-4873-bdce-3832c65e4d8e",
+        "d36cb96b-be1a-418c-985a-1a49cb5a7036",
+        "faae3bd7-8d8f-4561-b127-78e6420a67a5"
       ],
       "event_heroes": [
         "Pygmalien",
@@ -3816,8 +3922,11 @@
           "regen"
         ],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary"
         ],
@@ -3828,13 +3937,16 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Heal or Regen item"
+      "notes": "Get a Bronze-tier Heal or Regen item"
     },
     {
       "name": "House Party",
       "source_id": "07dabb08-156e-486e-96e2-c0d0e2aaa904",
       "source_ids": [
-        "07dabb08-156e-486e-96e2-c0d0e2aaa904"
+        "07dabb08-156e-486e-96e2-c0d0e2aaa904",
+        "25543cb9-e918-4e8b-98e3-10b07c475162",
+        "2b3bbe43-06b7-4dcd-b486-a9d9b337ace1",
+        "4ecd92f8-43d3-419d-9abf-95d3a53d3e0f"
       ],
       "event_heroes": [
         "Vanessa",
@@ -3853,8 +3965,11 @@
           "friend"
         ],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary"
         ],
@@ -3868,7 +3983,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Small Friend"
+      "notes": "Get a Small Bronze-tier Friend"
     },
     {
       "name": "Ifrit",
@@ -4026,8 +4141,11 @@
     },
     {
       "name": "Lost and Found",
-      "source_id": "ff66c76e-34aa-42fa-99b7-cbd0fba31ecb",
+      "source_id": "4ebea557-6912-4082-9e04-a4c02472fc45",
       "source_ids": [
+        "4ebea557-6912-4082-9e04-a4c02472fc45",
+        "592c3f31-a6a0-4b1a-a1d9-4016224f09ab",
+        "9297f1eb-0435-4483-b530-5b1074210720",
         "ff66c76e-34aa-42fa-99b7-cbd0fba31ecb"
       ],
       "event_heroes": [
@@ -4041,8 +4159,11 @@
         "exact_names": [],
         "reward_tags": [],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary",
           "weapon"
@@ -4057,13 +4178,16 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Small non-Weapon item"
+      "notes": "Get a Small Gold-tier non-Weapon item"
     },
     {
       "name": "Mag Storage",
       "source_id": "045c8751-0395-4b3b-b703-b11bc96a1944",
       "source_ids": [
-        "045c8751-0395-4b3b-b703-b11bc96a1944"
+        "045c8751-0395-4b3b-b703-b11bc96a1944",
+        "17493eb4-2d8c-4bbd-9e9e-8220269dd323",
+        "1f14ebe7-5c23-4439-a787-3ca6933ee2ff",
+        "497c2eb4-2b38-4dd9-b41f-a2553416622c"
       ],
       "event_heroes": [
         "Dooley"
@@ -4080,8 +4204,11 @@
           "tech"
         ],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary"
         ],
@@ -4092,7 +4219,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Tech item"
+      "notes": "Get a Bronze-tier Tech item"
     },
     {
       "name": "Magic Mirror",
@@ -4127,9 +4254,12 @@
     },
     {
       "name": "Medicine Cabinet",
-      "source_id": "76da2ed3-caa0-4420-82a6-a4f5211d012c",
+      "source_id": "0e0a056f-ad2f-4049-b17d-8031393402ec",
       "source_ids": [
-        "76da2ed3-caa0-4420-82a6-a4f5211d012c"
+        "0e0a056f-ad2f-4049-b17d-8031393402ec",
+        "76da2ed3-caa0-4420-82a6-a4f5211d012c",
+        "a5980f5b-4f19-4826-8919-8d88077d6ba0",
+        "d237472b-0d0e-47d2-b51d-37def1e201dd"
       ],
       "event_heroes": [
         "Pygmalien",
@@ -4150,8 +4280,11 @@
           "regen"
         ],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary"
         ],
@@ -4165,7 +4298,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Small Heal or Regen item"
+      "notes": "Get a Small Diamond-tier Heal or Regen item"
     },
     {
       "name": "Monster Ranch",
@@ -4237,7 +4370,10 @@
       "source_id": "3bb35f2f-3474-4edb-98a7-d7588fb20f74",
       "source_ids": [
         "3bb35f2f-3474-4edb-98a7-d7588fb20f74",
-        "7077c578-f19e-483b-bc2c-db65b5e47e7c"
+        "6e4b782d-d4e4-43ac-93cd-4ee46d680d48",
+        "7077c578-f19e-483b-bc2c-db65b5e47e7c",
+        "7b5bd866-3b46-4bc0-b5dc-e5458c67cf9d",
+        "d21fae9a-1cb4-40f2-8574-9c72b51a1ce1"
       ],
       "event_heroes": [
         "Vanessa",
@@ -4258,8 +4394,11 @@
           "slow"
         ],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary"
         ],
@@ -4270,7 +4409,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Slow item"
+      "notes": "Get a Bronze-tier Slow item"
     },
     {
       "name": "Pearl's Dig Site",
@@ -4388,9 +4527,12 @@
     },
     {
       "name": "Procure Medkit",
-      "source_id": "9f7cbbaf-aeed-4170-9400-e1da445fe101",
+      "source_id": "1ff79367-b005-43e2-81cc-a9f3b2e55b49",
       "source_ids": [
-        "9f7cbbaf-aeed-4170-9400-e1da445fe101"
+        "1ff79367-b005-43e2-81cc-a9f3b2e55b49",
+        "9f7cbbaf-aeed-4170-9400-e1da445fe101",
+        "cb280097-2346-43e0-b6ef-bf7ba2b01b2f",
+        "e750af0e-60f1-4da1-838a-a0ac41ca6a73"
       ],
       "event_heroes": [
         "Pygmalien",
@@ -4413,8 +4555,11 @@
           "heal"
         ],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary"
         ],
@@ -4425,14 +4570,17 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Medkit (+Heal)"
+      "notes": "Get a Bronze-tier Medkit (+Heal)"
     },
     {
       "name": "Pyre",
       "source_id": "1005cb9f-87f3-4087-a695-a54b7315d586",
       "source_ids": [
         "1005cb9f-87f3-4087-a695-a54b7315d586",
-        "733355b4-4e6e-4255-9e62-b60eef2f9864"
+        "4afc594c-9213-47e2-b869-82bab1882490",
+        "731fdecd-bc3f-48a7-bdf9-4096f3eaa963",
+        "733355b4-4e6e-4255-9e62-b60eef2f9864",
+        "904bd867-a3e8-444f-94e1-0f13acef8536"
       ],
       "event_heroes": [
         "Vanessa",
@@ -4454,8 +4602,11 @@
           "burn"
         ],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary"
         ],
@@ -4466,13 +4617,16 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Burn item"
+      "notes": "Get a Bronze-tier Burn item"
     },
     {
       "name": "Racetrack",
       "source_id": "31ba6532-0fea-47ba-8102-96560740206a",
       "source_ids": [
         "31ba6532-0fea-47ba-8102-96560740206a",
+        "406a9513-35b3-4a12-96ab-48c0710b415b",
+        "ab256aab-9578-4eb8-a821-85b5c9e892d8",
+        "ae4a5d1a-edc7-4a0a-b357-65e051e6a80e",
         "bfc22038-04da-41a1-97c9-7cb8c3608747"
       ],
       "event_heroes": [
@@ -4548,8 +4702,11 @@
     },
     {
       "name": "Reagent Harvesting",
-      "source_id": "d637adc9-3b1d-4aef-b238-07c3bafe057f",
+      "source_id": "4e683fef-313e-40ba-9aa9-b2848d7b6b72",
       "source_ids": [
+        "4e683fef-313e-40ba-9aa9-b2848d7b6b72",
+        "52e66fe1-78f0-4ee1-a3fe-2f2fe21efbb7",
+        "bdd66fcc-98dc-47aa-81df-1282a4bbef05",
         "d637adc9-3b1d-4aef-b238-07c3bafe057f"
       ],
       "event_heroes": [
@@ -4567,8 +4724,11 @@
           "reagent"
         ],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary"
         ],
@@ -4579,7 +4739,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Reagent"
+      "notes": "Get a Silver-tier Reagent"
     },
     {
       "name": "Reagent Shelf",
@@ -4626,7 +4786,10 @@
       "name": "Recycling Center",
       "source_id": "12a50b2d-340f-4603-a5a4-a3d63d80c504",
       "source_ids": [
-        "12a50b2d-340f-4603-a5a4-a3d63d80c504"
+        "12a50b2d-340f-4603-a5a4-a3d63d80c504",
+        "42a96476-afc7-420f-bc06-34872b57b534",
+        "4e4c3fd4-666d-4796-8ef1-43e2aa771f42",
+        "ea7f99f9-a143-43d8-a74d-933a439a4b60"
       ],
       "event_heroes": [
         "Common"
@@ -4639,8 +4802,11 @@
         "exact_names": [],
         "reward_tags": [],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary",
           "weapon"
@@ -4652,13 +4818,16 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a non-Weapon item"
+      "notes": "Get a Bronze-tier non-Weapon item"
     },
     {
       "name": "Scrap Salvage",
-      "source_id": "3db126be-6a4f-48b7-81e0-793287e9eeeb",
+      "source_id": "1d08f4e5-146f-415d-958f-5a93a84dfbc2",
       "source_ids": [
-        "3db126be-6a4f-48b7-81e0-793287e9eeeb"
+        "1d08f4e5-146f-415d-958f-5a93a84dfbc2",
+        "3db126be-6a4f-48b7-81e0-793287e9eeeb",
+        "65ff28de-67a6-4c51-adf4-f3f9379ff96a",
+        "d0c544fe-36a7-4887-98c0-bfa949a0f472"
       ],
       "event_heroes": [
         "Pygmalien",
@@ -4683,8 +4852,11 @@
           "shield"
         ],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary"
         ],
@@ -4695,13 +4867,16 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Scrap (+Shield)"
+      "notes": "Get a Bronze-tier Scrap (+Shield)"
     },
     {
       "name": "Security Center",
       "source_id": "0370b2b5-e856-457e-a8dc-b7fd0ab098fc",
       "source_ids": [
         "0370b2b5-e856-457e-a8dc-b7fd0ab098fc",
+        "8445b23f-b1ed-48bc-aeec-0b70be4e4030",
+        "bbd7fab5-9bf1-4de4-bd27-bed7f7fd5c97",
+        "d2167751-e2ce-439c-995a-3282452e2f14",
         "ea510bb8-0ded-48ee-b0e2-750d26bf1587"
       ],
       "event_heroes": [
@@ -4725,8 +4900,11 @@
           "shield"
         ],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary"
         ],
@@ -4737,7 +4915,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Shield item"
+      "notes": "Get a Bronze-tier Shield item"
     },
     {
       "name": "Seminar",
@@ -4782,7 +4960,10 @@
       "name": "Sharpening Kit",
       "source_id": "79557839-d5cc-4638-ba7b-234f0142a38a",
       "source_ids": [
-        "79557839-d5cc-4638-ba7b-234f0142a38a"
+        "79557839-d5cc-4638-ba7b-234f0142a38a",
+        "b6634697-588b-4131-883b-c9cf20967760",
+        "d0a0f491-e1f2-433b-b2d9-caee00202e09",
+        "fab18db9-38b4-438a-a87f-3dfc931ae679"
       ],
       "event_heroes": [
         "Common"
@@ -4803,8 +4984,11 @@
           "damage"
         ],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary"
         ],
@@ -4815,7 +4999,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Sharpening Stone (+Damage)"
+      "notes": "Get a Silver-tier Sharpening Stone (+Damage)"
     },
     {
       "name": "Shrouded Figure's Chest",
@@ -5012,9 +5196,12 @@
     },
     {
       "name": "Tech Salvage",
-      "source_id": "a8c7d852-f117-43d2-b7a6-76d78866321e",
+      "source_id": "5e607777-7ce3-467a-9eaf-fab0ee41e905",
       "source_ids": [
-        "a8c7d852-f117-43d2-b7a6-76d78866321e"
+        "5e607777-7ce3-467a-9eaf-fab0ee41e905",
+        "8998de52-cc59-4588-885c-39a60ca3faf7",
+        "a8c7d852-f117-43d2-b7a6-76d78866321e",
+        "cdb02a2a-603c-416e-bcb1-9fc71632b08a"
       ],
       "event_heroes": [
         "Dooley"
@@ -5031,8 +5218,11 @@
           "tech"
         ],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary"
         ],
@@ -5046,7 +5236,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Small Tech item"
+      "notes": "Get a Small Silver-tier Tech item"
     },
     {
       "name": "Thanks",
@@ -5262,10 +5452,12 @@
     },
     {
       "name": "Treasure Chest",
-      "source_id": "71e387b6-bcb5-4c39-aa65-957ee5f6fbec",
+      "source_id": "213c6a72-de3d-445c-8950-3c922f0fff46",
       "source_ids": [
+        "213c6a72-de3d-445c-8950-3c922f0fff46",
+        "246ba7e6-f593-4a3c-a57a-c23c77b9532b",
+        "59eee473-a870-43ef-9a87-ac26c99474c1",
         "71e387b6-bcb5-4c39-aa65-957ee5f6fbec",
-        "988b8aae-6b68-44ab-acd8-50b941dc4592",
         "a8500ea3-2235-410e-bc51-bb0355857408"
       ],
       "event_heroes": [
@@ -5279,8 +5471,11 @@
         "exact_names": [],
         "reward_tags": [],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary"
         ],
@@ -5291,7 +5486,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get an item"
+      "notes": "Get a Gold-tier item"
     },
     {
       "name": "Trophy Hunt",
@@ -5332,9 +5527,12 @@
     },
     {
       "name": "Utility Box",
-      "source_id": "e016221d-cc17-4a93-aabb-00155bbbeb46",
+      "source_id": "46f665ff-c67b-4b8f-9ea1-4fceb086ceb5",
       "source_ids": [
-        "e016221d-cc17-4a93-aabb-00155bbbeb46"
+        "46f665ff-c67b-4b8f-9ea1-4fceb086ceb5",
+        "d70c7e92-3eff-4cb3-ba01-f9e8c179e407",
+        "e016221d-cc17-4a93-aabb-00155bbbeb46",
+        "f531a553-d578-40d5-a3da-1159ab2a096f"
       ],
       "event_heroes": [
         "Common"
@@ -5351,8 +5549,11 @@
           "tool"
         ],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary"
         ],
@@ -5366,7 +5567,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Small Tool"
+      "notes": "Get a Small Gold-tier Tool"
     },
     {
       "name": "Watch",
@@ -5403,10 +5604,44 @@
       "notes": "Get a Small item"
     },
     {
-      "name": "Workshop",
-      "source_id": "08111534-157d-4603-b157-03ac0f6d02cf",
+      "name": "Wishing Fountain",
+      "source_id": "3212ade4-8e23-49cd-b9b5-f729280ba0b5",
       "source_ids": [
-        "08111534-157d-4603-b157-03ac0f6d02cf"
+        "3212ade4-8e23-49cd-b9b5-f729280ba0b5"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "item_reward",
+      "exact_names": [],
+      "reward_tags": [],
+      "card_reward": {
+        "enabled": true,
+        "exact_names": [],
+        "reward_tags": [],
+        "match_mode": "any",
+        "rarity_filter": null,
+        "rarity_rule": "normal_shop_by_day",
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Make a wish for random items"
+    },
+    {
+      "name": "Workshop",
+      "source_id": "011b22fa-4a25-48a6-93e0-7602ceffcd13",
+      "source_ids": [
+        "011b22fa-4a25-48a6-93e0-7602ceffcd13",
+        "08111534-157d-4603-b157-03ac0f6d02cf",
+        "79dc6e4f-1e05-43af-b6e8-b8ac8c791f3f",
+        "d8733ee2-22f0-498d-ac26-11f93d84fef3"
       ],
       "event_heroes": [
         "Common"
@@ -5423,8 +5658,11 @@
           "tool"
         ],
         "match_mode": "any",
-        "rarity_filter": null,
-        "rarity_rule": "normal_shop_by_day",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
         "excluded_tags": [
           "legendary"
         ],
@@ -5435,7 +5673,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Tool"
+      "notes": "Get a Silver-tier Tool"
     }
   ],
   "item_events": [
@@ -5510,6 +5748,30 @@
         "health": 0
       },
       "notes": "The craftsman at the Artisan Dunes offers a variety of ways to enchance your offensive items"
+    },
+    {
+      "name": "Aurora Dome",
+      "source_id": "7495fc68-4444-4fef-96f0-000000000000",
+      "source_ids": [
+        "7495fc68-4444-4fef-96f0-000000000000"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "item_event",
+      "effect": "improve_items",
+      "target_tags": [
+        "cooldown"
+      ],
+      "match_mode": "any",
+      "rarity_filter": null,
+      "rarity_rule": null,
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Improve your items without a Cooldown"
     },
     {
       "name": "B1&B2",
@@ -5588,6 +5850,30 @@
         "health": 0
       },
       "notes": "Improve your Shield items"
+    },
+    {
+      "name": "Farmer's Market",
+      "source_id": "f40135ba-ddcb-405e-aefb-c085c4a397cd",
+      "source_ids": [
+        "f40135ba-ddcb-405e-aefb-c085c4a397cd"
+      ],
+      "event_heroes": [
+        "Jules"
+      ],
+      "event_type": "item_event",
+      "effect": "improve_items",
+      "target_tags": [
+        "food"
+      ],
+      "match_mode": "any",
+      "rarity_filter": null,
+      "rarity_rule": null,
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Improve your Food"
     },
     {
       "name": "Flambe",
@@ -5691,6 +5977,30 @@
       ]
     },
     {
+      "name": "Launch Tower",
+      "source_id": "df8ff0c9-05cc-4797-aa70-f648e4b283df",
+      "source_ids": [
+        "df8ff0c9-05cc-4797-aa70-f648e4b283df"
+      ],
+      "event_heroes": [
+        "Stelle"
+      ],
+      "event_type": "item_event",
+      "effect": "improve_items",
+      "target_tags": [
+        "flying"
+      ],
+      "match_mode": "any",
+      "rarity_filter": null,
+      "rarity_rule": null,
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Improve your Flying items"
+    },
+    {
       "name": "Mad Maddie",
       "source_id": "1ff8a6be-5087-45f6-8e72-9e94dbfa0c2b",
       "source_ids": [
@@ -5739,6 +6049,53 @@
       "notes": "Transform your items into something new"
     },
     {
+      "name": "Robotics Factory",
+      "source_id": "874fa28f-c349-463c-aec6-b3572a71b6ee",
+      "source_ids": [
+        "874fa28f-c349-463c-aec6-b3572a71b6ee"
+      ],
+      "event_heroes": [
+        "Dooley",
+        "Stelle"
+      ],
+      "event_type": "item_event",
+      "effect": "improve_items",
+      "target_tags": [
+        "tech"
+      ],
+      "match_mode": "any",
+      "rarity_filter": null,
+      "rarity_rule": null,
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Improve your Tech items"
+    },
+    {
+      "name": "Salvage Yard",
+      "source_id": "a79a4688-752d-4b4f-90b3-c92b3a4d1a92",
+      "source_ids": [
+        "a79a4688-752d-4b4f-90b3-c92b3a4d1a92"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "item_event",
+      "effect": "transform_items",
+      "target_tags": [],
+      "match_mode": "any",
+      "rarity_filter": null,
+      "rarity_rule": null,
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Transform your Stash items into Loot items based on their tags"
+    },
+    {
       "name": "Sterling",
       "source_id": "8b811b0f-15ba-4282-9732-6ddccb26da9f",
       "source_ids": [
@@ -5782,6 +6139,30 @@
         "health": 0
       },
       "notes": "Upgrade item"
+    },
+    {
+      "name": "Tomb of the Ancients",
+      "source_id": "385dab86-65c1-40e8-8798-49865ad2353a",
+      "source_ids": [
+        "385dab86-65c1-40e8-8798-49865ad2353a"
+      ],
+      "event_heroes": [
+        "Mak"
+      ],
+      "event_type": "item_event",
+      "effect": "improve_items",
+      "target_tags": [
+        "relic"
+      ],
+      "match_mode": "any",
+      "rarity_filter": null,
+      "rarity_rule": null,
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Improve your Relics"
     },
     {
       "name": "Upgrade an item",
@@ -5837,9 +6218,7 @@
       "name": "Borrow",
       "source_id": "036ce025-fc8a-4924-b1bd-a4f6f470ebc7",
       "source_ids": [
-        "036ce025-fc8a-4924-b1bd-a4f6f470ebc7",
-        "41dbae7b-38ec-4e27-9964-92ff0b0ee4d1",
-        "f32d036c-8468-4b4d-aecb-49d3e1302ba7"
+        "036ce025-fc8a-4924-b1bd-a4f6f470ebc7"
       ],
       "event_heroes": [
         "Common"
@@ -5854,6 +6233,24 @@
         "income": 1
       },
       "notes": "Lose {ability.0} Income and gain {ability.1} Gold"
+    },
+    {
+      "name": "Bountiful Harvest",
+      "source_id": "ec7fa0bf-dc6b-4019-b199-253a1475abf7",
+      "source_ids": [
+        "ec7fa0bf-dc6b-4019-b199-253a1475abf7"
+      ],
+      "event_heroes": [
+        "Jules"
+      ],
+      "event_type": "resource_event",
+      "resource_types": [
+        "gold"
+      ],
+      "resource_rewards": {
+        "gold": 1
+      },
+      "notes": "Get a Gold-tier Food"
     },
     {
       "name": "Cache of Riches",
@@ -5906,6 +6303,42 @@
       "resource_types": [],
       "resource_rewards": {},
       "notes": "Study the blacksmith working silently in the back of their shop"
+    },
+    {
+      "name": "Cupboard",
+      "source_id": "7421cca5-1d3e-4cf8-afa0-a3ce0c06e1c1",
+      "source_ids": [
+        "7421cca5-1d3e-4cf8-afa0-a3ce0c06e1c1"
+      ],
+      "event_heroes": [
+        "Jules"
+      ],
+      "event_type": "resource_event",
+      "resource_types": [
+        "gold"
+      ],
+      "resource_rewards": {
+        "gold": 1
+      },
+      "notes": "Get a Small Gold-tier Food"
+    },
+    {
+      "name": "Dino Trapping",
+      "source_id": "f785c906-9f01-4641-80a6-b7cc360c271a",
+      "source_ids": [
+        "f785c906-9f01-4641-80a6-b7cc360c271a"
+      ],
+      "event_heroes": [
+        "Dooley"
+      ],
+      "event_type": "resource_event",
+      "resource_types": [
+        "gold"
+      ],
+      "resource_rewards": {
+        "gold": 1
+      },
+      "notes": "Get a Gold-tier Dinosaur"
     },
     {
       "name": "Economic Seminar",
@@ -6012,6 +6445,24 @@
       ]
     },
     {
+      "name": "Excavation",
+      "source_id": "aebbf2cb-acbc-4cc7-86a8-ac9f49756d35",
+      "source_ids": [
+        "aebbf2cb-acbc-4cc7-86a8-ac9f49756d35"
+      ],
+      "event_heroes": [
+        "Common"
+      ],
+      "event_type": "resource_event",
+      "resource_types": [
+        "gold"
+      ],
+      "resource_rewards": {
+        "gold": 1
+      },
+      "notes": "Get a Gold-tier Relic from any Hero"
+    },
+    {
       "name": "Finn's Big Bite",
       "source_id": "0623cedd-f24b-4117-a6b8-5fc41064a00d",
       "source_ids": [
@@ -6034,6 +6485,7 @@
       "source_id": "8ece0ce0-1b20-41da-a3d9-262f2038af58",
       "source_ids": [
         "8ece0ce0-1b20-41da-a3d9-262f2038af58",
+        "b69e0b6d-d4c2-4017-a4b4-43e4369600b1",
         "f6430efe-8452-475b-8c8f-5d789b914a3f"
       ],
       "event_heroes": [
@@ -6122,9 +6574,12 @@
     },
     {
       "name": "Moonlit Meadow",
-      "source_id": "8d1dda63-1fb9-44e5-9ed6-e8050d4d65d7",
+      "source_id": "3cb5a1a2-819e-433e-9f41-f5ed77cb04b0",
       "source_ids": [
-        "8d1dda63-1fb9-44e5-9ed6-e8050d4d65d7"
+        "3cb5a1a2-819e-433e-9f41-f5ed77cb04b0",
+        "4d64d6cd-d42a-4a08-bac9-5f1563d6b7eb",
+        "8d1dda63-1fb9-44e5-9ed6-e8050d4d65d7",
+        "9178c378-9e59-4e92-9023-17105e0686d3"
       ],
       "event_heroes": [
         "Mak",
@@ -6137,7 +6592,7 @@
       "resource_rewards": {
         "regen": 1
       },
-      "notes": "Get a Moon Lily (+Regen)"
+      "notes": "Get a Diamond-tier Moon Lily (+Regen)"
     },
     {
       "name": "Run",
@@ -6591,6 +7046,24 @@
         "gold": 1
       },
       "notes": "Gain Gold"
+    },
+    {
+      "name": "Truffle Farming",
+      "source_id": "76f58c75-f822-4d06-bcba-f4d39529fa99",
+      "source_ids": [
+        "76f58c75-f822-4d06-bcba-f4d39529fa99"
+      ],
+      "event_heroes": [
+        "Pygmalien"
+      ],
+      "event_type": "resource_event",
+      "resource_types": [
+        "gold"
+      ],
+      "resource_rewards": {
+        "gold": 1
+      },
+      "notes": "Get 2 Gold-tier Truffles"
     }
   ],
   "enchant_events": [
@@ -7842,8 +8315,10 @@
     },
     {
       "name": "Bountiful Harvest",
-      "source_id": "facaa0bc-ddb9-48dc-8be7-f44b8a07df00",
+      "source_id": "1a508bee-0dba-4110-9402-f372bb6c6137",
       "source_ids": [
+        "1a508bee-0dba-4110-9402-f372bb6c6137",
+        "9dea6b33-264c-4550-9282-80ec297fb070",
         "facaa0bc-ddb9-48dc-8be7-f44b8a07df00"
       ],
       "event_heroes": [
@@ -7855,7 +8330,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Food"
+      "notes": "Get a Silver-tier Food"
     },
     {
       "name": "Cargo Hold",
@@ -7930,7 +8405,9 @@
       "name": "Cupboard",
       "source_id": "13b4c0cd-313d-4e0f-9a51-eb4d288f32a5",
       "source_ids": [
-        "13b4c0cd-313d-4e0f-9a51-eb4d288f32a5"
+        "13b4c0cd-313d-4e0f-9a51-eb4d288f32a5",
+        "6de772fb-6a02-4b8c-a2c2-26023472ca31",
+        "f0a36d78-d446-4d57-81e0-9dfe942e4307"
       ],
       "event_heroes": [
         "Jules"
@@ -7941,7 +8418,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Small Food"
+      "notes": "Get a Small Bronze-tier Food"
     },
     {
       "name": "Dabora",
@@ -7962,8 +8439,10 @@
     },
     {
       "name": "Dino Trapping",
-      "source_id": "ae81a2e5-66c3-4bda-82ad-f9657add738a",
+      "source_id": "4e6d3224-affa-49a8-90ef-c6c9c986f786",
       "source_ids": [
+        "4e6d3224-affa-49a8-90ef-c6c9c986f786",
+        "88416f83-e642-4a1f-82ad-d80d9a9a57bb",
         "ae81a2e5-66c3-4bda-82ad-f9657add738a"
       ],
       "event_heroes": [
@@ -7975,14 +8454,16 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Dinosaur"
+      "notes": "Get a Diamond-tier Dinosaur"
     },
     {
       "name": "Excavation",
-      "source_id": "8f83e037-1420-4210-a2b0-b4d80f7d86f5",
+      "source_id": "287ff00b-37f3-4c58-aafe-70272b9b150f",
       "source_ids": [
+        "287ff00b-37f3-4c58-aafe-70272b9b150f",
         "8f83e037-1420-4210-a2b0-b4d80f7d86f5",
-        "91b039eb-1478-4cc8-a44e-c0b0a2f3fd20"
+        "91b039eb-1478-4cc8-a44e-c0b0a2f3fd20",
+        "c2ecd101-b69d-42ed-a0e9-f8bb84b0fa09"
       ],
       "event_heroes": [
         "Common"
@@ -7993,7 +8474,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Relic from any hero"
+      "notes": "Get a Silver-tier Relic from any Hero"
     },
     {
       "name": "Family Reunion",
@@ -8492,9 +8973,11 @@
     },
     {
       "name": "Truffle Farming",
-      "source_id": "c1d4c505-4c97-47b5-b205-ae28c1415cd2",
+      "source_id": "0cd9ac04-bd59-45f1-b997-3e06a495b5e3",
       "source_ids": [
-        "c1d4c505-4c97-47b5-b205-ae28c1415cd2"
+        "0cd9ac04-bd59-45f1-b997-3e06a495b5e3",
+        "c1d4c505-4c97-47b5-b205-ae28c1415cd2",
+        "c2a5bdf3-bc7f-466a-93c3-ee02d45e4ac0"
       ],
       "event_heroes": [
         "Pygmalien"
@@ -8505,7 +8988,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Get a Truffle"
+      "notes": "Get 2 Diamond-tier Truffles"
     },
     {
       "name": "Underground Resistance",

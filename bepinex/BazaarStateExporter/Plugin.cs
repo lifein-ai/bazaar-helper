@@ -13,7 +13,7 @@ namespace BazaarStateExporter
     {
         public const string PluginGuid = "local.bazaar.stateexporter";
         public const string PluginName = "Bazaar State Exporter";
-        public const string PluginVersion = "0.7.10";
+        public const string PluginVersion = "0.8.9";
 
         private ConfigEntry<string> outputPath;
         private ConfigEntry<float> pollIntervalSeconds;
@@ -21,9 +21,20 @@ namespace BazaarStateExporter
         private ConfigEntry<bool> enableVisibleCardScanning;
         private ConfigEntry<bool> enableHudResourceScanning;
         private ConfigEntry<bool> enableUnsafeUiScanning;
+        private ConfigEntry<bool> enableRuntimeCardExport;
+        private ConfigEntry<float> runtimeCardExportDelaySeconds;
+        private ConfigEntry<bool> enableInGameOverlay;
+        private ConfigEntry<string> helperBaseUrl;
+        private ConfigEntry<float> overlayPollIntervalSeconds;
+        private ConfigEntry<int> overlayTopRecommendations;
+        private ConfigEntry<bool> overlayIncludeAi;
+        private ConfigEntry<string> overlayToggleKey;
         private StateProbe probe;
         private Harmony harmony;
         private float nextPollAt;
+        private float runtimeCardExportAt;
+        private bool runtimeCardExportAttempted;
+        private InGameAdvisorOverlay overlay;
 
         private void Awake()
         {
@@ -69,9 +80,61 @@ namespace BazaarStateExporter
                 "EnableUnsafeUiScanning",
                 false,
                 "Enable extra global HUD resource scans. Disabled by default because these scans can destabilize the game.");
+            enableRuntimeCardExport = Config.Bind(
+                "Debug",
+                "EnableRuntimeCardExport",
+                false,
+                "Export the game's loaded card and encounter catalog once to live_cards_raw.json for data refreshes.");
+            runtimeCardExportDelaySeconds = Config.Bind(
+                "Debug",
+                "RuntimeCardExportDelaySeconds",
+                8.0f,
+                "Seconds to wait after plugin startup before attempting the one-shot runtime card export.");
+            runtimeCardExportAt = Time.unscaledTime + Math.Max(0.5f, runtimeCardExportDelaySeconds.Value);
+            enableInGameOverlay = Config.Bind(
+                "Overlay",
+                "EnableInGameOverlay",
+                true,
+                "Show a small in-game recommendation overlay fed by the local BazaarHelper web service.");
+            helperBaseUrl = Config.Bind(
+                "Overlay",
+                "HelperBaseUrl",
+                "http://127.0.0.1:8765",
+                "Base URL of the local BazaarHelper web service.");
+            overlayPollIntervalSeconds = Config.Bind(
+                "Overlay",
+                "PollIntervalSeconds",
+                2.0f,
+                "How often the in-game overlay refreshes recommendations.");
+            overlayTopRecommendations = Config.Bind(
+                "Overlay",
+                "TopRecommendations",
+                3,
+                "How many event recommendations the in-game overlay requests.");
+            overlayIncludeAi = Config.Bind(
+                "Overlay",
+                "IncludeAi",
+                false,
+                "Request AI analysis for the in-game overlay. Disabled by default to avoid repeated model calls.");
+            overlayToggleKey = Config.Bind(
+                "Overlay",
+                "ToggleKey",
+                "F8",
+                "Keyboard key used to show or hide the in-game overlay.");
             probe = new StateProbe(Logger);
             EventDrivenExporter.Initialize(probe, resolvedOutputPath, Logger);
             RuntimeStateCache.Logger = Logger;
+            GameObject overlayObject = new GameObject("BazaarHelperInGameOverlay");
+            DontDestroyOnLoad(overlayObject);
+            overlay = overlayObject.AddComponent<InGameAdvisorOverlay>();
+            overlay.Initialize(
+                Logger,
+                enableInGameOverlay,
+                helperBaseUrl,
+                overlayPollIntervalSeconds,
+                overlayTopRecommendations,
+                overlayIncludeAi,
+                overlayToggleKey);
             try
             {
                 harmony = new Harmony(PluginGuid);
@@ -144,6 +207,8 @@ namespace BazaarStateExporter
 
         private void UpdateExporter()
         {
+            TryRuntimeCardExportOnce();
+
             if (Time.unscaledTime < nextPollAt)
             {
                 return;
@@ -182,6 +247,26 @@ namespace BazaarStateExporter
                 Logger.LogWarning("Failed to export Bazaar state: " + ex);
             }
 
+        }
+
+        private void TryRuntimeCardExportOnce()
+        {
+            if (runtimeCardExportAttempted || !enableRuntimeCardExport.Value)
+            {
+                return;
+            }
+            if (Time.unscaledTime < runtimeCardExportAt)
+            {
+                return;
+            }
+
+            runtimeCardExportAttempted = true;
+            RuntimeCardExportResult result = RuntimeCardExporter.TryExportLatestCards(outputPath.Value, Logger);
+            Logger.LogInfo(
+                "Runtime card export attempt completed. exported="
+                + result.ExportedCardCount
+                + " output="
+                + result.OutputPath);
         }
 
         public static void RequestEventExport()

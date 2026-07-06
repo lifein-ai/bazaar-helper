@@ -1467,6 +1467,49 @@ def analyze_payload(
         observation_warning = f"observation graph update failed: {exc}"
 
     normalized = normalize_payload_for_analysis(data, payload, build_override)
+    if not str(normalized.get("hero") or "").strip() or int(normalized.get("day") or 0) <= 0:
+        response = {
+            "state": {
+                "source": normalized.get("source", "runtime"),
+                "hero": normalized.get("hero"),
+                "build": normalized.get("build"),
+                "build_display_name": normalized.get("build"),
+                "build_detail": None,
+                "build_options": [],
+                "day": int(normalized.get("day") or 0),
+                "game_stage": "",
+                "game_stage_display": "",
+                "event_options": normalized.get("event_options", []),
+                "event_options_display": [],
+                "missing_events": [],
+                "owned_cards": normalized.get("owned_cards", []),
+                "visible_cards": normalized.get("visible_cards", []),
+                "owned_items": normalized.get("owned_items", []),
+                "board_items": normalized.get("board_items", []),
+                "stash_items": normalized.get("stash_items", []),
+                "skills": normalized.get("skills", []),
+                "current_events": normalized.get("current_events", []),
+                "current_shop": normalized.get("current_shop"),
+                "current_reward_options": normalized.get("current_reward_options", []),
+                "gold": normalized.get("gold"),
+                "health": normalized.get("combat_health", normalized.get("health")),
+                "prestige": normalized.get("prestige"),
+                "max_prestige": normalized.get("max_prestige"),
+                "income": normalized.get("income"),
+                "level": normalized.get("level"),
+                "xp": normalized.get("xp"),
+                "inventory_slots_used": normalized.get("inventory_slots_used"),
+                "inventory_slots_total": normalized.get("inventory_slots_total"),
+            },
+            "recommendations": [],
+            "warnings": ["等待游戏内实时状态。进入一局后会开始分析。"],
+            "build_analysis": {},
+            "analysis_signature": render_signature,
+            "cache_hit": False,
+        }
+        remember_analysis_cache(cache_key, response)
+        return response
+
     state = GameState.from_dict(normalized)
     missing_events = [
         event_name
@@ -1532,6 +1575,7 @@ def analyze_payload(
                 or state.build
             ),
             "build_detail": build_detail_for_state(data, state.build),
+            "build_options": build_options_for_hero(data, state.hero),
             "day": state.day,
             "game_stage": get_game_stage_for_day(state.day),
             "game_stage_display": STAGE_LABELS_ZH.get(

@@ -197,6 +197,23 @@ class WebAppResilienceTests(unittest.TestCase):
         self.assertTrue(second["cache_hit"])
         self.assertEqual(observe.call_count, 1)
 
+    def test_waiting_runtime_state_does_not_error(self) -> None:
+        web_app.ANALYSIS_CACHE.clear()
+        data = load_all_data(DATA_DIR)
+        response = web_app.analyze_payload(
+            data,
+            {
+                "source": "bepinex",
+                "hero": None,
+                "day": 0,
+                "event_options": [],
+            },
+        )
+
+        self.assertEqual(response["recommendations"], [])
+        self.assertTrue(response["warnings"])
+        self.assertEqual(response["state"]["day"], 0)
+
     def test_owned_items_and_skills_are_displayed_separately(self) -> None:
         data = {
             "events": {},

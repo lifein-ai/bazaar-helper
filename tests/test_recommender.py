@@ -473,7 +473,7 @@ class RecommenderTests(unittest.TestCase):
             all(card["enchantment_required"] for card in enchanted_pool)
         )
 
-    def test_ande_karnok_day_three_audit_matches_recommender_at_47(self) -> None:
+    def test_ande_karnok_day_three_audit_matches_recommender_at_46(self) -> None:
         data = load_all_data(DATA_DIR)
         event = data["events"]["Ande"]
         report = audit_event_pool(
@@ -486,8 +486,8 @@ class RecommenderTests(unittest.TestCase):
             recommender=recommender,
         )
 
-        self.assertEqual(report["parity_check"]["audit_count"], 47)
-        self.assertEqual(report["parity_check"]["recommender_count"], 47)
+        self.assertEqual(report["parity_check"]["audit_count"], 46)
+        self.assertEqual(report["parity_check"]["recommender_count"], 46)
         self.assertTrue(report["parity_check"]["matches_recommender"])
 
     def test_any_hero_shop_pool_can_include_other_heroes(self) -> None:
@@ -872,7 +872,7 @@ class RecommenderTests(unittest.TestCase):
         normalized = normalize_payload_for_analysis(data, payload)
         response = analyze_payload(data, payload)
 
-        self.assertEqual(normalized["build"], "AutoDooley")
+        self.assertEqual(normalized["build"], "baojiheqian")
         self.assertEqual(normalized["event_options"], ["Mittel"])
         self.assertFalse(response["warnings"])
         self.assertEqual(len(response["recommendations"]), 1)
