@@ -226,9 +226,34 @@ namespace BazaarStateExporter
             }
 
             scrollPosition = GUILayout.BeginScrollView(scrollPosition, false, true);
-            if (latest.Items.Count == 0 && string.IsNullOrEmpty(latest.ShopAction))
+            if (latest.Items.Count == 0
+                && latest.ShopVisibleItems.Count == 0
+                && latest.ShopCandidates.Count == 0
+                && string.IsNullOrEmpty(latest.ShopAction))
             {
                 GUILayout.Label("暂时没有可执行建议。", mutedStyle);
+            }
+            if (latest.ShopVisibleItems.Count > 0)
+            {
+                GUILayout.BeginVertical(itemStyle);
+                GUILayout.Label("当前商店物品", titleStyle);
+                DrawInlineList("", latest.ShopVisibleItems, false);
+                GUILayout.EndVertical();
+            }
+
+            foreach (OverlayShopCandidate candidate in latest.ShopCandidates)
+            {
+                GUILayout.BeginVertical(itemStyle);
+                GUILayout.BeginHorizontal();
+                GUILayout.Label(candidate.Name, titleStyle);
+                GUILayout.FlexibleSpace();
+                GUILayout.Label(candidate.Importance, badgeStyle);
+                GUILayout.EndHorizontal();
+                GUILayout.Label(candidate.Summary, mutedStyle);
+                DrawInlineList("适配 Build", candidate.BuildHits, true);
+                DrawInlineList("原因", candidate.Reasons, true);
+                DrawInlineList("风险 / 不确定性", candidate.Risks, false);
+                GUILayout.EndVertical();
             }
             foreach (OverlayRecommendation item in latest.Items)
             {
@@ -720,6 +745,8 @@ namespace BazaarStateExporter
         public readonly OverlayBuildDetail BuildDetail = new OverlayBuildDetail();
         public readonly List<OverlayBuildOption> BuildOptions = new List<OverlayBuildOption>();
         public readonly List<OverlayBuildMatch> BuildMatches = new List<OverlayBuildMatch>();
+        public readonly List<string> ShopVisibleItems = new List<string>();
+        public readonly List<OverlayShopCandidate> ShopCandidates = new List<OverlayShopCandidate>();
         public readonly List<OverlayRecommendation> Items = new List<OverlayRecommendation>();
 
         public static OverlayAnalysis Waiting(string status)
@@ -740,6 +767,16 @@ namespace BazaarStateExporter
         public readonly List<string> OwnedHits = new List<string>();
         public readonly List<string> ChildOptions = new List<string>();
         public readonly List<string> AltCoreHits = new List<string>();
+    }
+
+    internal sealed class OverlayShopCandidate
+    {
+        public string Name;
+        public string Importance;
+        public string Summary;
+        public readonly List<string> BuildHits = new List<string>();
+        public readonly List<string> Reasons = new List<string>();
+        public readonly List<string> Risks = new List<string>();
     }
 
     internal sealed class OverlayBuildDetail
@@ -779,6 +816,7 @@ namespace BazaarStateExporter
                 result.ShopAction = FindStringProperty(shopObject, "shop_action");
                 result.ShopReason = FindStringProperty(shopObject, "refresh_reason");
                 result.BuildMatches.AddRange(FindBuildMatchArrayProperty(shopObject));
+                result.ShopCandidates.AddRange(FindShopCandidateArrayProperty(shopObject));
             }
 
             string stateObject = FindObjectProperty(json, "state");
@@ -813,6 +851,17 @@ namespace BazaarStateExporter
                         Id = id,
                         Name = FirstNonEmpty(FindStringProperty(optionObject, "name"), id),
                     });
+                }
+
+                string currentShop = FindObjectProperty(stateObject, "current_shop");
+                if (!string.IsNullOrEmpty(currentShop))
+                {
+                    result.ShopVisibleItems.AddRange(
+                        FindNamedObjectArrayProperty(
+                            currentShop,
+                            "visible_items",
+                            "rarity",
+                            "price"));
                 }
             }
 
@@ -993,7 +1042,9 @@ namespace BazaarStateExporter
                 }
 
                 string detail = FindStringProperty(itemObject, detailField);
-                string extra = FindStringProperty(itemObject, extraField);
+                string extra = FirstNonEmpty(
+                    FindStringProperty(itemObject, extraField),
+                    FindNumberProperty(itemObject, extraField));
                 string suffix = JoinNonEmpty(" ", extra, detail);
                 if (FindBoolProperty(itemObject, "can_upgrade"))
                 {
@@ -1007,6 +1058,101 @@ namespace BazaarStateExporter
                 values.Add(string.IsNullOrEmpty(suffix) ? displayName : displayName + " " + suffix);
             }
             return values;
+        }
+
+        private static List<OverlayShopCandidate> FindShopCandidateArrayProperty(string json)
+        {
+            List<OverlayShopCandidate> values = new List<OverlayShopCandidate>();
+            string array = FindArrayProperty(json, "candidate_cards");
+            foreach (string itemObject in SplitTopLevelObjects(array))
+            {
+                string name = FirstNonEmpty(
+                    FindStringProperty(itemObject, "card_display_name"),
+                    FindStringProperty(itemObject, "card_name"));
+                if (string.IsNullOrEmpty(name))
+                {
+                    continue;
+                }
+
+                string recommendation = FindStringProperty(itemObject, "recommendation_type");
+                string price = FindNumberProperty(itemObject, "price");
+                string affordable = "";
+                if (FindBoolProperty(itemObject, "affordable"))
+                {
+                    affordable = "买得起";
+                }
+                else if (FindExplicitFalseProperty(itemObject, "affordable"))
+                {
+                    affordable = "金币不足";
+                }
+
+                OverlayShopCandidate candidate = new OverlayShopCandidate
+                {
+                    Name = name,
+                    Importance = FirstNonEmpty(FindStringProperty(itemObject, "importance"), "-"),
+                    Summary = JoinNonEmpty(
+                        " · ",
+                        recommendation,
+                        JoinNonEmpty(" · ", string.IsNullOrEmpty(price) ? "" : price + "g", affordable)),
+                };
+                candidate.BuildHits.AddRange(FindBuildHitArrayProperty(itemObject));
+                candidate.Reasons.AddRange(FindStringArrayProperty(itemObject, "reasons"));
+                candidate.Risks.AddRange(FindStringArrayProperty(itemObject, "risks"));
+                values.Add(candidate);
+            }
+            return values;
+        }
+
+        private static List<string> FindBuildHitArrayProperty(string json)
+        {
+            List<string> values = new List<string>();
+            string array = FindArrayProperty(json, "build_hits");
+            foreach (string itemObject in SplitTopLevelObjects(array))
+            {
+                string buildName = FindStringProperty(itemObject, "build_name");
+                if (string.IsNullOrEmpty(buildName))
+                {
+                    continue;
+                }
+
+                string phase = FindStringProperty(itemObject, "build_phase");
+                string role = FindStringProperty(itemObject, "role");
+                string relation = FindStringProperty(itemObject, "relation");
+                values.Add(
+                    buildName
+                    + " · "
+                    + BuildPhaseLabel(phase)
+                    + " · "
+                    + BuildRoleLabel(role)
+                    + " · "
+                    + RelationLabel(relation));
+            }
+            return values;
+        }
+
+        private static string BuildPhaseLabel(string value)
+        {
+            if (string.Equals(value, "early", StringComparison.Ordinal)) return "前期";
+            if (string.Equals(value, "mid", StringComparison.Ordinal)) return "中期";
+            if (string.Equals(value, "late", StringComparison.Ordinal)) return "后期";
+            return string.IsNullOrEmpty(value) ? "阶段未知" : value;
+        }
+
+        private static string BuildRoleLabel(string value)
+        {
+            if (string.Equals(value, "core", StringComparison.Ordinal)) return "核心";
+            if (string.Equals(value, "optional", StringComparison.Ordinal)) return "可选";
+            if (string.Equals(value, "transition", StringComparison.Ordinal)) return "过渡";
+            return string.IsNullOrEmpty(value) ? "定位未知" : value;
+        }
+
+        private static string RelationLabel(string value)
+        {
+            if (string.Equals(value, "current_build", StringComparison.Ordinal)) return "当前阶段";
+            if (string.Equals(value, "future_build", StringComparison.Ordinal)) return "下一阶段";
+            if (string.Equals(value, "late_build", StringComparison.Ordinal)) return "后期方向";
+            if (string.Equals(value, "past_build", StringComparison.Ordinal)) return "已过期";
+            return string.IsNullOrEmpty(value) ? "阶段未知" : value;
         }
 
         private static List<string> FindChildOptionArrayProperty(string json)
@@ -1197,6 +1343,16 @@ namespace BazaarStateExporter
                 return false;
             }
             return json.IndexOf("true", valueStart, StringComparison.OrdinalIgnoreCase) == valueStart;
+        }
+
+        private static bool FindExplicitFalseProperty(string json, string name)
+        {
+            int valueStart = FindPropertyValueStart(json, name);
+            if (valueStart < 0 || valueStart >= json.Length)
+            {
+                return false;
+            }
+            return json.IndexOf("false", valueStart, StringComparison.OrdinalIgnoreCase) == valueStart;
         }
 
         private static int ParseInt(string value)
