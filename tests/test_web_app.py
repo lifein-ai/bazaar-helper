@@ -40,6 +40,24 @@ class WebAppResilienceTests(unittest.TestCase):
                 with self.assertRaisesRegex(RuntimeError, "停止更新"):
                     web_app.load_runtime_payload()
 
+    def test_runtime_payload_warns_before_rejecting_stale_state(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            state_path = Path(tmp_dir) / "game_state.json"
+            state_path.write_text('{"source": "bepinex"}', encoding="utf-8")
+            old_but_usable_time = (
+                state_path.stat().st_mtime
+                + web_app.STATE_AGE_WARNING_SECONDS
+                + 1
+            )
+            with (
+                patch.object(web_app, "STATE_PATH", state_path),
+                patch.object(web_app.time, "time", return_value=old_but_usable_time),
+            ):
+                payload, _ = web_app.load_runtime_payload()
+
+        self.assertTrue(payload["_runtime_state_age_stale"])
+        self.assertGreater(payload["_runtime_state_age_seconds"], 0)
+
     def test_runtime_payload_explains_installer_placeholder(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             state_path = Path(tmp_dir) / "game_state.json"
@@ -71,6 +89,22 @@ class WebAppResilienceTests(unittest.TestCase):
 
         self.assertIn("no-store", headers["Cache-Control"])
         self.assertEqual(headers["Pragma"], "no-cache")
+
+    def test_root_returns_lightweight_api_health_payload(self) -> None:
+        handler = object.__new__(web_app.BazaarHandler)
+        handler.path = "/"
+        handler.wfile = BytesIO()
+        handler.send_response = lambda status: None
+        handler.send_header = lambda name, value: None
+        handler.end_headers = lambda: None
+
+        handler.do_GET()
+
+        body = json.loads(handler.wfile.getvalue().decode("utf-8"))
+        self.assertTrue(body["ok"])
+        self.assertEqual(body["mode"], "api-only")
+        self.assertEqual(body["analysis_endpoint"], "/api/analysis")
+        self.assertEqual(body["state_signature_endpoint"], "/api/state-signature")
 
     def test_shop_does_not_record_observed_child_options(self) -> None:
         data = {
@@ -196,6 +230,59 @@ class WebAppResilienceTests(unittest.TestCase):
         self.assertFalse(first["cache_hit"])
         self.assertTrue(second["cache_hit"])
         self.assertEqual(observe.call_count, 1)
+
+    def test_state_signature_uses_key_state_not_volatile_timestamps(self) -> None:
+        payload = {
+            "source": "bepinex",
+            "updated_at_utc": "2026-07-04T00:00:00Z",
+            "screen_type": "shop",
+            "event_name": "Colt",
+            "event_option_ids": ["enc-1"],
+            "current_shop": {
+                "visible_items": [
+                    {"id": "shop-1", "template_id": "card-1", "name": "Card One"}
+                ],
+                "refresh_cost": 1,
+            },
+        }
+        same_state = dict(payload, updated_at_utc="2026-07-04T00:00:01Z")
+        changed_event = dict(payload, event_option_ids=["enc-2"])
+        changed_shop = {
+            **payload,
+            "current_shop": {
+                "visible_items": [
+                    {"id": "shop-2", "template_id": "card-2", "name": "Card Two"}
+                ],
+                "refresh_cost": 1,
+            },
+        }
+
+        self.assertEqual(web_app.state_signature(payload), web_app.state_signature(same_state))
+        self.assertNotEqual(web_app.state_signature(payload), web_app.state_signature(changed_event))
+        self.assertNotEqual(web_app.state_signature(payload), web_app.state_signature(changed_shop))
+
+    def test_ai_analysis_is_cached_by_state_signature(self) -> None:
+        web_app.ANALYSIS_CACHE.clear()
+        web_app.AI_PAYLOAD_CACHE.clear()
+        web_app.AI_ANALYSIS_CACHE.clear()
+        data = load_all_data(DATA_DIR)
+        payload = {
+            "source": "bepinex",
+            "hero": "Vanessa",
+            "day": 6,
+            "event_options": ["Colt"],
+            "owned_cards": [],
+            "visible_cards": [],
+        }
+
+        web_app.analyze_payload(data, payload, top=3)
+        with patch.object(web_app, "analyze_with_ai", return_value="cached ai") as ai:
+            first = web_app.analyze_payload(data, payload, top=3, include_ai=True)
+            second = web_app.analyze_payload(data, payload, top=3, include_ai=True)
+
+        self.assertEqual(first["ai_analysis"], "cached ai")
+        self.assertEqual(second["ai_analysis"], "cached ai")
+        self.assertEqual(ai.call_count, 1)
 
     def test_waiting_runtime_state_does_not_error(self) -> None:
         web_app.ANALYSIS_CACHE.clear()

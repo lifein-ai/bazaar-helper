@@ -21,8 +21,8 @@ if exist "%KEY_FILE%" if exist "%BUNDLED_KEY%" (
 )
 
 if not exist "BazaarHelper.exe" (
-    echo 没找到 BazaarHelper.exe
-    echo 请确认这个 bat 和 BazaarHelper.exe 在同一个文件夹。
+    echo BazaarHelper.exe was not found.
+    echo Please run this script from the release folder that contains BazaarHelper.exe.
     pause
     exit /b 1
 )
@@ -35,15 +35,13 @@ for /f "tokens=5" %%P in ('netstat -ano ^| findstr /R /C:"127.0.0.1:8765 .*LISTE
     taskkill /PID %%P /F >nul 2>&1
 )
 taskkill /IM BazaarHelper.exe /F >nul 2>&1
-start "BazaarHelper" "%~dp0BazaarHelper.exe" --port 8765
+start "BazaarHelper" "%~dp0BazaarHelper.exe" --port 8765 --api-only
 
-timeout /t 1 >nul
-start "" "http://127.0.0.1:8765"
-
-echo The Bazaar AI 助手已启动：
-echo http://127.0.0.1:8765
+echo BazaarHelper local API service started for the in-game overlay:
+echo http://127.0.0.1:8765/api/analysis
+echo The browser UI is no longer opened automatically.
 echo.
-echo 如果要用 AI 分析，把 DeepSeek key 填到：
+echo To use AI analysis, put your DeepSeek key here:
 echo %RUNTIME_DIR%\deepseek_api_key.txt
 echo.
 

@@ -34,16 +34,16 @@ foreach ($Process in $OldProcesses) {
 
 Start-Process `
     -FilePath $Python `
-    -ArgumentList "src\web_app.py --port $Port" `
+    -ArgumentList "src\web_app.py --port $Port --api-only" `
     -WorkingDirectory $ProjectRoot `
     -WindowStyle Hidden
 
 Start-Sleep -Seconds 1
-Start-Process $Url
 
 Write-Host ""
 Write-Host "The Bazaar AI 助手已启动：" -ForegroundColor Green
-Write-Host $Url
+Write-Host "$Url/api/analysis"
+Write-Host "Browser UI is deprecated and is no longer opened."
 Write-Host ""
 
 if ((Get-Item $KeyFile).Length -eq 0) {

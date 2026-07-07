@@ -39,6 +39,17 @@ OutputPath = C:\Users\<user>\AppData\Local\BazaarHelper\runtime\game_state.json
 PollIntervalSeconds = 1
 ```
 
+The in-game overlay can start the local helper automatically when installed from
+the release package:
+
+```ini
+[Overlay]
+EnableInGameOverlay = true
+HelperBaseUrl = http://127.0.0.1:8765
+AutoStartHelper = true
+HelperExecutablePath = C:\Path\To\BazaarHelper.exe
+```
+
 For a smoke test only (never enable this for normal use):
 
 ```ini

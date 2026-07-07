@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using BepInEx.Configuration;
@@ -14,16 +17,24 @@ namespace BazaarStateExporter
         private ManualLogSource logger;
         private ConfigEntry<bool> enabledConfig;
         private ConfigEntry<string> helperBaseUrl;
+        private ConfigEntry<bool> autoStartHelper;
+        private ConfigEntry<string> helperExecutablePath;
         private ConfigEntry<float> pollIntervalSeconds;
         private ConfigEntry<int> topRecommendations;
         private ConfigEntry<bool> includeAi;
         private ConfigEntry<string> toggleKeyConfig;
-        private KeyCode toggleKey = KeyCode.F8;
+        private KeyCode toggleKey = KeyCode.F7;
+        private string parsedToggleKeyName = "";
         private bool visible = true;
         private volatile bool requestInFlight;
         private float nextPollAt;
-        private Rect windowRect = new Rect(24f, 70f, 540f, 640f);
-        private Rect buildWindowRect = new Rect(576f, 70f, 380f, 640f);
+        private DateTime lastSuccessfulAnalysisUtc = DateTime.MinValue;
+        private DateTime lastHelperStartAttemptUtc = DateTime.MinValue;
+        private DateTime lastFailureLogUtc = DateTime.MinValue;
+        private string cachedBuildOptionsHero = "";
+        private readonly List<OverlayBuildOption> cachedBuildOptions = new List<OverlayBuildOption>();
+        private Rect windowRect = new Rect(16f, 56f, 500f, 620f);
+        private Rect buildWindowRect = new Rect(16f, 56f, 400f, 620f);
         private bool windowsPlaced;
         private Vector2 scrollPosition;
         private Vector2 buildScrollPosition;
@@ -40,6 +51,8 @@ namespace BazaarStateExporter
             ManualLogSource log,
             ConfigEntry<bool> enableOverlay,
             ConfigEntry<string> baseUrl,
+            ConfigEntry<bool> autoStart,
+            ConfigEntry<string> executablePath,
             ConfigEntry<float> pollInterval,
             ConfigEntry<int> top,
             ConfigEntry<bool> requestAi,
@@ -48,6 +61,8 @@ namespace BazaarStateExporter
             logger = log;
             enabledConfig = enableOverlay;
             helperBaseUrl = baseUrl;
+            autoStartHelper = autoStart;
+            helperExecutablePath = executablePath;
             pollIntervalSeconds = pollInterval;
             topRecommendations = top;
             includeAi = requestAi;
@@ -121,40 +136,43 @@ namespace BazaarStateExporter
             float margin = 16f;
             float top = Math.Max(48f, margin);
             float availableWidth = Math.Max(320f, Screen.width - margin * 2f);
-            float availableHeight = Math.Max(280f, Screen.height - top - margin);
+            float availableHeight = Math.Max(240f, Screen.height - top - margin);
             float gap = 12f;
+            float recommendationWidth = Math.Min(500f, Math.Max(360f, availableWidth * 0.32f));
+            float panelHeight = Math.Min(availableHeight, Math.Max(360f, availableHeight * 0.66f));
+            float buildWidth = Math.Min(400f, Math.Max(340f, availableWidth * 0.28f));
 
             if (!windowsPlaced)
             {
-                if (availableWidth >= 900f)
+                if (availableWidth >= recommendationWidth + buildWidth + gap)
                 {
-                    float buildWidth = Math.Min(400f, availableWidth * 0.38f);
-                    float recommendationWidth = availableWidth - buildWidth - gap;
-                    windowRect = new Rect(margin, top, recommendationWidth, availableHeight);
+                    windowRect = new Rect(margin, top, recommendationWidth, panelHeight);
                     buildWindowRect = new Rect(
-                        margin + recommendationWidth + gap,
+                        Screen.width - margin - buildWidth,
                         top,
                         buildWidth,
-                        availableHeight);
+                        panelHeight);
                 }
                 else
                 {
-                    float recommendationHeight = Math.Max(260f, availableHeight * 0.6f);
-                    float buildHeight = Math.Max(180f, availableHeight - recommendationHeight - gap);
-                    windowRect = new Rect(margin, top, availableWidth, recommendationHeight);
+                    float stackedWidth = Math.Min(availableWidth, 500f);
+                    float stackedBuildHeight = Math.Min(
+                        panelHeight,
+                        Math.Max(180f, availableHeight - panelHeight - gap));
+                    windowRect = new Rect(margin, top, stackedWidth, panelHeight);
                     buildWindowRect = new Rect(
                         margin,
-                        top + recommendationHeight + gap,
-                        availableWidth,
-                        buildHeight);
+                        top + panelHeight + gap,
+                        stackedWidth,
+                        stackedBuildHeight);
                 }
                 windowsPlaced = true;
             }
 
             windowRect.width = Math.Min(windowRect.width, availableWidth);
-            windowRect.height = Math.Min(windowRect.height, availableHeight);
+            windowRect.height = Math.Min(windowRect.height, panelHeight);
             buildWindowRect.width = Math.Min(buildWindowRect.width, availableWidth);
-            buildWindowRect.height = Math.Min(buildWindowRect.height, availableHeight);
+            buildWindowRect.height = Math.Min(buildWindowRect.height, panelHeight);
         }
 
         private static Rect ClampToScreen(Rect rect)
@@ -282,6 +300,8 @@ namespace BazaarStateExporter
             }
 
             GUILayout.Space(8f);
+            DrawBuildMatchSection();
+            GUILayout.Space(6f);
             DrawCardSection("核心卡", latest.BuildDetail.CoreCards);
             DrawCardSection("过渡卡", latest.BuildDetail.TransitionCards);
             DrawCardSection("可选卡", latest.BuildDetail.OptionalCards);
@@ -289,6 +309,64 @@ namespace BazaarStateExporter
             GUILayout.Label(toggleKey + " 隐藏 / 显示", mutedStyle);
             GUILayout.EndVertical();
             GUI.DragWindow(new Rect(0f, 0f, 10000f, 28f));
+        }
+
+        private void DrawBuildMatchSection()
+        {
+            GUILayout.BeginVertical(itemStyle);
+            GUILayout.Label("路线匹配", titleStyle);
+            if (latest.BuildMatches.Count == 0)
+            {
+                GUILayout.Label("暂无足够已拥有卡牌判断更接近的 Build", mutedStyle);
+                GUILayout.EndVertical();
+                return;
+            }
+
+            int count = Math.Min(3, latest.BuildMatches.Count);
+            for (int i = 0; i < count; i++)
+            {
+                OverlayBuildMatch match = latest.BuildMatches[i];
+                string name = FirstNonEmpty(match.Name, match.BuildId);
+                int totalCore = match.OwnedCore.Count + match.MissingCore.Count;
+                string coreText = totalCore > 0
+                    ? "核心 " + match.OwnedCore.Count + "/" + totalCore
+                    : "核心未配置";
+                GUILayout.Label((i == 0 ? "最接近：" : "候选：") + name, reasonStyle);
+                GUILayout.Label(
+                    MatchBandLabel(match.MatchBand)
+                    + " · "
+                    + coreText
+                    + " · "
+                    + RelationLabel(match.Relation)
+                    + " · "
+                    + ImportanceLabel(match.Importance),
+                    mutedStyle);
+                if (match.OwnedCore.Count > 0)
+                {
+                    GUILayout.Label("已命中：" + string.Join("、", match.OwnedCore.ToArray()), reasonStyle);
+                }
+                else if (match.OwnedOptional.Count > 0)
+                {
+                    GUILayout.Label("已命中过渡/可选：" + string.Join("、", match.OwnedOptional.ToArray()), reasonStyle);
+                }
+                else
+                {
+                    GUILayout.Label("暂无核心命中", mutedStyle);
+                }
+
+                if (match.MissingCore.Count > 0)
+                {
+                    List<string> missing = new List<string>();
+                    int missingCount = Math.Min(4, match.MissingCore.Count);
+                    for (int j = 0; j < missingCount; j++)
+                    {
+                        missing.Add(match.MissingCore[j]);
+                    }
+                    string suffix = match.MissingCore.Count > missingCount ? " 等" : "";
+                    GUILayout.Label("缺核心：" + string.Join("、", missing.ToArray()) + suffix, mutedStyle);
+                }
+            }
+            GUILayout.EndVertical();
         }
 
         private void DrawCardSection(string title, List<string> cards)
@@ -304,6 +382,35 @@ namespace BazaarStateExporter
                 GUILayout.Label(cards[i], reasonStyle);
             }
             GUILayout.EndVertical();
+        }
+
+        private static string MatchBandLabel(string value)
+        {
+            if (string.Equals(value, "locked", StringComparison.Ordinal)) return "已成型";
+            if (string.Equals(value, "close", StringComparison.Ordinal)) return "接近成型";
+            if (string.Equals(value, "developing", StringComparison.Ordinal)) return "发展中";
+            if (string.Equals(value, "seed", StringComparison.Ordinal)) return "有苗头";
+            if (string.Equals(value, "none", StringComparison.Ordinal)) return "未成型";
+            return string.IsNullOrEmpty(value) ? "未知匹配" : value;
+        }
+
+        private static string RelationLabel(string value)
+        {
+            if (string.Equals(value, "current_build", StringComparison.Ordinal)) return "当前阶段";
+            if (string.Equals(value, "future_build", StringComparison.Ordinal)) return "下一阶段";
+            if (string.Equals(value, "late_build", StringComparison.Ordinal)) return "后期方向";
+            if (string.Equals(value, "past_build", StringComparison.Ordinal)) return "已过期";
+            return string.IsNullOrEmpty(value) ? "阶段未知" : value;
+        }
+
+        private static string ImportanceLabel(string value)
+        {
+            if (string.Equals(value, "critical", StringComparison.Ordinal)) return "关键";
+            if (string.Equals(value, "high", StringComparison.Ordinal)) return "高匹配";
+            if (string.Equals(value, "medium", StringComparison.Ordinal)) return "中匹配";
+            if (string.Equals(value, "low", StringComparison.Ordinal)) return "低匹配";
+            if (string.Equals(value, "ignored", StringComparison.Ordinal)) return "忽略";
+            return string.IsNullOrEmpty(value) ? "匹配未知" : value;
         }
 
         private void DrawInlineList(string title, List<string> values, bool showEmpty)
@@ -335,6 +442,7 @@ namespace BazaarStateExporter
             {
                 try
                 {
+                    EnsureHelperServiceStarted();
                     using (TimeoutWebClient client = new TimeoutWebClient(4000))
                     {
                         client.Encoding = Encoding.UTF8;
@@ -342,23 +450,14 @@ namespace BazaarStateExporter
                         OverlayAnalysis parsed = OverlayAnalysisParser.Parse(json);
                         if (parsed.BuildOptions.Count == 0 && !string.IsNullOrEmpty(parsed.Hero))
                         {
-                            string optionsUrl = BuildOptionsUrl(parsed.Hero);
-                            string optionsJson = client.DownloadString(optionsUrl);
-                            parsed.BuildOptions.AddRange(
-                                OverlayAnalysisParser.ParseBuildOptions(optionsJson));
+                            FillBuildOptions(parsed, client);
                         }
                         lock (this)
                         {
                             latest = parsed;
+                            lastSuccessfulAnalysisUtc = DateTime.UtcNow;
                         }
                         logger?.LogDebug(
-                            "In-game overlay refreshed recommendations="
-                            + parsed.Items.Count
-                            + " build="
-                            + parsed.CurrentBuildId
-                            + " core="
-                            + parsed.BuildDetail.CoreCards.Count);
-                        logger?.LogInfo(
                             "In-game overlay refreshed recommendations="
                             + parsed.Items.Count
                             + " build="
@@ -373,7 +472,7 @@ namespace BazaarStateExporter
                     {
                         latest = OverlayAnalysis.Waiting("未连接到 BazaarHelper，请先启动助手。");
                     }
-                    logger?.LogInfo("In-game overlay analysis request failed: " + ex.Message);
+                    LogAnalysisFailure(ex);
                 }
                 finally
                 {
@@ -384,12 +483,7 @@ namespace BazaarStateExporter
 
         private string BuildAnalysisUrl()
         {
-            string baseUrl = (helperBaseUrl == null ? "" : helperBaseUrl.Value).Trim();
-            if (string.IsNullOrEmpty(baseUrl))
-            {
-                baseUrl = "http://127.0.0.1:8765";
-            }
-            baseUrl = baseUrl.TrimEnd('/');
+            string baseUrl = GetHelperBaseUrl().TrimEnd('/');
             int top = Math.Max(1, topRecommendations == null ? 3 : topRecommendations.Value);
             string ai = includeAi != null && includeAi.Value ? "1" : "0";
             string url = baseUrl + "/api/analysis?top=" + top + "&ai=" + ai;
@@ -400,15 +494,146 @@ namespace BazaarStateExporter
             return url;
         }
 
-        private string BuildOptionsUrl(string hero)
+        private void FillBuildOptions(OverlayAnalysis parsed, WebClient client)
+        {
+            if (string.Equals(parsed.Hero, cachedBuildOptionsHero, StringComparison.Ordinal)
+                && cachedBuildOptions.Count > 0)
+            {
+                AddBuildOptions(parsed.BuildOptions, cachedBuildOptions);
+                return;
+            }
+
+            string optionsUrl = BuildOptionsUrl(parsed.Hero);
+            string optionsJson = client.DownloadString(optionsUrl);
+            List<OverlayBuildOption> options = OverlayAnalysisParser.ParseBuildOptions(optionsJson);
+            cachedBuildOptionsHero = parsed.Hero;
+            cachedBuildOptions.Clear();
+            AddBuildOptions(cachedBuildOptions, options);
+            AddBuildOptions(parsed.BuildOptions, options);
+        }
+
+        private static void AddBuildOptions(
+            List<OverlayBuildOption> target,
+            List<OverlayBuildOption> source)
+        {
+            for (int i = 0; i < source.Count; i++)
+            {
+                target.Add(new OverlayBuildOption
+                {
+                    Id = source[i].Id,
+                    Name = source[i].Name,
+                });
+            }
+        }
+
+        private void EnsureHelperServiceStarted()
+        {
+            if ((DateTime.UtcNow - lastSuccessfulAnalysisUtc).TotalSeconds < 15)
+            {
+                return;
+            }
+
+            if (autoStartHelper == null || !autoStartHelper.Value || IsHelperServiceReachable())
+            {
+                return;
+            }
+
+            DateTime now = DateTime.UtcNow;
+            if ((now - lastHelperStartAttemptUtc).TotalSeconds < 30)
+            {
+                return;
+            }
+            lastHelperStartAttemptUtc = now;
+
+            string executablePath = helperExecutablePath == null ? "" : helperExecutablePath.Value.Trim();
+            if (string.IsNullOrEmpty(executablePath) || !File.Exists(executablePath))
+            {
+                logger?.LogInfo(
+                    "In-game overlay could not auto-start BazaarHelper because HelperExecutablePath is not set or missing: "
+                    + executablePath);
+                return;
+            }
+
+            try
+            {
+                int port = GetHelperPort();
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = executablePath,
+                    Arguments = "--port " + port + " --api-only",
+                    WorkingDirectory = Path.GetDirectoryName(executablePath),
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+                Process.Start(startInfo);
+                logger?.LogInfo("In-game overlay auto-started BazaarHelper: " + executablePath);
+                Thread.Sleep(500);
+            }
+            catch (Exception ex)
+            {
+                logger?.LogInfo("In-game overlay failed to auto-start BazaarHelper: " + ex.Message);
+            }
+        }
+
+        private bool IsHelperServiceReachable()
+        {
+            try
+            {
+                Uri uri = new Uri(GetHelperBaseUrl());
+                using (TcpClient client = new TcpClient())
+                {
+                    IAsyncResult result = client.BeginConnect(uri.Host, uri.Port, null, null);
+                    bool connected = result.AsyncWaitHandle.WaitOne(TimeSpan.FromMilliseconds(250));
+                    if (!connected)
+                    {
+                        return false;
+                    }
+                    client.EndConnect(result);
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private int GetHelperPort()
+        {
+            try
+            {
+                return new Uri(GetHelperBaseUrl()).Port;
+            }
+            catch
+            {
+                return 8765;
+            }
+        }
+
+        private string GetHelperBaseUrl()
         {
             string baseUrl = (helperBaseUrl == null ? "" : helperBaseUrl.Value).Trim();
-            if (string.IsNullOrEmpty(baseUrl))
-            {
-                baseUrl = "http://127.0.0.1:8765";
-            }
-            baseUrl = baseUrl.TrimEnd('/');
+            return string.IsNullOrEmpty(baseUrl) ? "http://127.0.0.1:8765" : baseUrl;
+        }
+
+        private string BuildOptionsUrl(string hero)
+        {
+            string baseUrl = GetHelperBaseUrl().TrimEnd('/');
             return baseUrl + "/api/options?hero=" + Uri.EscapeDataString(hero);
+        }
+
+        private void LogAnalysisFailure(Exception ex)
+        {
+            DateTime now = DateTime.UtcNow;
+            if ((now - lastFailureLogUtc).TotalSeconds >= 30)
+            {
+                lastFailureLogUtc = now;
+                logger?.LogInfo("In-game overlay analysis request failed: " + ex.Message);
+            }
+            else
+            {
+                logger?.LogDebug("In-game overlay analysis request failed: " + ex.Message);
+            }
         }
 
         private static string FirstNonEmpty(string first, string second)
@@ -418,7 +643,13 @@ namespace BazaarStateExporter
 
         private void ParseToggleKey()
         {
-            string keyName = toggleKeyConfig == null ? "F8" : toggleKeyConfig.Value;
+            string keyName = toggleKeyConfig == null ? "F7" : toggleKeyConfig.Value;
+            if (string.Equals(keyName, parsedToggleKeyName, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            parsedToggleKeyName = keyName;
             KeyCode parsed;
             if (Enum.TryParse(keyName, true, out parsed))
             {
@@ -488,6 +719,7 @@ namespace BazaarStateExporter
         public string CurrentBuildName;
         public readonly OverlayBuildDetail BuildDetail = new OverlayBuildDetail();
         public readonly List<OverlayBuildOption> BuildOptions = new List<OverlayBuildOption>();
+        public readonly List<OverlayBuildMatch> BuildMatches = new List<OverlayBuildMatch>();
         public readonly List<OverlayRecommendation> Items = new List<OverlayRecommendation>();
 
         public static OverlayAnalysis Waiting(string status)
@@ -523,6 +755,19 @@ namespace BazaarStateExporter
         public string Name;
     }
 
+    internal sealed class OverlayBuildMatch
+    {
+        public string BuildId;
+        public string Name;
+        public string Phase;
+        public string MatchBand;
+        public string Importance;
+        public string Relation;
+        public readonly List<string> OwnedCore = new List<string>();
+        public readonly List<string> MissingCore = new List<string>();
+        public readonly List<string> OwnedOptional = new List<string>();
+    }
+
     internal static class OverlayAnalysisParser
     {
         public static OverlayAnalysis Parse(string json)
@@ -533,6 +778,7 @@ namespace BazaarStateExporter
             {
                 result.ShopAction = FindStringProperty(shopObject, "shop_action");
                 result.ShopReason = FindStringProperty(shopObject, "refresh_reason");
+                result.BuildMatches.AddRange(FindBuildMatchArrayProperty(shopObject));
             }
 
             string stateObject = FindObjectProperty(json, "state");
@@ -801,6 +1047,32 @@ namespace BazaarStateExporter
                 {
                     string builds = FindBuildNames(itemObject);
                     values.Add(name + "：" + (string.IsNullOrEmpty(builds) ? "其他阵容" : builds) + "核心卡");
+                }
+            }
+            return values;
+        }
+
+        private static List<OverlayBuildMatch> FindBuildMatchArrayProperty(string json)
+        {
+            List<OverlayBuildMatch> values = new List<OverlayBuildMatch>();
+            string array = FindArrayProperty(json, "best_matching_builds");
+            foreach (string itemObject in SplitTopLevelObjects(array))
+            {
+                OverlayBuildMatch match = new OverlayBuildMatch();
+                match.BuildId = FindStringProperty(itemObject, "build_id");
+                match.Name = FirstNonEmpty(
+                    FindStringProperty(itemObject, "name"),
+                    match.BuildId);
+                match.Phase = FindStringProperty(itemObject, "phase");
+                match.MatchBand = FindStringProperty(itemObject, "match_band");
+                match.Importance = FindStringProperty(itemObject, "importance");
+                match.Relation = FindStringProperty(itemObject, "relation");
+                match.OwnedCore.AddRange(FindStringArrayProperty(itemObject, "owned_core"));
+                match.MissingCore.AddRange(FindStringArrayProperty(itemObject, "missing_core"));
+                match.OwnedOptional.AddRange(FindStringArrayProperty(itemObject, "owned_optional"));
+                if (!string.IsNullOrEmpty(match.BuildId) || !string.IsNullOrEmpty(match.Name))
+                {
+                    values.Add(match);
                 }
             }
             return values;

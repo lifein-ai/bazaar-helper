@@ -25,6 +25,8 @@ namespace BazaarStateExporter
         private ConfigEntry<float> runtimeCardExportDelaySeconds;
         private ConfigEntry<bool> enableInGameOverlay;
         private ConfigEntry<string> helperBaseUrl;
+        private ConfigEntry<bool> autoStartHelper;
+        private ConfigEntry<string> helperExecutablePath;
         private ConfigEntry<float> overlayPollIntervalSeconds;
         private ConfigEntry<int> overlayTopRecommendations;
         private ConfigEntry<bool> overlayIncludeAi;
@@ -101,6 +103,16 @@ namespace BazaarStateExporter
                 "HelperBaseUrl",
                 "http://127.0.0.1:8765",
                 "Base URL of the local BazaarHelper web service.");
+            autoStartHelper = Config.Bind(
+                "Overlay",
+                "AutoStartHelper",
+                true,
+                "Automatically start BazaarHelper.exe when the in-game overlay cannot reach the local service.");
+            helperExecutablePath = Config.Bind(
+                "Overlay",
+                "HelperExecutablePath",
+                "",
+                "Absolute path to BazaarHelper.exe. The installer writes this so the game can start the helper automatically.");
             overlayPollIntervalSeconds = Config.Bind(
                 "Overlay",
                 "PollIntervalSeconds",
@@ -119,8 +131,13 @@ namespace BazaarStateExporter
             overlayToggleKey = Config.Bind(
                 "Overlay",
                 "ToggleKey",
-                "F8",
+                "F7",
                 "Keyboard key used to show or hide the in-game overlay.");
+            if (string.Equals(overlayToggleKey.Value, "F8", StringComparison.OrdinalIgnoreCase))
+            {
+                overlayToggleKey.Value = "F7";
+                Config.Save();
+            }
             probe = new StateProbe(Logger);
             EventDrivenExporter.Initialize(probe, resolvedOutputPath, Logger);
             RuntimeStateCache.Logger = Logger;
@@ -131,6 +148,8 @@ namespace BazaarStateExporter
                 Logger,
                 enableInGameOverlay,
                 helperBaseUrl,
+                autoStartHelper,
+                helperExecutablePath,
                 overlayPollIntervalSeconds,
                 overlayTopRecommendations,
                 overlayIncludeAi,

@@ -1,5 +1,9 @@
 # BazaarHelper
 
+> Current direction: the browser Web UI is deprecated. BazaarHelper runs as a
+> local API service for the in-game BepInEx overlay. Keep `/api/*` endpoints and
+> recommendation logic maintained; do not add new browser-page features.
+
 BazaarHelper 是一个面向《The Bazaar》的本地决策辅助工具。它读取游戏实时状态、卡牌数据、事件数据和社区阵容配置，分析当前事件、商店和可见卡牌的收益，并在本地 Web UI 中给出可解释的选择建议。
 
 项目目标不是替玩家做唯一答案，而是帮助玩家快速判断：
@@ -358,4 +362,3 @@ python -m pytest -q tests/test_web_app.py tests/test_recommender.py
 - AI 只做解释和策略补充，不替代规则判断
 - BepInEx 插件只负责导出事实，不耦合推荐知识库
 - 阵容知识维护在 `data/community_builds.json`
-

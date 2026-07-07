@@ -54,7 +54,11 @@ class RecommenderTests(unittest.TestCase):
         self.assertEqual(project_data["cards"]["Ballista"]["build_roles"], {})
 
     @staticmethod
-    def _analyze_alt_core_cards(card_names: list[str]) -> dict:
+    def _analyze_alt_core_cards(
+        card_names: list[str],
+        current_day: int = 3,
+        alt_build_updates: dict | None = None,
+    ) -> dict:
         cards = {
             name: {
                 "type": "Item",
@@ -86,6 +90,8 @@ class RecommenderTests(unittest.TestCase):
                 "core_cards": ["Alt Core One"],
             },
         }
+        if alt_build_updates:
+            builds["AltBuild"].update(alt_build_updates)
         return analyze_event(
             event_name="Test Reward",
             event_data={
@@ -100,7 +106,7 @@ class RecommenderTests(unittest.TestCase):
             cards=cards,
             build_name="CurrentBuild",
             build_data=builds["CurrentBuild"],
-            current_day=3,
+            current_day=current_day,
             rarity_rules={},
             current_hero="Vanessa",
             all_builds=builds,
@@ -132,6 +138,27 @@ class RecommenderTests(unittest.TestCase):
         self.assertTrue(
             any("转型/备选阵容价值" in reason for reason in result["reasons"])
         )
+
+    def test_alt_core_stage_filter_allows_early_late_but_excludes_past(self) -> None:
+        early_result = self._analyze_alt_core_cards(
+            ["Alt Core One"],
+            current_day=3,
+            alt_build_updates={
+                "applicable_stages": ["late"],
+                "day_range": None,
+            },
+        )
+        late_result = self._analyze_alt_core_cards(
+            ["Alt Core One"],
+            current_day=10,
+            alt_build_updates={
+                "applicable_stages": ["mid"],
+                "day_range": None,
+            },
+        )
+
+        self.assertEqual(early_result["alt_core_card_count"], 1)
+        self.assertEqual(late_result["alt_core_card_count"], 0)
 
     def test_probability_at_least_one(self) -> None:
         self.assertEqual(probability_at_least_one(0.0), 0.0)

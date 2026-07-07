@@ -14,6 +14,7 @@ if not defined LOCALAPPDATA (
 set "RUNTIME_DIR=%LOCALAPPDATA%\BazaarHelper\runtime"
 set "OUTPUT_PATH=%RUNTIME_DIR%\game_state.json"
 set "INSTALL_STATUS_PATH=%RUNTIME_DIR%\install_status.json"
+set "HELPER_EXE=%~dp0BazaarHelper.exe"
 
 if not exist "!RUNTIME_DIR!" mkdir "!RUNTIME_DIR!"
 if not exist "!RUNTIME_DIR!" (
@@ -92,6 +93,13 @@ if errorlevel 1 (
 >> "!CONFIG_FILE!" echo [Debug]
 >> "!CONFIG_FILE!" echo WritePlaceholderWhenEmpty = false
 >> "!CONFIG_FILE!" echo EnableRuntimeInspection = false
+>> "!CONFIG_FILE!" echo.
+>> "!CONFIG_FILE!" echo [Overlay]
+>> "!CONFIG_FILE!" echo EnableInGameOverlay = true
+>> "!CONFIG_FILE!" echo HelperBaseUrl = http://127.0.0.1:8765
+>> "!CONFIG_FILE!" echo AutoStartHelper = true
+>> "!CONFIG_FILE!" echo HelperExecutablePath = !HELPER_EXE!
+>> "!CONFIG_FILE!" echo ToggleKey = F7
 if errorlevel 1 (
     echo ERROR: Cannot write plugin config:
     echo !CONFIG_FILE!
@@ -109,7 +117,8 @@ echo !OUTPUT_PATH!
 echo.
 echo The plugin creates this file after it loads in the game.
 echo Start/restart the game and enter a run.
-echo Then run start.bat to open BazaarHelper.
+echo The in-game overlay will start BazaarHelper automatically.
+echo If automatic startup is blocked, run start.bat manually as a fallback.
 pause
 
 endlocal

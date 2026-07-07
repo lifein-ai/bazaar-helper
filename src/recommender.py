@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from build_strategy import build_applies_to_day
+from build_strategy import build_applies_to_day, build_phase_relation, get_game_stage_for_day
 
 
 RARITY_ORDER = {
@@ -384,13 +384,11 @@ def get_alt_core_build_hits(
         return []
 
     hits: list[dict[str, str]] = []
+    current_stage = get_game_stage_for_day(current_day)
     for build_name, candidate in all_builds.items():
         if build_name == current_build_name or candidate.get("hero") != current_hero:
             continue
-        if (
-            ("day_range" in candidate or "applicable_stages" in candidate)
-            and not build_applies_to_day(candidate, current_day)
-        ):
+        if build_phase_relation(candidate, current_stage) == "past_build":
             continue
         if card_name not in candidate.get("core_cards", []):
             continue

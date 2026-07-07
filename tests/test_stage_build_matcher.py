@@ -61,6 +61,19 @@ def test_legacy_non_core_cards_become_optional() -> None:
     assert normalized["optional_cards"] == ["B", "C"]
 
 
+def test_day_range_normalizes_to_all_covered_stages() -> None:
+    normalized = normalize_build(
+        "range",
+        {
+            "hero": "Vanessa",
+            "day_range": [1, 8],
+            "core_cards": ["A"],
+        },
+    )
+
+    assert normalized["applicable_stages"] == ["early", "mid"]
+
+
 def test_past_core_is_ignored_and_current_close_core_is_critical() -> None:
     result = analyze_stage_builds(
         data=_data(),
@@ -148,3 +161,98 @@ def test_live_candidate_price_takes_priority_over_missing_static_price() -> None
     card = result["candidate_cards"][0]
     assert card["price"] == 4
     assert card["affordable"] is True
+
+
+def test_early_can_surface_late_core_as_future_stash() -> None:
+    result = analyze_stage_builds(
+        data=_data(),
+        hero="Vanessa",
+        day=3,
+        owned_cards=set(),
+        candidates=[{"name": "L", "rarity": "silver"}],
+        gold=10,
+        prestige=15,
+        inventory_slots_used=5,
+        inventory_slots_total=10,
+        current_shop={"refresh_available": True, "refresh_cost": 1},
+    )
+
+    card = result["candidate_cards"][0]
+    assert card["build_hits"][0]["relation"] == "late_build"
+    assert card["recommendation_type"] == "stash_future"
+
+
+def test_mid_and_late_do_not_recommend_past_stage_builds() -> None:
+    mid_result = analyze_stage_builds(
+        data=_data(),
+        hero="Vanessa",
+        day=7,
+        owned_cards=set(),
+        candidates=[{"name": "Old Core", "rarity": "silver"}],
+        gold=10,
+        prestige=15,
+        inventory_slots_used=5,
+        inventory_slots_total=10,
+        current_shop={"refresh_available": True, "refresh_cost": 1},
+    )
+    late_result = analyze_stage_builds(
+        data=_data(),
+        hero="Vanessa",
+        day=10,
+        owned_cards=set(),
+        candidates=[{"name": "C", "rarity": "silver"}],
+        gold=10,
+        prestige=15,
+        inventory_slots_used=5,
+        inventory_slots_total=10,
+        current_shop={"refresh_available": True, "refresh_cost": 1},
+    )
+
+    mid_card = mid_result["candidate_cards"][0]
+    late_card = late_result["candidate_cards"][0]
+    assert mid_card["build_hits"][0]["relation"] == "past_build"
+    assert mid_card["recommendation_type"] == "skip"
+    assert late_card["build_hits"][0]["relation"] == "past_build"
+    assert late_card["recommendation_type"] == "skip"
+
+
+def test_multi_stage_build_matches_current_stage_until_it_expires() -> None:
+    data = _data()
+    data["builds"]["bridge"] = {
+        "hero": "Vanessa",
+        "name": "Bridge",
+        "applicable_stages": ["early", "mid"],
+        "core_cards": ["Bridge Core"],
+        "optional_cards": [],
+    }
+    data["cards"]["Bridge Core"] = {"size": "Small", "buy_prices": {"silver": 3}}
+
+    mid_result = analyze_stage_builds(
+        data=data,
+        hero="Vanessa",
+        day=7,
+        owned_cards=set(),
+        candidates=[{"name": "Bridge Core", "rarity": "silver"}],
+        gold=10,
+        prestige=15,
+        inventory_slots_used=5,
+        inventory_slots_total=10,
+        current_shop={"refresh_available": True, "refresh_cost": 1},
+    )
+    late_result = analyze_stage_builds(
+        data=data,
+        hero="Vanessa",
+        day=10,
+        owned_cards=set(),
+        candidates=[{"name": "Bridge Core", "rarity": "silver"}],
+        gold=10,
+        prestige=15,
+        inventory_slots_used=5,
+        inventory_slots_total=10,
+        current_shop={"refresh_available": True, "refresh_cost": 1},
+    )
+
+    assert mid_result["candidate_cards"][0]["build_hits"][0]["relation"] == "current_build"
+    assert mid_result["candidate_cards"][0]["recommendation_type"] == "buy_now"
+    assert late_result["candidate_cards"][0]["build_hits"][0]["relation"] == "past_build"
+    assert late_result["candidate_cards"][0]["recommendation_type"] == "skip"

@@ -2,11 +2,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from build_strategy import get_game_stage_for_day
+from build_strategy import build_applicable_stages, build_phase_relation, get_game_stage_for_day
 
 
 PHASES = ("early", "mid", "late")
-NEXT_PHASE = {"early": "mid", "mid": "late", "late": None}
 IMPORTANCE_RANK = {
     "ignored": 0,
     "low": 1,
@@ -108,18 +107,15 @@ def normalize_build(build_id: str, raw: dict[str, Any]) -> dict[str, Any]:
             + explicit_optional
         )
     )
+    stages = build_applicable_stages(raw)
     if phase not in PHASES:
-        stages = [
-            str(stage).lower()
-            for stage in raw.get("applicable_stages", [])
-            if str(stage).lower() in PHASES
-        ]
         phase = stages[0] if stages else phase_from_day_range(raw.get("day_range"))
     return {
         "build_id": str(raw.get("build_id") or build_id),
         "hero": raw.get("hero"),
         "name": str(raw.get("name") or raw.get("display_name") or build_id),
         "phase": phase if phase in PHASES else "early",
+        "applicable_stages": stages,
         "core_cards": core,
         "optional_cards": [name for name in legacy_non_core if name not in core],
     }
@@ -135,7 +131,7 @@ def match_build(
     owned_core = [name for name in core if name in owned_cards]
     missing_core = [name for name in core if name not in owned_cards]
     owned_optional = [name for name in optional if name in owned_cards]
-    relation = phase_relation(current_phase, build["phase"])
+    relation = build_phase_relation(build, current_phase)
     band = build_match_band(len(owned_core), len(core), len(owned_optional))
     reasons: list[str] = []
     if relation == "past_build":
@@ -196,8 +192,9 @@ def evaluate_candidate(
                 "build_id": build["build_id"],
                 "build_name": build["name"],
                 "build_phase": build["phase"],
+                "applicable_stages": build["applicable_stages"],
                 "role": role,
-                "relation": phase_relation(current_phase, build["phase"]),
+                "relation": build_phase_relation(build, current_phase),
             }
         )
 
@@ -410,15 +407,7 @@ def decide_shop_action(
 
 
 def phase_relation(current: str, build_phase: str) -> str:
-    if build_phase == current:
-        return "current_build"
-    if NEXT_PHASE.get(current) == build_phase:
-        return "future_build"
-    if build_phase == "late" and current in {"early", "mid"}:
-        return "late_build"
-    if PHASES.index(build_phase) < PHASES.index(current):
-        return "past_build"
-    return "future_build"
+    return build_phase_relation({"phase": build_phase}, current)
 
 
 def build_match_band(owned_core: int, core_total: int, owned_optional: int) -> str:

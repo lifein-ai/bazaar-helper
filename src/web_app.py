@@ -38,6 +38,8 @@ OFFICIAL_CARDS_PATH = (
 OBSERVED_EVENT_GRAPH_PATH = RUNTIME_DIR / "observed_event_graph.json"
 AUTO_BUILD_PREFIX = "Auto"
 ANALYSIS_CACHE_MAX_ENTRIES = 16
+AI_CACHE_MAX_ENTRIES = 8
+RUNTIME_PAYLOAD_CACHE: tuple[str, int, int, dict[str, Any]] | None = None
 VOLATILE_STATE_KEYS = {
     "updated_at_utc",
     "captured_at_utc",
@@ -45,8 +47,11 @@ VOLATILE_STATE_KEYS = {
     "last_updated",
     "frame",
     "frame_count",
+    "_runtime_state_age_seconds",
 }
 ANALYSIS_CACHE: dict[tuple[int, str, str, int | None], dict[str, Any]] = {}
+AI_PAYLOAD_CACHE: dict[tuple[int, str, str, int | None], dict[str, Any]] = {}
+AI_ANALYSIS_CACHE: dict[tuple[int, str, str, int | None], dict[str, str]] = {}
 STAGE_LABELS_ZH = {
     "early": "前期",
     "mid": "中期",
@@ -72,23 +77,43 @@ RESOURCE_LABELS_ZH = {
     "regen": "再生",
 }
 _OFFICIAL_CARDS_INDEX: dict[str, dict[str, Any]] | None = None
-MAX_STATE_AGE_SECONDS = 15.0
+STATE_AGE_WARNING_SECONDS = 15.0
+MAX_STATE_AGE_SECONDS = 120.0
 
 def load_runtime_payload() -> tuple[dict[str, Any], Path]:
-    if not STATE_PATH.exists():
+    global RUNTIME_PAYLOAD_CACHE
+    try:
+        state_stat = STATE_PATH.stat()
+    except FileNotFoundError:
         raise FileNotFoundError(
             f"实时状态文件不存在：{STATE_PATH}。请确认游戏和 Bazaar State Exporter 已启动。"
         )
-    for attempt in range(3):
-        try:
-            payload = json.loads(STATE_PATH.read_text(encoding="utf-8-sig"))
-            break
-        except (OSError, json.JSONDecodeError):
-            if attempt >= 2:
-                raise
-            time.sleep(0.02)
+    cache_key = (str(STATE_PATH), state_stat.st_mtime_ns, state_stat.st_size)
+    if (
+        RUNTIME_PAYLOAD_CACHE is not None
+        and RUNTIME_PAYLOAD_CACHE[0] == cache_key[0]
+        and RUNTIME_PAYLOAD_CACHE[1] == cache_key[1]
+        and RUNTIME_PAYLOAD_CACHE[2] == cache_key[2]
+    ):
+        payload = dict(RUNTIME_PAYLOAD_CACHE[3])
     else:
-        raise RuntimeError("无法读取实时状态")
+        for attempt in range(3):
+            try:
+                payload = json.loads(STATE_PATH.read_text(encoding="utf-8-sig"))
+                if isinstance(payload, dict):
+                    RUNTIME_PAYLOAD_CACHE = (
+                        cache_key[0],
+                        cache_key[1],
+                        cache_key[2],
+                        dict(payload),
+                    )
+                break
+            except (OSError, json.JSONDecodeError):
+                if attempt >= 2:
+                    raise
+                time.sleep(0.02)
+        else:
+            raise RuntimeError("无法读取实时状态")
 
     if isinstance(payload, dict) and payload.get("source") == "installer":
         raise RuntimeError(
@@ -111,6 +136,10 @@ def load_runtime_payload() -> tuple[dict[str, Any], Path]:
             f"实时状态已停止更新（{age_seconds:.0f} 秒前）。"
             "请确认游戏正在运行，并重启游戏以重新加载插件配置。"
         )
+    if age_seconds > STATE_AGE_WARNING_SECONDS:
+        payload = dict(payload)
+        payload["_runtime_state_age_seconds"] = age_seconds
+        payload["_runtime_state_age_stale"] = True
     return payload, STATE_PATH
 
 
@@ -149,6 +178,119 @@ def analysis_cache_signature(payload: dict[str, Any]) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
+def signature_card_identity(item: Any) -> Any:
+    if not isinstance(item, dict):
+        return str(item) if item is not None else None
+
+    return {
+        "id": item.get("id"),
+        "template_id": item.get("template_id"),
+        "source_id": item.get("source_id"),
+        "name": item.get("name"),
+        "internal_name": item.get("internal_name"),
+        "rarity": item.get("rarity"),
+        "tier": item.get("tier"),
+        "price": item.get("price"),
+        "enchantment": item.get("enchantment"),
+        "enchantments": stable_cache_value(item.get("enchantments", [])),
+        "section": item.get("section"),
+    }
+
+
+def signature_option_identity(item: Any) -> Any:
+    if not isinstance(item, dict):
+        return str(item) if item is not None else None
+
+    return {
+        "id": item.get("id"),
+        "template_id": item.get("template_id"),
+        "source_id": item.get("source_id"),
+        "event_name": item.get("event_name"),
+        "name": item.get("name"),
+        "kind": item.get("kind"),
+        "card_type": item.get("card_type"),
+    }
+
+
+def state_signature_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    current_shop = payload.get("current_shop")
+    visible_items = []
+    shop_facts: dict[str, Any] = {}
+    if isinstance(current_shop, dict):
+        visible_items = current_shop.get("visible_items") or []
+        shop_facts = {
+            "refresh_available": current_shop.get("refresh_available"),
+            "refresh_cost": current_shop.get("refresh_cost"),
+            "refreshes_remaining": current_shop.get("refreshes_remaining"),
+        }
+    detailed_options = payload.get("event_options_detailed") or []
+    reward_options = payload.get("current_reward_options") or []
+    visible_cards = payload.get("visible_cards") or []
+    owned_cards = payload.get("owned_cards")
+
+    return {
+        "source": payload.get("source"),
+        "status": payload.get("status"),
+        "screen_type": payload.get("screen_type"),
+        "hero": payload.get("hero"),
+        "build": payload.get("build"),
+        "day": payload.get("day"),
+        "event_name": payload.get("event_name"),
+        "event_options": stable_cache_value(payload.get("event_options", [])),
+        "event_option_ids": stable_cache_value(payload.get("event_option_ids", [])),
+        "event_option_template_ids": stable_cache_value(
+            payload.get("event_option_template_ids", [])
+        ),
+        "event_options_detailed": [
+            signature_option_identity(item)
+            for item in detailed_options
+            if item is not None
+        ],
+        "shop_card_ids": [
+            signature_card_identity(item)
+            for item in visible_items
+            if item is not None
+        ],
+        "reward_option_ids": [
+            signature_card_identity(item)
+            for item in reward_options
+            if item is not None
+        ],
+        "visible_cards": [
+            signature_card_identity(item)
+            for item in visible_cards
+            if item is not None
+        ],
+        "owned_cards": [
+            signature_card_identity(item)
+            for item in owned_cards
+            if item is not None
+        ]
+        if isinstance(owned_cards, list)
+        else stable_cache_value(owned_cards or {}),
+        "gold": payload.get("gold"),
+        "combat_health": payload.get("combat_health", payload.get("health")),
+        "prestige": payload.get("prestige"),
+        "max_prestige": payload.get("max_prestige"),
+        "income": payload.get("income"),
+        "level": payload.get("level"),
+        "xp": payload.get("xp"),
+        "inventory_slots_used": payload.get("inventory_slots_used"),
+        "inventory_slots_total": payload.get("inventory_slots_total"),
+        "current_shop": shop_facts,
+    }
+
+
+def state_signature(payload: dict[str, Any]) -> str:
+    encoded = json.dumps(
+        state_signature_payload(payload),
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
 def remember_analysis_cache(
     cache_key: tuple[int, str, str, int | None],
     response: dict[str, Any],
@@ -157,6 +299,49 @@ def remember_analysis_cache(
         oldest_key = next(iter(ANALYSIS_CACHE))
         ANALYSIS_CACHE.pop(oldest_key, None)
     ANALYSIS_CACHE[cache_key] = response
+
+
+def remember_ai_payload_cache(
+    cache_key: tuple[int, str, str, int | None],
+    payload: dict[str, Any],
+) -> None:
+    if len(AI_PAYLOAD_CACHE) >= AI_CACHE_MAX_ENTRIES:
+        oldest_key = next(iter(AI_PAYLOAD_CACHE))
+        AI_PAYLOAD_CACHE.pop(oldest_key, None)
+        AI_ANALYSIS_CACHE.pop(oldest_key, None)
+    AI_PAYLOAD_CACHE[cache_key] = payload
+
+
+def attach_cached_ai_analysis(
+    response: dict[str, Any],
+    cache_key: tuple[int, str, str, int | None],
+) -> bool:
+    if cache_key in AI_ANALYSIS_CACHE:
+        response["ai_analysis"] = AI_ANALYSIS_CACHE[cache_key]
+        return True
+
+    ai_payload = AI_PAYLOAD_CACHE.get(cache_key)
+    if ai_payload is None:
+        return False
+
+    try:
+        ai_analysis = analyze_with_ai(ai_payload)
+    except RuntimeError as exc:
+        response["ai_error"] = str(exc)
+        return True
+
+    AI_ANALYSIS_CACHE[cache_key] = ai_analysis
+    response["ai_analysis"] = ai_analysis
+    return True
+
+
+def runtime_state_age_warnings(payload: dict[str, Any]) -> list[str]:
+    if not payload.get("_runtime_state_age_stale"):
+        return []
+    return [
+        f"实时状态超过 {STATE_AGE_WARNING_SECONDS:.0f} 秒未更新，"
+        "当前分析可能不是最新局面；如果游戏还在运行，请稍等或重启游戏。"
+    ]
 
 
 def available_heroes(data: dict[str, Any]) -> list[str]:
@@ -1452,13 +1637,20 @@ def analyze_payload(
     include_ai: bool = False,
     top: int | None = None,
 ) -> dict[str, Any]:
-    cache_signature = analysis_cache_signature(payload)
+    cache_signature = state_signature(payload)
     cache_key = (id(data), cache_signature, build_override or "", top)
     render_signature = f"{cache_signature}:{build_override or ''}:{top or ''}"
-    if not include_ai and cache_key in ANALYSIS_CACHE:
+    payload_warnings = runtime_state_age_warnings(payload)
+    if cache_key in ANALYSIS_CACHE:
         cached = dict(ANALYSIS_CACHE[cache_key])
         cached["cache_hit"] = True
-        return cached
+        if include_ai and attach_cached_ai_analysis(cached, cache_key):
+            return cached
+        if include_ai:
+            # Fall through only when this cached entry was produced before AI payload caching existed.
+            pass
+        else:
+            return cached
 
     observation_warning: str | None = None
     try:
@@ -1502,8 +1694,12 @@ def analyze_payload(
                 "inventory_slots_total": normalized.get("inventory_slots_total"),
             },
             "recommendations": [],
-            "warnings": ["等待游戏内实时状态。进入一局后会开始分析。"],
+            "warnings": [
+                *payload_warnings,
+                "等待游戏内实时状态。进入一局后会开始分析。",
+            ],
             "build_analysis": {},
+            "state_signature": cache_signature,
             "analysis_signature": render_signature,
             "cache_hit": False,
         }
@@ -1640,17 +1836,18 @@ def analyze_payload(
                 for name in missing_events
             ],
         },
-        "warnings": result.warnings,
+        "warnings": [*payload_warnings, *result.warnings],
         "recommendations": [
             summarize_recommendation(data, item)
             for item in result.recommendations
         ],
         "build_analysis": build_analysis,
+        "state_signature": cache_signature,
         "analysis_signature": render_signature,
         "cache_hit": False,
     }
 
-    if include_ai and (
+    if (
         response["recommendations"]
         or build_analysis.get("candidate_cards")
     ):
@@ -1683,8 +1880,15 @@ def analyze_payload(
             current_shop=state.current_shop,
             build_analysis=build_analysis,
         )
+        remember_ai_payload_cache(cache_key, ai_payload)
+
+    if include_ai and (
+        response["recommendations"]
+        or build_analysis.get("candidate_cards")
+    ):
         try:
             response["ai_analysis"] = analyze_with_ai(ai_payload)
+            AI_ANALYSIS_CACHE[cache_key] = response["ai_analysis"]
         except RuntimeError as exc:
             response["ai_error"] = str(exc)
 
@@ -1741,11 +1945,29 @@ class BazaarHandler(BaseHTTPRequestHandler):
 
         try:
             if parsed.path == "/":
-                self.send_text(HTML_PAGE, content_type="text/html; charset=utf-8")
+                self.send_json(
+                    {
+                        "ok": True,
+                        "mode": "api-only",
+                        "message": "Browser UI is deprecated. Use the in-game overlay.",
+                        "analysis_endpoint": "/api/analysis",
+                        "options_endpoint": "/api/options",
+                        "state_signature_endpoint": "/api/state-signature",
+                    }
+                )
                 return
             if parsed.path == "/api/state":
                 payload, path = load_runtime_payload()
                 self.send_json({"path": str(path), "payload": payload})
+                return
+            if parsed.path == "/api/state-signature":
+                payload, path = load_runtime_payload()
+                self.send_json(
+                    {
+                        "path": str(path),
+                        "state_signature": state_signature(payload),
+                    }
+                )
                 return
             if parsed.path == "/api/options":
                 hero = query.get("hero", [None])[0]
@@ -2088,6 +2310,9 @@ HTML_PAGE = r"""<!doctype html>
     let buildDetailOpen = false;
     let analysisRequestInFlight = false;
     let lastRenderedSignature = null;
+    let lastSeenStateSignature = null;
+    let analyzeDebounceTimer = null;
+    const ANALYZE_DEBOUNCE_MS = 400;
 
     function pct(value) {
       return `${Math.round((value || 0) * 100)}%`;
@@ -2129,9 +2354,23 @@ HTML_PAGE = r"""<!doctype html>
       return data.payload;
     }
 
+    async function loadStateSignature() {
+      const res = await fetch("/api/state-signature", { cache: "no-store" });
+      return await res.json();
+    }
+
+    function scheduleAnalyze(includeAi = false, force = false) {
+      if (analyzeDebounceTimer) clearTimeout(analyzeDebounceTimer);
+      analyzeDebounceTimer = setTimeout(() => {
+        analyzeDebounceTimer = null;
+        analyze(includeAi, force);
+      }, ANALYZE_DEBOUNCE_MS);
+    }
+
     async function analyze(includeAi = false) {
       if (!includeAi && document.hidden) return;
       if (!includeAi && analysisRequestInFlight) return;
+      if (includeAi && aiRequestInFlight) return;
       messageEl.innerHTML = "";
       if (includeAi) {
         aiRequestInFlight = true;
@@ -2168,6 +2407,7 @@ HTML_PAGE = r"""<!doctype html>
       }
 
       const responseSignature = data.analysis_signature || null;
+      if (data.state_signature) lastSeenStateSignature = data.state_signature;
       if (!includeAi && responseSignature && responseSignature === lastRenderedSignature) {
         analysisRequestInFlight = false;
         return;
@@ -2390,12 +2630,12 @@ HTML_PAGE = r"""<!doctype html>
     }
 
     document.querySelector("#refreshBtn").addEventListener("click", () => analyze(false));
-    document.querySelector("#aiBtn").addEventListener("click", () => analyze(true));
+    document.querySelector("#aiBtn").addEventListener("click", () => scheduleAnalyze(true, true));
     buildSelect.addEventListener("change", () => {
       localStorage.setItem("bazaar_selected_build", buildSelect.value);
       aiBox.innerHTML = "";
       lastRenderedSignature = null;
-      analyze(false);
+      scheduleAnalyze(false, true);
     });
     buildMetric.addEventListener("click", toggleBuildDetail);
     buildMetric.addEventListener("keydown", (event) => {
@@ -2407,11 +2647,29 @@ HTML_PAGE = r"""<!doctype html>
 
     loadState()
       .then((state) => loadOptions(state && state.hero ? state.hero : null))
-      .then(() => analyze(false));
+      .then(() => scheduleAnalyze(false, true));
     document.addEventListener("visibilitychange", () => {
-      if (!document.hidden) analyze(false);
+      if (!document.hidden) pollStateSignature(true);
     });
-    setInterval(() => analyze(false), 5000);
+
+    async function pollStateSignature(force = false) {
+      if (document.hidden) return;
+      try {
+        const data = await loadStateSignature();
+        if (data.error) {
+          messageEl.innerHTML = `<div class="error">${data.error}</div>`;
+          return;
+        }
+        const signature = data.state_signature || null;
+        if (!force && signature && signature === lastSeenStateSignature) return;
+        if (signature) lastSeenStateSignature = signature;
+        scheduleAnalyze(false, force);
+      } catch (error) {
+        messageEl.innerHTML = `<div class="error">状态检查失败：${error.message}</div>`;
+      }
+    }
+
+    setInterval(() => pollStateSignature(false), 1000);
   </script>
 </body>
 </html>
@@ -2419,9 +2677,14 @@ HTML_PAGE = r"""<!doctype html>
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run the local The Bazaar AI helper UI.")
+    parser = argparse.ArgumentParser(description="Run the local The Bazaar AI helper service.")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
+    parser.add_argument(
+        "--api-only",
+        action="store_true",
+        help="Deprecated compatibility flag. The service is always API-only.",
+    )
     return parser.parse_args()
 
 
@@ -2429,7 +2692,7 @@ def main() -> None:
     args = parse_args()
     RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
     server = ThreadingHTTPServer((args.host, args.port), BazaarHandler)
-    print(f"The Bazaar AI helper UI: http://{args.host}:{args.port}")
+    print(f"The Bazaar AI helper API service: http://{args.host}:{args.port}")
     print(f"Runtime state file: {STATE_PATH}")
     server.serve_forever()
 
