@@ -207,8 +207,11 @@ class WebAppResilienceTests(unittest.TestCase):
 
         self.assertEqual(detail["display_name"], "Vanessa Test")
         self.assertEqual(detail["core_cards"][0]["display_name"], "核心一")
-        self.assertEqual(detail["transition_cards"][0]["display_name"], "过渡一")
-        self.assertEqual(detail["optional_cards"][0]["display_name"], "可选一")
+        self.assertNotIn("transition_cards", detail)
+        self.assertEqual(
+            [card["display_name"] for card in detail["optional_cards"]],
+            ["可选一", "过渡一"],
+        )
         self.assertEqual(detail["wanted_tags"], ["ammo"])
 
     def test_analysis_cache_ignores_volatile_timestamp(self) -> None:

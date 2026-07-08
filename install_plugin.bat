@@ -84,22 +84,10 @@ if errorlevel 1 (
     exit /b 1
 )
 
-> "!CONFIG_FILE!" echo [Export]
->> "!CONFIG_FILE!" echo OutputPath = !OUTPUT_PATH!
->> "!CONFIG_FILE!" echo PollIntervalSeconds = 1
->> "!CONFIG_FILE!" echo EnableHudResourceScanning = true
->> "!CONFIG_FILE!" echo EnableVisibleCardScanning = true
->> "!CONFIG_FILE!" echo.
->> "!CONFIG_FILE!" echo [Debug]
->> "!CONFIG_FILE!" echo WritePlaceholderWhenEmpty = false
->> "!CONFIG_FILE!" echo EnableRuntimeInspection = false
->> "!CONFIG_FILE!" echo.
->> "!CONFIG_FILE!" echo [Overlay]
->> "!CONFIG_FILE!" echo EnableInGameOverlay = true
->> "!CONFIG_FILE!" echo HelperBaseUrl = http://127.0.0.1:8765
->> "!CONFIG_FILE!" echo AutoStartHelper = true
->> "!CONFIG_FILE!" echo HelperExecutablePath = !HELPER_EXE!
->> "!CONFIG_FILE!" echo ToggleKey = F7
+set "BAZAAR_CONFIG_FILE=!CONFIG_FILE!"
+set "BAZAAR_OUTPUT_PATH=!OUTPUT_PATH!"
+set "BAZAAR_HELPER_EXE=!HELPER_EXE!"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$lines = @('[Export]', ('OutputPath = ' + $env:BAZAAR_OUTPUT_PATH), 'PollIntervalSeconds = 1', 'EnableHudResourceScanning = true', 'EnableVisibleCardScanning = true', '', '[Debug]', 'WritePlaceholderWhenEmpty = false', 'EnableRuntimeInspection = false', '', '[Overlay]', 'EnableInGameOverlay = true', 'HelperBaseUrl = http://127.0.0.1:8765', 'AutoStartHelper = true', ('HelperExecutablePath = ' + $env:BAZAAR_HELPER_EXE), 'IncludeAi = false', 'ToggleKey = F7', 'LockToggleKey = F6', 'AiAnalysisKey = F5', 'Locked = true', 'RecommendationX = 16', 'RecommendationY = 56', 'RecommendationWidth = 500', 'RecommendationHeight = 620', 'BuildX = 532', 'BuildY = 56', 'BuildWidth = 400', 'BuildHeight = 620'); [System.IO.File]::WriteAllLines($env:BAZAAR_CONFIG_FILE, $lines, [System.Text.UTF8Encoding]::new($false))"
 if errorlevel 1 (
     echo ERROR: Cannot write plugin config:
     echo !CONFIG_FILE!

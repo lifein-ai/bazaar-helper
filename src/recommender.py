@@ -1108,7 +1108,7 @@ def decide_recommendation(
         reasons.append(f"能作用到已拥有的匹配物品：{names}。")
 
     if transition_count > 0:
-        reasons.append(f"包含 {transition_count} 张过渡卡，可以帮助前中期稳定。")
+        reasons.append(f"包含 {transition_count} 张可选卡，可以帮助前中期稳定。")
 
     if high_tier_count > 0:
         reasons.append(f"候选池里有 {high_tier_count} 张 S/A 评级卡。")

@@ -513,10 +513,9 @@ def ensure_auto_build(data: dict[str, Any], hero: str, day: int) -> str:
             "day_range": [1, None],
             "build_summary": "没有配置英雄专属阵容时使用的自动兜底阵容。",
             "match_notes": [
-                "在配置真实阵容前，不会把任何卡视为核心、过渡或可选。"
+                "在配置真实阵容前，不会把任何卡视为核心或可选。"
             ],
             "core_cards": [],
-            "transition_cards": [],
             "optional_cards": [],
             "wanted_tags": [],
             "event_priorities": [],
@@ -1154,6 +1153,19 @@ def build_detail_for_state(data: dict[str, Any], build_name: str) -> dict[str, A
     if not isinstance(build_data, dict):
         build_data = {}
 
+    optional_cards = [
+        *(
+            build_data.get("optional_cards", [])
+            if isinstance(build_data.get("optional_cards", []), list)
+            else []
+        ),
+        *(
+            build_data.get("transition_cards", [])
+            if isinstance(build_data.get("transition_cards", []), list)
+            else []
+        ),
+    ]
+
     return {
         "id": build_name,
         "display_name": (
@@ -1162,13 +1174,9 @@ def build_detail_for_state(data: dict[str, Any], build_name: str) -> dict[str, A
             or build_name
         ),
         "core_cards": display_build_card_names(data, build_data.get("core_cards", [])),
-        "transition_cards": display_build_card_names(
-            data,
-            build_data.get("transition_cards", []),
-        ),
         "optional_cards": display_build_card_names(
             data,
-            build_data.get("optional_cards", []),
+            list(dict.fromkeys(optional_cards)),
         ),
         "wanted_tags": [
             str(tag)
@@ -1219,7 +1227,7 @@ def displayed_owned_groups(
 def role_label(role: str | None) -> str:
     return {
         "core": "核心",
-        "transition": "过渡",
+        "transition": "可选",
         "optional": "可选",
         "unrelated": "无关",
     }.get(role or "", role or "")
@@ -1528,7 +1536,7 @@ def summarize_recommendation(data: dict[str, Any], result: dict[str, Any]) -> di
         event_rule_status = "normal_low_value"
         base_reasons.insert(
             0,
-            "有可计算收益规则，但当前 Build 下命中核心卡、过渡卡或有效收益较低，所以显示为低收益事件。",
+            "有可计算收益规则，但当前 Build 下命中核心卡、可选卡或有效收益较低，所以显示为低收益事件。",
         )
 
     pool_stats = result.get("pool_stats", {})
@@ -2566,7 +2574,6 @@ HTML_PAGE = r"""<!doctype html>
 
       const sections = [
         ["核心卡", detail.core_cards || []],
-        ["过渡卡", detail.transition_cards || []],
         ["可选卡", detail.optional_cards || []],
       ].map(([title, cards]) => `
         <h3>${title}</h3>

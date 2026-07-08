@@ -23,9 +23,27 @@ namespace BazaarStateExporter
         private ConfigEntry<int> topRecommendations;
         private ConfigEntry<bool> includeAi;
         private ConfigEntry<string> toggleKeyConfig;
+        private ConfigEntry<string> lockToggleKeyConfig;
+        private ConfigEntry<string> aiAnalysisKeyConfig;
+        private ConfigEntry<bool> lockedConfig;
+        private ConfigEntry<float> recommendationXConfig;
+        private ConfigEntry<float> recommendationYConfig;
+        private ConfigEntry<float> recommendationWidthConfig;
+        private ConfigEntry<float> recommendationHeightConfig;
+        private ConfigEntry<float> buildXConfig;
+        private ConfigEntry<float> buildYConfig;
+        private ConfigEntry<float> buildWidthConfig;
+        private ConfigEntry<float> buildHeightConfig;
+        private ConfigFile configFile;
         private KeyCode toggleKey = KeyCode.F7;
+        private KeyCode lockToggleKey = KeyCode.F6;
+        private KeyCode aiAnalysisKey = KeyCode.F5;
         private string parsedToggleKeyName = "";
+        private string parsedLockToggleKeyName = "";
+        private string parsedAiAnalysisKeyName = "";
         private bool visible = true;
+        private bool layoutLocked = true;
+        private bool nextRequestIncludeAi;
         private volatile bool requestInFlight;
         private float nextPollAt;
         private DateTime lastSuccessfulAnalysisUtc = DateTime.MinValue;
@@ -34,8 +52,11 @@ namespace BazaarStateExporter
         private string cachedBuildOptionsHero = "";
         private readonly List<OverlayBuildOption> cachedBuildOptions = new List<OverlayBuildOption>();
         private Rect windowRect = new Rect(16f, 56f, 500f, 620f);
-        private Rect buildWindowRect = new Rect(16f, 56f, 400f, 620f);
+        private Rect buildWindowRect = new Rect(532f, 56f, 400f, 620f);
         private bool windowsPlaced;
+        private int resizingWindowId;
+        private bool layoutDirty;
+        private float saveLayoutAt;
         private Vector2 scrollPosition;
         private Vector2 buildScrollPosition;
         private OverlayAnalysis latest = OverlayAnalysis.Waiting("正在等待 BazaarHelper...");
@@ -46,6 +67,7 @@ namespace BazaarStateExporter
         private GUIStyle reasonStyle;
         private GUIStyle badgeStyle;
         private GUIStyle mutedStyle;
+        private GUIStyle resizeHandleStyle;
 
         public void Initialize(
             ManualLogSource log,
@@ -56,7 +78,19 @@ namespace BazaarStateExporter
             ConfigEntry<float> pollInterval,
             ConfigEntry<int> top,
             ConfigEntry<bool> requestAi,
-            ConfigEntry<string> toggleKey)
+            ConfigEntry<string> toggleKey,
+            ConfigEntry<string> lockToggleKey,
+            ConfigEntry<string> aiKey,
+            ConfigEntry<bool> locked,
+            ConfigEntry<float> recommendationX,
+            ConfigEntry<float> recommendationY,
+            ConfigEntry<float> recommendationWidth,
+            ConfigEntry<float> recommendationHeight,
+            ConfigEntry<float> buildX,
+            ConfigEntry<float> buildY,
+            ConfigEntry<float> buildWidth,
+            ConfigEntry<float> buildHeight,
+            ConfigFile config)
         {
             logger = log;
             enabledConfig = enableOverlay;
@@ -67,7 +101,23 @@ namespace BazaarStateExporter
             topRecommendations = top;
             includeAi = requestAi;
             toggleKeyConfig = toggleKey;
+            lockToggleKeyConfig = lockToggleKey;
+            aiAnalysisKeyConfig = aiKey;
+            lockedConfig = locked;
+            recommendationXConfig = recommendationX;
+            recommendationYConfig = recommendationY;
+            recommendationWidthConfig = recommendationWidth;
+            recommendationHeightConfig = recommendationHeight;
+            buildXConfig = buildX;
+            buildYConfig = buildY;
+            buildWidthConfig = buildWidth;
+            buildHeightConfig = buildHeight;
+            configFile = config;
+            layoutLocked = lockedConfig == null || lockedConfig.Value;
+            LoadConfiguredLayout();
             ParseToggleKey();
+            ParseLockToggleKey();
+            ParseAiAnalysisKey();
             logger?.LogInfo(
                 "In-game overlay initialized url="
                 + (helperBaseUrl == null ? "" : helperBaseUrl.Value)
@@ -115,6 +165,8 @@ namespace BazaarStateExporter
 
             EnsureStyles();
             PlaceAndClampWindows();
+            Rect previousWindowRect = windowRect;
+            Rect previousBuildWindowRect = buildWindowRect;
             windowRect = GUI.Window(
                 90210,
                 windowRect,
@@ -129,6 +181,43 @@ namespace BazaarStateExporter
                 windowStyle);
             windowRect = ClampToScreen(windowRect);
             buildWindowRect = ClampToScreen(buildWindowRect);
+            if (!layoutLocked
+                && (!RectsNearlyEqual(previousWindowRect, windowRect)
+                    || !RectsNearlyEqual(previousBuildWindowRect, buildWindowRect)))
+            {
+                MarkLayoutDirty();
+            }
+            HandleResizeGrip(90210, ref windowRect);
+            HandleResizeGrip(90211, ref buildWindowRect);
+            SaveLayoutIfNeeded();
+        }
+
+        private void LoadConfiguredLayout()
+        {
+            windowRect = new Rect(
+                ConfigFloat(recommendationXConfig, 16f),
+                ConfigFloat(recommendationYConfig, 56f),
+                ConfigFloat(recommendationWidthConfig, 500f),
+                ConfigFloat(recommendationHeightConfig, 620f));
+            buildWindowRect = new Rect(
+                ConfigFloat(buildXConfig, 532f),
+                ConfigFloat(buildYConfig, 56f),
+                ConfigFloat(buildWidthConfig, 400f),
+                ConfigFloat(buildHeightConfig, 620f));
+            windowsPlaced = true;
+        }
+
+        private static float ConfigFloat(ConfigEntry<float> entry, float fallback)
+        {
+            return entry == null ? fallback : entry.Value;
+        }
+
+        private static bool RectsNearlyEqual(Rect left, Rect right)
+        {
+            return Math.Abs(left.x - right.x) < 0.5f
+                && Math.Abs(left.y - right.y) < 0.5f
+                && Math.Abs(left.width - right.width) < 0.5f
+                && Math.Abs(left.height - right.height) < 0.5f;
         }
 
         private void PlaceAndClampWindows()
@@ -170,9 +259,9 @@ namespace BazaarStateExporter
             }
 
             windowRect.width = Math.Min(windowRect.width, availableWidth);
-            windowRect.height = Math.Min(windowRect.height, panelHeight);
+            windowRect.height = Math.Min(windowRect.height, availableHeight);
             buildWindowRect.width = Math.Min(buildWindowRect.width, availableWidth);
-            buildWindowRect.height = Math.Min(buildWindowRect.height, panelHeight);
+            buildWindowRect.height = Math.Min(buildWindowRect.height, availableHeight);
         }
 
         private static Rect ClampToScreen(Rect rect)
@@ -191,14 +280,135 @@ namespace BazaarStateExporter
             {
                 ParseToggleKey();
             }
+            if (lockToggleKeyConfig != null)
+            {
+                ParseLockToggleKey();
+            }
+            if (aiAnalysisKeyConfig != null)
+            {
+                ParseAiAnalysisKey();
+            }
             Event current = Event.current;
-            if (current == null || current.type != EventType.KeyDown || current.keyCode != toggleKey)
+            if (current == null || current.type != EventType.KeyDown)
             {
                 return;
             }
 
-            visible = !visible;
-            current.Use();
+            if (current.keyCode == toggleKey)
+            {
+                visible = !visible;
+                current.Use();
+                return;
+            }
+
+            if (current.keyCode == lockToggleKey)
+            {
+                layoutLocked = !layoutLocked;
+                if (lockedConfig != null)
+                {
+                    lockedConfig.Value = layoutLocked;
+                    configFile?.Save();
+                }
+                current.Use();
+                return;
+            }
+
+            if (current.keyCode == aiAnalysisKey)
+            {
+                nextRequestIncludeAi = true;
+                latest.Status = "正在请求 AI 阵容分析...";
+                nextPollAt = 0f;
+                if (!requestInFlight)
+                {
+                    StartAnalysisRequest();
+                }
+                current.Use();
+            }
+        }
+
+        private void HandleResizeGrip(int windowId, ref Rect rect)
+        {
+            if (layoutLocked)
+            {
+                return;
+            }
+
+            const float handleSize = 18f;
+            Rect handle = new Rect(
+                rect.xMax - handleSize - 3f,
+                rect.yMax - handleSize - 3f,
+                handleSize,
+                handleSize);
+            GUI.Box(handle, "↘", resizeHandleStyle);
+
+            Event current = Event.current;
+            if (current == null)
+            {
+                return;
+            }
+
+            if (current.type == EventType.MouseDown && current.button == 0 && handle.Contains(current.mousePosition))
+            {
+                resizingWindowId = windowId;
+                current.Use();
+            }
+            else if (current.type == EventType.MouseDrag && resizingWindowId == windowId)
+            {
+                rect.width = Mathf.Clamp(current.mousePosition.x - rect.x + 8f, 280f, Screen.width - rect.x - 8f);
+                rect.height = Mathf.Clamp(current.mousePosition.y - rect.y + 8f, 180f, Screen.height - rect.y - 8f);
+                MarkLayoutDirty();
+                current.Use();
+            }
+            else if (current.type == EventType.MouseUp && resizingWindowId == windowId)
+            {
+                resizingWindowId = 0;
+                MarkLayoutDirty();
+                SaveLayoutNow();
+                current.Use();
+            }
+        }
+
+        private void MarkLayoutDirty()
+        {
+            layoutDirty = true;
+            saveLayoutAt = Time.unscaledTime + 0.5f;
+        }
+
+        private void SaveLayoutIfNeeded()
+        {
+            if (!layoutDirty || Time.unscaledTime < saveLayoutAt)
+            {
+                return;
+            }
+
+            SaveLayoutNow();
+        }
+
+        private void SaveLayoutNow()
+        {
+            if (!layoutDirty)
+            {
+                return;
+            }
+
+            SetConfig(recommendationXConfig, windowRect.x);
+            SetConfig(recommendationYConfig, windowRect.y);
+            SetConfig(recommendationWidthConfig, windowRect.width);
+            SetConfig(recommendationHeightConfig, windowRect.height);
+            SetConfig(buildXConfig, buildWindowRect.x);
+            SetConfig(buildYConfig, buildWindowRect.y);
+            SetConfig(buildWidthConfig, buildWindowRect.width);
+            SetConfig(buildHeightConfig, buildWindowRect.height);
+            configFile?.Save();
+            layoutDirty = false;
+        }
+
+        private static void SetConfig(ConfigEntry<float> entry, float value)
+        {
+            if (entry != null && Math.Abs(entry.Value - value) > 0.5f)
+            {
+                entry.Value = value;
+            }
         }
 
         private void DrawWindow(int windowId)
@@ -288,9 +498,17 @@ namespace BazaarStateExporter
                 GUILayout.EndVertical();
             }
             GUILayout.EndScrollView();
-            GUILayout.Label(toggleKey + " 隐藏 / 显示", mutedStyle);
+            GUILayout.Label(toggleKey + " 隐藏 / 显示 · " + lockToggleKey + (layoutLocked ? " 解锁布局" : " 锁定布局"), mutedStyle);
             GUILayout.EndVertical();
-            GUI.DragWindow(new Rect(0f, 0f, 10000f, 28f));
+            if (!layoutLocked)
+            {
+                Rect before = windowRect;
+                GUI.DragWindow(new Rect(0f, 0f, 10000f, 28f));
+                if (before.x != windowRect.x || before.y != windowRect.y)
+                {
+                    MarkLayoutDirty();
+                }
+            }
         }
 
         private void DrawBuildWindow(int windowId)
@@ -325,15 +543,37 @@ namespace BazaarStateExporter
             }
 
             GUILayout.Space(8f);
+            if (!string.IsNullOrEmpty(latest.AiAnalysis))
+            {
+                GUILayout.BeginVertical(itemStyle);
+                GUILayout.Label("AI 阵容分析", titleStyle);
+                GUILayout.Label(latest.AiAnalysis, reasonStyle);
+                GUILayout.EndVertical();
+            }
+            else if (!string.IsNullOrEmpty(latest.AiError))
+            {
+                GUILayout.BeginVertical(itemStyle);
+                GUILayout.Label("AI 阵容分析", titleStyle);
+                GUILayout.Label(latest.AiError, mutedStyle);
+                GUILayout.EndVertical();
+            }
+            GUILayout.Space(6f);
             DrawBuildMatchSection();
             GUILayout.Space(6f);
             DrawCardSection("核心卡", latest.BuildDetail.CoreCards);
-            DrawCardSection("过渡卡", latest.BuildDetail.TransitionCards);
             DrawCardSection("可选卡", latest.BuildDetail.OptionalCards);
             GUILayout.EndScrollView();
-            GUILayout.Label(toggleKey + " 隐藏 / 显示", mutedStyle);
+            GUILayout.Label(toggleKey + " 隐藏 / 显示 · " + lockToggleKey + (layoutLocked ? " 解锁布局" : " 锁定布局") + " · " + aiAnalysisKey + " AI分析", mutedStyle);
             GUILayout.EndVertical();
-            GUI.DragWindow(new Rect(0f, 0f, 10000f, 28f));
+            if (!layoutLocked)
+            {
+                Rect before = buildWindowRect;
+                GUI.DragWindow(new Rect(0f, 0f, 10000f, 28f));
+                if (before.x != buildWindowRect.x || before.y != buildWindowRect.y)
+                {
+                    MarkLayoutDirty();
+                }
+            }
         }
 
         private void DrawBuildMatchSection()
@@ -372,7 +612,7 @@ namespace BazaarStateExporter
                 }
                 else if (match.OwnedOptional.Count > 0)
                 {
-                    GUILayout.Label("已命中过渡/可选：" + string.Join("、", match.OwnedOptional.ToArray()), reasonStyle);
+                    GUILayout.Label("已命中可选：" + string.Join("、", match.OwnedOptional.ToArray()), reasonStyle);
                 }
                 else
                 {
@@ -462,7 +702,9 @@ namespace BazaarStateExporter
         private void StartAnalysisRequest()
         {
             requestInFlight = true;
-            string url = BuildAnalysisUrl();
+            bool includeAiForRequest = nextRequestIncludeAi || (includeAi != null && includeAi.Value);
+            nextRequestIncludeAi = false;
+            string url = BuildAnalysisUrl(includeAiForRequest);
             ThreadPool.QueueUserWorkItem(_ =>
             {
                 try
@@ -479,6 +721,11 @@ namespace BazaarStateExporter
                         }
                         lock (this)
                         {
+                            if (!includeAiForRequest)
+                            {
+                                parsed.AiAnalysis = latest.AiAnalysis;
+                                parsed.AiError = latest.AiError;
+                            }
                             latest = parsed;
                             lastSuccessfulAnalysisUtc = DateTime.UtcNow;
                         }
@@ -506,11 +753,11 @@ namespace BazaarStateExporter
             });
         }
 
-        private string BuildAnalysisUrl()
+        private string BuildAnalysisUrl(bool includeAiForRequest)
         {
             string baseUrl = GetHelperBaseUrl().TrimEnd('/');
             int top = Math.Max(1, topRecommendations == null ? 3 : topRecommendations.Value);
-            string ai = includeAi != null && includeAi.Value ? "1" : "0";
+            string ai = includeAiForRequest ? "1" : "0";
             string url = baseUrl + "/api/analysis?top=" + top + "&ai=" + ai;
             if (!string.IsNullOrEmpty(selectedBuildOverride))
             {
@@ -682,6 +929,38 @@ namespace BazaarStateExporter
             }
         }
 
+        private void ParseLockToggleKey()
+        {
+            string keyName = lockToggleKeyConfig == null ? "F6" : lockToggleKeyConfig.Value;
+            if (string.Equals(keyName, parsedLockToggleKeyName, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            parsedLockToggleKeyName = keyName;
+            KeyCode parsed;
+            if (Enum.TryParse(keyName, true, out parsed))
+            {
+                lockToggleKey = parsed;
+            }
+        }
+
+        private void ParseAiAnalysisKey()
+        {
+            string keyName = aiAnalysisKeyConfig == null ? "F5" : aiAnalysisKeyConfig.Value;
+            if (string.Equals(keyName, parsedAiAnalysisKeyName, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            parsedAiAnalysisKeyName = keyName;
+            KeyCode parsed;
+            if (Enum.TryParse(keyName, true, out parsed))
+            {
+                aiAnalysisKey = parsed;
+            }
+        }
+
         private void EnsureStyles()
         {
             if (windowStyle != null)
@@ -731,6 +1010,12 @@ namespace BazaarStateExporter
                 wordWrap = true,
                 normal = { textColor = new Color(0.72f, 0.74f, 0.78f) },
             };
+            resizeHandleStyle = new GUIStyle(GUI.skin.box)
+            {
+                fontSize = mutedFontSize,
+                alignment = TextAnchor.MiddleCenter,
+                normal = { textColor = Color.white },
+            };
         }
     }
 
@@ -742,6 +1027,8 @@ namespace BazaarStateExporter
         public string Hero;
         public string CurrentBuildId;
         public string CurrentBuildName;
+        public string AiAnalysis;
+        public string AiError;
         public readonly OverlayBuildDetail BuildDetail = new OverlayBuildDetail();
         public readonly List<OverlayBuildOption> BuildOptions = new List<OverlayBuildOption>();
         public readonly List<OverlayBuildMatch> BuildMatches = new List<OverlayBuildMatch>();
@@ -782,7 +1069,6 @@ namespace BazaarStateExporter
     internal sealed class OverlayBuildDetail
     {
         public readonly List<string> CoreCards = new List<string>();
-        public readonly List<string> TransitionCards = new List<string>();
         public readonly List<string> OptionalCards = new List<string>();
     }
 
@@ -810,6 +1096,8 @@ namespace BazaarStateExporter
         public static OverlayAnalysis Parse(string json)
         {
             OverlayAnalysis result = new OverlayAnalysis();
+            result.AiAnalysis = FindStringProperty(json, "ai_analysis");
+            result.AiError = FindStringProperty(json, "ai_error");
             string shopObject = FindObjectProperty(json, "build_analysis");
             if (!string.IsNullOrEmpty(shopObject))
             {
@@ -832,8 +1120,6 @@ namespace BazaarStateExporter
                 {
                     result.BuildDetail.CoreCards.AddRange(
                         FindCardNameArrayProperty(buildDetail, "core_cards"));
-                    result.BuildDetail.TransitionCards.AddRange(
-                        FindCardNameArrayProperty(buildDetail, "transition_cards"));
                     result.BuildDetail.OptionalCards.AddRange(
                         FindCardNameArrayProperty(buildDetail, "optional_cards"));
                 }
@@ -1142,7 +1428,7 @@ namespace BazaarStateExporter
         {
             if (string.Equals(value, "core", StringComparison.Ordinal)) return "核心";
             if (string.Equals(value, "optional", StringComparison.Ordinal)) return "可选";
-            if (string.Equals(value, "transition", StringComparison.Ordinal)) return "过渡";
+            if (string.Equals(value, "transition", StringComparison.Ordinal)) return "可选";
             return string.IsNullOrEmpty(value) ? "定位未知" : value;
         }
 

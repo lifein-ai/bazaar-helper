@@ -13,7 +13,7 @@ namespace BazaarStateExporter
     {
         public const string PluginGuid = "local.bazaar.stateexporter";
         public const string PluginName = "Bazaar State Exporter";
-        public const string PluginVersion = "0.8.9";
+        public const string PluginVersion = "0.9.0";
 
         private ConfigEntry<string> outputPath;
         private ConfigEntry<float> pollIntervalSeconds;
@@ -31,6 +31,17 @@ namespace BazaarStateExporter
         private ConfigEntry<int> overlayTopRecommendations;
         private ConfigEntry<bool> overlayIncludeAi;
         private ConfigEntry<string> overlayToggleKey;
+        private ConfigEntry<string> overlayLockToggleKey;
+        private ConfigEntry<string> overlayAiAnalysisKey;
+        private ConfigEntry<bool> overlayLocked;
+        private ConfigEntry<float> overlayX;
+        private ConfigEntry<float> overlayY;
+        private ConfigEntry<float> overlayWidth;
+        private ConfigEntry<float> overlayHeight;
+        private ConfigEntry<float> buildOverlayX;
+        private ConfigEntry<float> buildOverlayY;
+        private ConfigEntry<float> buildOverlayWidth;
+        private ConfigEntry<float> buildOverlayHeight;
         private StateProbe probe;
         private Harmony harmony;
         private float nextPollAt;
@@ -133,6 +144,61 @@ namespace BazaarStateExporter
                 "ToggleKey",
                 "F7",
                 "Keyboard key used to show or hide the in-game overlay.");
+            overlayLockToggleKey = Config.Bind(
+                "Overlay",
+                "LockToggleKey",
+                "F6",
+                "Keyboard key used to lock or unlock overlay movement and resizing.");
+            overlayAiAnalysisKey = Config.Bind(
+                "Overlay",
+                "AiAnalysisKey",
+                "F5",
+                "Keyboard key used to request one AI build analysis in the in-game overlay.");
+            overlayLocked = Config.Bind(
+                "Overlay",
+                "Locked",
+                true,
+                "When false, overlay windows can be dragged and resized in game.");
+            overlayX = Config.Bind(
+                "Overlay",
+                "RecommendationX",
+                16f,
+                "Recommendation window left position in screen pixels.");
+            overlayY = Config.Bind(
+                "Overlay",
+                "RecommendationY",
+                56f,
+                "Recommendation window top position in screen pixels.");
+            overlayWidth = Config.Bind(
+                "Overlay",
+                "RecommendationWidth",
+                500f,
+                "Recommendation window width in screen pixels.");
+            overlayHeight = Config.Bind(
+                "Overlay",
+                "RecommendationHeight",
+                620f,
+                "Recommendation window height in screen pixels.");
+            buildOverlayX = Config.Bind(
+                "Overlay",
+                "BuildX",
+                532f,
+                "Build window left position in screen pixels.");
+            buildOverlayY = Config.Bind(
+                "Overlay",
+                "BuildY",
+                56f,
+                "Build window top position in screen pixels.");
+            buildOverlayWidth = Config.Bind(
+                "Overlay",
+                "BuildWidth",
+                400f,
+                "Build window width in screen pixels.");
+            buildOverlayHeight = Config.Bind(
+                "Overlay",
+                "BuildHeight",
+                620f,
+                "Build window height in screen pixels.");
             if (string.Equals(overlayToggleKey.Value, "F8", StringComparison.OrdinalIgnoreCase))
             {
                 overlayToggleKey.Value = "F7";
@@ -153,7 +219,19 @@ namespace BazaarStateExporter
                 overlayPollIntervalSeconds,
                 overlayTopRecommendations,
                 overlayIncludeAi,
-                overlayToggleKey);
+                overlayToggleKey,
+                overlayLockToggleKey,
+                overlayAiAnalysisKey,
+                overlayLocked,
+                overlayX,
+                overlayY,
+                overlayWidth,
+                overlayHeight,
+                buildOverlayX,
+                buildOverlayY,
+                buildOverlayWidth,
+                buildOverlayHeight,
+                Config);
             try
             {
                 harmony = new Harmony(PluginGuid);

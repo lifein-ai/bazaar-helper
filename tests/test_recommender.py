@@ -635,7 +635,7 @@ class RecommenderTests(unittest.TestCase):
 
         self.assertNotIn("trap_cards", data["builds"]["VanessaAquaticAmmo"])
 
-    def test_ai_payload_is_compact_and_prompt_is_guarded(self) -> None:
+    def test_ai_payload_is_build_focused_and_prompt_is_guarded(self) -> None:
         data = load_all_data(DATA_DIR)
         data["builds"]["VanessaAquaticAmmo"]["pilot_tips"] = [
             "前期先拿水产/弹药过渡",
@@ -657,20 +657,35 @@ class RecommenderTests(unittest.TestCase):
             current_day=6,
             owned_cards={"Ballista": "gold"},
             results=results,
+            build_analysis={
+                "current_phase": "mid",
+                "best_matching_builds": [
+                    {
+                        "build_id": "VanessaAquaticAmmo",
+                        "name": "Vanessa Aquatic Ammo",
+                        "phase": "mid",
+                        "relation": "current_build",
+                        "match_band": "developing",
+                        "owned_core": ["Ballista"],
+                        "missing_core": ["Core Missing"],
+                        "owned_optional": ["Optional Hit"],
+                    }
+                ],
+            },
         )
         messages = build_ai_messages(payload)
         serialized_payload = json.dumps(payload, ensure_ascii=False)
         serialized_messages = json.dumps(messages, ensure_ascii=False)
 
-        self.assertIn("选项", payload)
-        self.assertEqual(
-            payload["实战Tips"],
-            ["前期先拿水产/弹药过渡", "有弩炮再考虑转入"],
-        )
+        self.assertIn("候选阵容", payload)
+        self.assertEqual(payload["候选阵容"][0]["已拥有核心卡数量"], 1)
+        self.assertEqual(payload["候选阵容"][0]["已拥有可选卡数量"], 1)
         self.assertNotIn("possible_cards", serialized_payload)
         self.assertNotIn('"raw"', serialized_payload)
         self.assertNotIn('"trap"', serialized_payload)
+        self.assertNotIn("过渡卡", serialized_payload)
         self.assertIn("编造", serialized_messages)
+        self.assertIn("当前推荐", serialized_messages)
 
     def test_web_payload_can_auto_select_build_for_minimal_plugin_state(self) -> None:
         data = load_all_data(DATA_DIR)
@@ -1022,8 +1037,8 @@ class RecommenderTests(unittest.TestCase):
 
         self.assertEqual(result["recommendation"], "Medium Value")
         self.assertTrue(result["followup_options"])
-        self.assertIn("后续选项", payload["选项"][0])
-        self.assertTrue(payload["选项"][0]["后续选项"])
+        self.assertNotIn("选项", payload)
+        self.assertIn("候选阵容", payload)
 
     def test_followup_options_promote_parent_pool_stats_from_best_followup(self) -> None:
         data = load_all_data(DATA_DIR)

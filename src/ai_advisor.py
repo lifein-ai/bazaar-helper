@@ -9,7 +9,6 @@ from pathlib import Path
 from typing import Any
 
 from build_strategy import format_build_timing_summary, get_game_stage_for_day
-from recommender import format_resource_rewards
 from app_paths import get_runtime_dir
 
 
@@ -28,7 +27,6 @@ RECOMMENDATION_LABELS_ZH = {
 }
 ROLE_LABELS_ZH = {
     "core": "核心",
-    "transition": "过渡",
     "optional": "可选",
     "unrelated": "无关",
 }
@@ -61,11 +59,11 @@ def _priority_cards(
     cards: list[dict[str, Any]],
     limit: int = 5,
 ) -> list[dict[str, Any]]:
-    priority_roles = {"core", "transition", "optional"}
+    priority_roles = {"core", "optional"}
     priority_cards = [card for card in cards if card.get("role") in priority_roles]
 
     def sort_key(card: dict[str, Any]) -> tuple[int, str]:
-        role_rank = {"core": 0, "transition": 1, "optional": 2}
+        role_rank = {"core": 0, "optional": 1}
         return role_rank.get(card.get("role", ""), 9), card.get("name", "")
 
     return [
@@ -163,6 +161,65 @@ def _affordability_summary(
     }
 
 
+def _relation_label(value: Any) -> str:
+    if value == "current_build":
+        return "当前阶段"
+    if value == "future_build":
+        return "后续方向"
+    if value == "late_build":
+        return "后期方向"
+    if value == "past_build":
+        return "已过期"
+    return str(value or "未知")
+
+
+def _match_band_label(value: Any) -> str:
+    if value == "locked":
+        return "已成型"
+    if value == "close":
+        return "接近成型"
+    if value == "developing":
+        return "发展中"
+    if value == "seed":
+        return "有苗头"
+    if value == "none":
+        return "未成型"
+    return str(value or "未知")
+
+
+def _compact_build_matches(build_analysis: dict[str, Any] | None) -> list[dict[str, Any]]:
+    if not isinstance(build_analysis, dict):
+        return []
+
+    raw_matches = build_analysis.get("best_matching_builds")
+    if not isinstance(raw_matches, list) or not raw_matches:
+        raw_matches = build_analysis.get("build_matches")
+    if not isinstance(raw_matches, list):
+        return []
+
+    compact: list[dict[str, Any]] = []
+    for item in raw_matches[:5]:
+        if not isinstance(item, dict):
+            continue
+        owned_core = [str(name) for name in item.get("owned_core", []) if name]
+        owned_optional = [str(name) for name in item.get("owned_optional", []) if name]
+        missing_core = [str(name) for name in item.get("missing_core", []) if name]
+        compact.append(
+            {
+                "阵容": item.get("name") or item.get("build_id"),
+                "适用阶段": STAGE_LABELS_ZH.get(item.get("phase"), item.get("phase")),
+                "阶段关系": _relation_label(item.get("relation")),
+                "成型状态": _match_band_label(item.get("match_band")),
+                "已拥有核心卡数量": len(owned_core),
+                "已拥有核心卡": owned_core,
+                "缺失核心卡": missing_core[:6],
+                "已拥有可选卡数量": len(owned_optional),
+                "已拥有可选卡": owned_optional[:6],
+            }
+        )
+    return compact
+
+
 def compact_recommendations(
     *,
     data: dict[str, Any],
@@ -176,170 +233,29 @@ def compact_recommendations(
     build_analysis: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     build_data = data["builds"][build_name]
+    current_stage = get_game_stage_for_day(current_day)
+    compact_builds = _compact_build_matches(build_analysis)
+    current_build_display = (
+        build_data.get("name")
+        or build_data.get("display_name")
+        or build_name
+    )
 
     payload = {
+        "AI任务": "根据当前天数和候选阵容命中情况进行简短阵容分析",
         "英雄": hero,
-        "阵容": build_name,
         "天数": current_day,
-        "当前金币": current_gold,
-        "金币状态": _gold_status(current_gold),
-        "阶段": STAGE_LABELS_ZH.get(get_game_stage_for_day(current_day), get_game_stage_for_day(current_day)),
-        "阵容时机": format_build_timing_summary(build_data, current_day),
-        "阵容摘要": build_data.get("build_summary", ""),
-        "实战Tips": build_data.get("pilot_tips", []),
-        "已拥有卡牌": owned_cards,
-        "后续选择规则": "如果某个事件有后续选项，表示选择父事件后只能从后续子事件中选择一个；不能把多个子事件收益相加，也不能把子事件收益当作父事件直接收益。",
-        "选项": [],
+        "当前阶段": STAGE_LABELS_ZH.get(current_stage, current_stage),
+        "当前阵容": current_build_display,
+        "当前阵容适用时机": format_build_timing_summary(build_data, current_day),
+        "候选阵容": compact_builds,
+        "判断规则": [
+            "当前天数决定优先关注当前阶段阵容。",
+            "核心卡权重高于可选卡。",
+            "可选卡很多但核心卡很少，只能说明有关联，不能认为稳定成型。",
+            "阶段不匹配的阵容可以作为后续方向，但当前不一定适合过早投入。",
+        ],
     }
-
-    if current_shop is not None:
-        refresh_cost = current_shop.get("refresh_cost")
-        payload["shop_facts"] = {
-            "visible_items": current_shop.get("visible_items"),
-            "refresh_available": current_shop.get("refresh_available"),
-            "refresh_cost": refresh_cost,
-            "gold_sufficient_for_refresh": (
-                current_gold >= refresh_cost
-                if isinstance(current_gold, int) and isinstance(refresh_cost, int)
-                else None
-            ),
-        }
-        payload["shop_decisions"] = [
-            result.get("shop_decision")
-            for result in results
-            if result.get("shop_decision") is not None
-        ]
-    if build_analysis is not None:
-        payload["stage_build_facts"] = build_analysis
-
-    for result in results:
-        event_name = result.get("event_name")
-        event_data = data.get("events", {}).get(event_name, {})
-        if not isinstance(event_data, dict):
-            event_data = {}
-
-        resource_rewards = result.get("resource_rewards", {})
-        if not isinstance(resource_rewards, dict):
-            resource_rewards = {}
-
-        pool_stats = result.get("pool_stats", {})
-        if not isinstance(pool_stats, dict):
-            pool_stats = {}
-
-        followup_summary = result.get("followup_value_summary") or {}
-        if not isinstance(followup_summary, dict):
-            followup_summary = {}
-
-        followup_stats = followup_summary.get("pool_stats") or {}
-        if not isinstance(followup_stats, dict):
-            followup_stats = {}
-
-        followup_resource_rewards = followup_summary.get("resource_rewards") or {}
-        if not isinstance(followup_resource_rewards, dict):
-            followup_resource_rewards = {}
-
-        best_followup_name = (
-            result.get("best_followup")
-            or followup_summary.get("best_followup")
-        )
-
-        payload["选项"].append(
-            {
-                "事件名": _zh_name(data, event_name),
-                "推荐等级": RECOMMENDATION_LABELS_ZH.get(
-                    result.get("recommendation"),
-                    result.get("recommendation"),
-                ),
-                "事件类型": event_data.get("event_type") or event_data.get("event_category") or "",
-                "购买力判断": _affordability_summary(
-                    current_gold=current_gold,
-                    event_data=event_data,
-                    resource_rewards=resource_rewards,
-                ),
-                "说明": "",
-                "原因": [
-                    _zh_text(data, reason)
-                    for reason in result.get("reasons", [])[:3]
-                ],
-                "关键卡": _priority_cards(data, result.get("possible_cards", [])),
-                "其他阵容核心卡数量": int(result.get("alt_core_card_count") or 0),
-                "其他阵容核心命中": result.get("alt_core_build_hits", []),
-                "已拥有命中": [
-                    {
-                        "名称": _zh_name(data, card.get("name")),
-                        "评级": card.get("tier"),
-                        "定位": ROLE_LABELS_ZH.get(card.get("role"), card.get("role")),
-                        "可升级": card.get("can_upgrade", False),
-                        "附魔": card.get("enchantments", []),
-                    }
-                    for card in result.get("owned_target_hits", [])[:5]
-                ],
-                "父事件直接资源收益": format_resource_rewards(resource_rewards),
-                "最佳后续": _zh_name(data, best_followup_name),
-                "最佳后续收益": {
-                    "推荐等级": RECOMMENDATION_LABELS_ZH.get(
-                        followup_summary.get("followup_recommendation_level"),
-                        followup_summary.get("followup_recommendation_level"),
-                    ),
-                    "资源收益": format_resource_rewards(followup_resource_rewards),
-                    "候选卡数量": int(followup_stats.get("total_pool_count") or 0),
-                    "构筑相关卡数量": int(followup_stats.get("valuable_count") or 0),
-                    "预期命中数量": _round_ratio(
-                        followup_stats.get("expected_valuable_in_shop") or 0.0
-                    ),
-                    "命中相关卡概率": _round_ratio(
-                        followup_stats.get("prob_valuable_in_shop") or 0.0
-                    ),
-                    "命中核心卡概率": _round_ratio(
-                        followup_stats.get("prob_core_in_shop") or 0.0
-                    ),
-                    "预期卖价金币": _round_ratio(
-                        followup_stats.get("expected_sell_gold") or 0.0
-                    ),
-                },
-                "后续选项": [
-                    {
-                        "名称": _zh_name(data, option.get("name")),
-                        "推荐等级": RECOMMENDATION_LABELS_ZH.get(
-                            option.get("recommendation"),
-                            option.get("recommendation"),
-                        ),
-                        "说明": "",
-                        "资源收益": format_resource_rewards(
-                            option.get("resource_rewards", {})
-                        ),
-                        "预期卖价金币": _round_ratio(
-                            option.get("expected_sell_gold", 0.0)
-                        ),
-                        "关键卡": [
-                            {
-                                **card,
-                                "name": _zh_name(data, card.get("name")),
-                                "role": ROLE_LABELS_ZH.get(card.get("role"), card.get("role")),
-                            }
-                            for card in option.get("priority_cards", [])[:3]
-                        ],
-                    }
-                    for option in result.get("followup_options", [])[:6]
-                ],
-                "父事件直接统计": {
-                    "候选卡数量": int(pool_stats.get("total_pool_count") or 0),
-                    "构筑相关卡数量": int(pool_stats.get("valuable_count") or 0),
-                    "预期命中数量": _round_ratio(
-                        pool_stats.get("expected_valuable_in_shop") or 0.0
-                    ),
-                    "命中相关卡概率": _round_ratio(
-                        pool_stats.get("prob_valuable_in_shop") or 0.0
-                    ),
-                    "命中核心卡概率": _round_ratio(
-                        pool_stats.get("prob_core_in_shop") or 0.0
-                    ),
-                    "预期卖价金币": _round_ratio(
-                        pool_stats.get("expected_sell_gold") or 0.0
-                    ),
-                },
-            }
-        )
 
     return payload
 
@@ -347,37 +263,28 @@ def compact_recommendations(
 def build_ai_messages(payload: dict[str, Any]) -> list[dict[str, str]]:
     summary_json = json.dumps(payload, ensure_ascii=False, indent=2)
 
-    option_names = [
-        str(option.get("事件名"))
-        for option in payload.get("选项", [])
-        if option.get("事件名")
-    ]
-    option_name_text = "、".join(option_names) if option_names else "无"
-
     return [
         {
             "role": "system",
             "content": (
-                "你是《The Bazaar》的事件选择建议助手。规则系统已经完成事实计算，你只负责解释结构化结果。\n"
-                "禁止编造卡牌、事件、概率、机制或候选之外的操作。\n"
-                "必须从候选事件名或卡牌中选一个，不能跳过、放弃或建议等下一回合。\n"
-                "遵守推荐等级\n"
-                "可以使用当前金币和购买力判断解释商店风险：金币低时，商店有刷到但买不起的风险；免费奖励、固定奖励、金币事件相对更稳。\n"
-                "父子事件只能按最佳后续解释，不能把多个子事件收益相加，也不能把子事件收益当作父事件直接收益。\n"
-                "遇到核心卡时如果金币不足可建议卖掉无用卡牌，无论如何，核心卡优先，多个流派的核心卡必须推荐。\n"
-                "不要假设未提供的信息，\n"
-                "输出中文纯文本，不使用 Markdown、表格、代码块或多层列表，控制在 180 到 320 字。\n"
-                "格式固定为三段：\n"
-                "推荐：事件或卡牌候选之一\n"
-                "核心判断：结合推荐等级、卡池/资源/技能/后续收益和金币购买力说明主要价值\n"
-                "对比理由：说明为什么比其他候选更好，并简要说明不确定项\n"
+                "你是《The Bazaar》的阵容判断助手。只能根据结构化数据解释当前更适合关注哪个阵容。\n"
+                "禁止编造未提供的卡牌、阵容、概率或游戏机制。\n"
+                "核心卡权重必须高于可选卡。\n"
+                "如果某个阵容可选卡很多但核心卡很少，要说明它有关联但还不能认为稳定成型。\n"
+                "如果某个阵容阶段和当前天数不匹配，要说明它可能是后续方向，当前不一定适合过早投入。\n"
+                "不要使用 Markdown、表格、代码块或多层列表。\n"
+                "输出必须简短，并固定为五行：\n"
+                "当前推荐：\n"
+                "推荐原因：\n"
+                "当前基础：\n"
+                "主要问题：\n"
+                "下一步建议：\n"
             ),
         },
         {
             "role": "user",
             "content": (
-                f"本轮候选事件名只能从这里选择：{option_name_text}\n"
-                "下面是规则系统计算后的结构化事件候选数据，只能基于这些数据判断：\n"
+                "下面是规则系统计算后的阵容候选数据，只能基于这些数据判断：\n"
                 f"{summary_json}"
             ),
         },
