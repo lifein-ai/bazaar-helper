@@ -137,20 +137,20 @@ def match_build(
     if relation == "past_build":
         importance = "ignored"
         band = "none"
-        reasons.append("该 Build 已经过期，默认不再提供当前规划价值。")
+        reasons.append("该阵容已经过期，默认不再提供当前规划价值。")
     elif relation == "current_build":
         importance = "high" if owned_core else ("medium" if owned_optional else "low")
-        reasons.append("该 Build 属于当前阶段。")
+        reasons.append("该阵容属于当前阶段。")
     elif relation in {"future_build", "late_build"}:
         importance = "medium" if owned_core else "low"
-        reasons.append("该 Build 属于未来阶段，只作为后续方向。")
+        reasons.append("该阵容属于未来阶段，只作为后续方向。")
     else:
         importance = "low"
     if owned_core:
         reasons.append(f"已拥有核心卡：{', '.join(owned_core)}。")
     if band == "close" and missing_core:
         importance = max_importance(importance, "high")
-        reasons.append(f"Build 已接近成型，仍缺核心：{', '.join(missing_core)}。")
+        reasons.append(f"阵容已接近成型，仍缺核心：{', '.join(missing_core)}。")
     return {
         "build_id": build["build_id"],
         "name": build["name"],
@@ -206,11 +206,11 @@ def evaluate_candidate(
     recommendation = "observe"
 
     if not hits:
-        reasons.append("该卡不在已维护 Build 中；不判废，但不增加 Build 匹配价值。")
+        reasons.append("该卡不在已维护阵容中；不判废，但不增加阵容匹配价值。")
     elif not active_hits:
         importance = "ignored"
         recommendation = "skip"
-        reasons.append("只命中过去阶段 Build，默认忽略其 Build 规划价值。")
+        reasons.append("只命中过去阶段阵容，默认忽略其阵容规划价值。")
     else:
         for hit in active_hits:
             match = build_matches[hit["build_id"]]
@@ -220,17 +220,17 @@ def evaluate_candidate(
                 hit_importance = "critical" if match["match_band"] == "close" else "high"
                 importance = max_importance(importance, hit_importance)
                 recommendation = "buy_now"
-                reasons.append(f"命中当前阶段 Build「{hit['build_name']}」核心卡。")
+                reasons.append(f"命中当前阶段阵容「{hit['build_name']}」核心卡。")
             elif relation == "current_build" and role == "optional":
                 importance = max_importance(importance, "medium")
                 if recommendation != "buy_now":
                     recommendation = "tempo_upgrade"
-                reasons.append(f"命中当前阶段 Build「{hit['build_name']}」可选卡。")
+                reasons.append(f"命中当前阶段阵容「{hit['build_name']}」可选卡。")
             elif role == "core" and relation == "future_build":
                 importance = max_importance(importance, "medium")
                 if recommendation not in {"buy_now", "tempo_upgrade"}:
                     recommendation = "stash_future"
-                reasons.append(f"命中下一阶段 Build「{hit['build_name']}」核心卡。")
+                reasons.append(f"命中下一阶段阵容「{hit['build_name']}」核心卡。")
             elif role == "core" and relation == "late_build":
                 importance = max_importance(importance, "medium")
                 if recommendation not in {"buy_now", "tempo_upgrade"}:
@@ -267,7 +267,7 @@ def evaluate_candidate(
 
     if len({hit["build_id"] for hit in active_hits}) >= 2:
         importance = max_importance(importance, "high")
-        reasons.append("同一张卡同时命中多个当前/未来 Build，重要性提高。")
+        reasons.append("同一张卡同时命中多个当前/未来阵容，重要性提高。")
 
     return {
         "card_name": card_name,
@@ -335,7 +335,7 @@ def visible_core_bundles(
                 "importance": importance,
                 "affordable": affordable,
                 "recommendation": recommendation,
-                "reasons": ["当前实际候选中同时出现多张同 Build 核心卡。"],
+                "reasons": ["当前实际候选中同时出现多张同阵容核心卡。"],
             }
         )
     return result

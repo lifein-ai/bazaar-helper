@@ -22,8 +22,10 @@ namespace BazaarStateExporter
         private ConfigEntry<float> pollIntervalSeconds;
         private ConfigEntry<int> topRecommendations;
         private ConfigEntry<bool> includeAi;
+        private ConfigEntry<bool> autoAnalyzeConfig;
         private ConfigEntry<string> toggleKeyConfig;
         private ConfigEntry<string> lockToggleKeyConfig;
+        private ConfigEntry<string> manualAnalysisKeyConfig;
         private ConfigEntry<string> aiAnalysisKeyConfig;
         private ConfigEntry<bool> lockedConfig;
         private ConfigEntry<float> recommendationXConfig;
@@ -37,15 +39,17 @@ namespace BazaarStateExporter
         private ConfigFile configFile;
         private KeyCode toggleKey = KeyCode.F7;
         private KeyCode lockToggleKey = KeyCode.F6;
+        private KeyCode manualAnalysisKey = KeyCode.F8;
         private KeyCode aiAnalysisKey = KeyCode.F5;
         private string parsedToggleKeyName = "";
         private string parsedLockToggleKeyName = "";
+        private string parsedManualAnalysisKeyName = "";
         private string parsedAiAnalysisKeyName = "";
         private bool visible = true;
         private bool layoutLocked = true;
         private bool nextRequestIncludeAi;
         private volatile bool requestInFlight;
-        private float nextPollAt;
+        private float nextAutoAnalyzeAt;
         private DateTime lastSuccessfulAnalysisUtc = DateTime.MinValue;
         private DateTime lastHelperStartAttemptUtc = DateTime.MinValue;
         private DateTime lastFailureLogUtc = DateTime.MinValue;
@@ -78,8 +82,10 @@ namespace BazaarStateExporter
             ConfigEntry<float> pollInterval,
             ConfigEntry<int> top,
             ConfigEntry<bool> requestAi,
+            ConfigEntry<bool> autoAnalyze,
             ConfigEntry<string> toggleKey,
             ConfigEntry<string> lockToggleKey,
+            ConfigEntry<string> manualKey,
             ConfigEntry<string> aiKey,
             ConfigEntry<bool> locked,
             ConfigEntry<float> recommendationX,
@@ -100,8 +106,10 @@ namespace BazaarStateExporter
             pollIntervalSeconds = pollInterval;
             topRecommendations = top;
             includeAi = requestAi;
+            autoAnalyzeConfig = autoAnalyze;
             toggleKeyConfig = toggleKey;
             lockToggleKeyConfig = lockToggleKey;
+            manualAnalysisKeyConfig = manualKey;
             aiAnalysisKeyConfig = aiKey;
             lockedConfig = locked;
             recommendationXConfig = recommendationX;
@@ -117,6 +125,7 @@ namespace BazaarStateExporter
             LoadConfiguredLayout();
             ParseToggleKey();
             ParseLockToggleKey();
+            ParseManualAnalysisKey();
             ParseAiAnalysisKey();
             logger?.LogInfo(
                 "In-game overlay initialized url="
@@ -128,26 +137,22 @@ namespace BazaarStateExporter
         private void Start()
         {
             logger?.LogInfo("In-game overlay started.");
-            nextPollAt = 0f;
-            if (enabledConfig != null && enabledConfig.Value && !requestInFlight)
-            {
-                StartAnalysisRequest();
-            }
+            latest = OverlayAnalysis.Waiting(ModeStatusText());
         }
 
         private void Update()
         {
-            if (enabledConfig == null || !enabledConfig.Value)
+            if (enabledConfig == null || !enabledConfig.Value || !AutoAnalyzeEnabled())
             {
                 return;
             }
-            if (Time.unscaledTime < nextPollAt || requestInFlight)
+            if (requestInFlight || Time.unscaledTime < nextAutoAnalyzeAt)
             {
                 return;
             }
 
-            nextPollAt = Time.unscaledTime + Math.Max(0.5f, pollIntervalSeconds.Value);
-            StartAnalysisRequest();
+            nextAutoAnalyzeAt = Time.unscaledTime + AutoAnalyzeInterval();
+            RequestAnalysis(false, "自动分析中...");
         }
 
         private void OnGUI()
@@ -284,6 +289,10 @@ namespace BazaarStateExporter
             {
                 ParseLockToggleKey();
             }
+            if (manualAnalysisKeyConfig != null)
+            {
+                ParseManualAnalysisKey();
+            }
             if (aiAnalysisKeyConfig != null)
             {
                 ParseAiAnalysisKey();
@@ -313,15 +322,16 @@ namespace BazaarStateExporter
                 return;
             }
 
+            if (current.keyCode == manualAnalysisKey)
+            {
+                RequestAnalysis(false, "正在扫描当前局面...");
+                current.Use();
+                return;
+            }
+
             if (current.keyCode == aiAnalysisKey)
             {
-                nextRequestIncludeAi = true;
-                latest.Status = "正在请求 AI 阵容分析...";
-                nextPollAt = 0f;
-                if (!requestInFlight)
-                {
-                    StartAnalysisRequest();
-                }
+                RequestAnalysis(true, "正在请求智能阵容分析...");
                 current.Use();
             }
         }
@@ -419,6 +429,22 @@ namespace BazaarStateExporter
             {
                 GUILayout.Label(latest.Status, mutedStyle);
             }
+            GUILayout.BeginHorizontal();
+            GUI.enabled = !requestInFlight;
+            if (GUILayout.Button("扫描分析 (" + manualAnalysisKey + ")", GUILayout.MinHeight(28f)))
+            {
+                RequestAnalysis(false, "正在扫描当前局面...");
+            }
+            if (GUILayout.Button("智能分析 (" + aiAnalysisKey + ")", GUILayout.MinHeight(28f)))
+            {
+                RequestAnalysis(true, "正在请求智能阵容分析...");
+            }
+            GUI.enabled = true;
+            GUILayout.EndHorizontal();
+            if (GUILayout.Button(AutoAnalyzeEnabled() ? "自动分析：开" : "自动分析：关", GUILayout.MinHeight(26f)))
+            {
+                ToggleAutoAnalyze();
+            }
 
             if (!string.IsNullOrEmpty(latest.ShopAction))
             {
@@ -460,9 +486,9 @@ namespace BazaarStateExporter
                 GUILayout.Label(candidate.Importance, badgeStyle);
                 GUILayout.EndHorizontal();
                 GUILayout.Label(candidate.Summary, mutedStyle);
-                DrawInlineList("适配 Build", candidate.BuildHits, true);
+                DrawInlineList("适配阵容", candidate.BuildHits, true);
                 DrawInlineList("原因", candidate.Reasons, true);
-                DrawInlineList("风险 / 不确定性", candidate.Risks, false);
+                DrawInlineList("风险与不确定性", candidate.Risks, false);
                 GUILayout.EndVertical();
             }
             foreach (OverlayRecommendation item in latest.Items)
@@ -535,8 +561,7 @@ namespace BazaarStateExporter
                     if (GUILayout.Button(label, GUILayout.ExpandWidth(true), GUILayout.MinHeight(30f)))
                     {
                         selectedBuildOverride = option.Id;
-                        latest.Status = "正在切换阵容...";
-                        nextPollAt = 0f;
+                        RequestAnalysis(false, "正在切换阵容并扫描...");
                     }
                     GUI.enabled = true;
                 }
@@ -546,14 +571,14 @@ namespace BazaarStateExporter
             if (!string.IsNullOrEmpty(latest.AiAnalysis))
             {
                 GUILayout.BeginVertical(itemStyle);
-                GUILayout.Label("AI 阵容分析", titleStyle);
+                GUILayout.Label("智能阵容分析", titleStyle);
                 GUILayout.Label(latest.AiAnalysis, reasonStyle);
                 GUILayout.EndVertical();
             }
             else if (!string.IsNullOrEmpty(latest.AiError))
             {
                 GUILayout.BeginVertical(itemStyle);
-                GUILayout.Label("AI 阵容分析", titleStyle);
+                GUILayout.Label("智能阵容分析", titleStyle);
                 GUILayout.Label(latest.AiError, mutedStyle);
                 GUILayout.EndVertical();
             }
@@ -563,7 +588,7 @@ namespace BazaarStateExporter
             DrawCardSection("核心卡", latest.BuildDetail.CoreCards);
             DrawCardSection("可选卡", latest.BuildDetail.OptionalCards);
             GUILayout.EndScrollView();
-            GUILayout.Label(toggleKey + " 隐藏 / 显示 · " + lockToggleKey + (layoutLocked ? " 解锁布局" : " 锁定布局") + " · " + aiAnalysisKey + " AI分析", mutedStyle);
+            GUILayout.Label(toggleKey + " 隐藏 / 显示 · " + lockToggleKey + (layoutLocked ? " 解锁布局" : " 锁定布局") + " · " + manualAnalysisKey + " 扫描分析 · " + aiAnalysisKey + " 智能分析", mutedStyle);
             GUILayout.EndVertical();
             if (!layoutLocked)
             {
@@ -582,7 +607,7 @@ namespace BazaarStateExporter
             GUILayout.Label("路线匹配", titleStyle);
             if (latest.BuildMatches.Count == 0)
             {
-                GUILayout.Label("暂无足够已拥有卡牌判断更接近的 Build", mutedStyle);
+                GUILayout.Label("暂无足够已拥有卡牌判断更接近的阵容", mutedStyle);
                 GUILayout.EndVertical();
                 return;
             }
@@ -671,9 +696,9 @@ namespace BazaarStateExporter
         private static string ImportanceLabel(string value)
         {
             if (string.Equals(value, "critical", StringComparison.Ordinal)) return "关键";
-            if (string.Equals(value, "high", StringComparison.Ordinal)) return "高匹配";
-            if (string.Equals(value, "medium", StringComparison.Ordinal)) return "中匹配";
-            if (string.Equals(value, "low", StringComparison.Ordinal)) return "低匹配";
+            if (string.Equals(value, "high", StringComparison.Ordinal)) return "高";
+            if (string.Equals(value, "medium", StringComparison.Ordinal)) return "中";
+            if (string.Equals(value, "low", StringComparison.Ordinal)) return "低";
             if (string.Equals(value, "ignored", StringComparison.Ordinal)) return "忽略";
             return string.IsNullOrEmpty(value) ? "匹配未知" : value;
         }
@@ -697,6 +722,50 @@ namespace BazaarStateExporter
             {
                 GUILayout.Label("- " + values[i], reasonStyle);
             }
+        }
+
+        private void RequestAnalysis(bool includeAiForNextRequest, string status)
+        {
+            if (requestInFlight)
+            {
+                latest.Status = "正在分析，请稍候...";
+                return;
+            }
+
+            nextRequestIncludeAi = includeAiForNextRequest;
+            latest.Status = status;
+            Plugin.RequestManualExport();
+            StartAnalysisRequest();
+        }
+
+        private bool AutoAnalyzeEnabled()
+        {
+            return autoAnalyzeConfig != null && autoAnalyzeConfig.Value;
+        }
+
+        private float AutoAnalyzeInterval()
+        {
+            return Math.Max(0.5f, pollIntervalSeconds == null ? 2.0f : pollIntervalSeconds.Value);
+        }
+
+        private string ModeStatusText()
+        {
+            return AutoAnalyzeEnabled()
+                ? "自动模式：会按间隔扫描分析，也可以点击“扫描分析”立即更新。"
+                : "手动模式：点击“扫描分析”或按 " + manualAnalysisKey + " 更新。";
+        }
+
+        private void ToggleAutoAnalyze()
+        {
+            if (autoAnalyzeConfig == null)
+            {
+                return;
+            }
+
+            autoAnalyzeConfig.Value = !autoAnalyzeConfig.Value;
+            configFile?.Save();
+            nextAutoAnalyzeAt = 0f;
+            latest.Status = ModeStatusText();
         }
 
         private void StartAnalysisRequest()
@@ -945,6 +1014,22 @@ namespace BazaarStateExporter
             }
         }
 
+        private void ParseManualAnalysisKey()
+        {
+            string keyName = manualAnalysisKeyConfig == null ? "F8" : manualAnalysisKeyConfig.Value;
+            if (string.Equals(keyName, parsedManualAnalysisKeyName, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            parsedManualAnalysisKeyName = keyName;
+            KeyCode parsed;
+            if (Enum.TryParse(keyName, true, out parsed))
+            {
+                manualAnalysisKey = parsed;
+            }
+        }
+
         private void ParseAiAnalysisKey()
         {
             string keyName = aiAnalysisKeyConfig == null ? "F5" : aiAnalysisKeyConfig.Value;
@@ -1101,7 +1186,9 @@ namespace BazaarStateExporter
             string shopObject = FindObjectProperty(json, "build_analysis");
             if (!string.IsNullOrEmpty(shopObject))
             {
-                result.ShopAction = FindStringProperty(shopObject, "shop_action");
+                result.ShopAction = FirstNonEmpty(
+                    FindStringProperty(shopObject, "shop_action_label"),
+                    ShopActionLabel(FindStringProperty(shopObject, "shop_action")));
                 result.ShopReason = FindStringProperty(shopObject, "refresh_reason");
                 result.BuildMatches.AddRange(FindBuildMatchArrayProperty(shopObject));
                 result.ShopCandidates.AddRange(FindShopCandidateArrayProperty(shopObject));
@@ -1160,7 +1247,7 @@ namespace BazaarStateExporter
                     FindStringProperty(itemObject, "event_name"));
                 item.Label = FirstNonEmpty(
                     FindStringProperty(itemObject, "recommendation_label"),
-                    FindStringProperty(itemObject, "recommendation"));
+                    RecommendationLabel(FindStringProperty(itemObject, "recommendation")));
                 item.Notes = FindStringProperty(itemObject, "notes");
                 item.Reasons.AddRange(FindStringArrayProperty(itemObject, "reasons"));
                 if (string.IsNullOrEmpty(item.Name))
@@ -1297,7 +1384,7 @@ namespace BazaarStateExporter
             {
                 sellText = " · 卖价 +" + sellParsed.ToString(
                     "0.0",
-                    System.Globalization.CultureInfo.InvariantCulture) + "g";
+                    System.Globalization.CultureInfo.InvariantCulture) + " 金币";
             }
 
             return "命中率 "
@@ -1360,7 +1447,9 @@ namespace BazaarStateExporter
                     continue;
                 }
 
-                string recommendation = FindStringProperty(itemObject, "recommendation_type");
+                string recommendation = FirstNonEmpty(
+                    FindStringProperty(itemObject, "recommendation_type_label"),
+                    ShopRecommendationLabel(FindStringProperty(itemObject, "recommendation_type")));
                 string price = FindNumberProperty(itemObject, "price");
                 string affordable = "";
                 if (FindBoolProperty(itemObject, "affordable"))
@@ -1375,11 +1464,13 @@ namespace BazaarStateExporter
                 OverlayShopCandidate candidate = new OverlayShopCandidate
                 {
                     Name = name,
-                    Importance = FirstNonEmpty(FindStringProperty(itemObject, "importance"), "-"),
+                    Importance = FirstNonEmpty(
+                        FindStringProperty(itemObject, "importance_label"),
+                        ImportanceLabel(FindStringProperty(itemObject, "importance"))),
                     Summary = JoinNonEmpty(
                         " · ",
                         recommendation,
-                        JoinNonEmpty(" · ", string.IsNullOrEmpty(price) ? "" : price + "g", affordable)),
+                        JoinNonEmpty(" · ", string.IsNullOrEmpty(price) ? "" : price + " 金币", affordable)),
                 };
                 candidate.BuildHits.AddRange(FindBuildHitArrayProperty(itemObject));
                 candidate.Reasons.AddRange(FindStringArrayProperty(itemObject, "reasons"));
@@ -1401,17 +1492,23 @@ namespace BazaarStateExporter
                     continue;
                 }
 
-                string phase = FindStringProperty(itemObject, "build_phase");
-                string role = FindStringProperty(itemObject, "role");
-                string relation = FindStringProperty(itemObject, "relation");
+                string phase = FirstNonEmpty(
+                    FindStringProperty(itemObject, "build_phase_label"),
+                    BuildPhaseLabel(FindStringProperty(itemObject, "build_phase")));
+                string role = FirstNonEmpty(
+                    FindStringProperty(itemObject, "role_label"),
+                    BuildRoleLabel(FindStringProperty(itemObject, "role")));
+                string relation = FirstNonEmpty(
+                    FindStringProperty(itemObject, "relation_label"),
+                    RelationLabel(FindStringProperty(itemObject, "relation")));
                 values.Add(
                     buildName
                     + " · "
-                    + BuildPhaseLabel(phase)
+                    + phase
                     + " · "
-                    + BuildRoleLabel(role)
+                    + role
                     + " · "
-                    + RelationLabel(relation));
+                    + relation);
             }
             return values;
         }
@@ -1422,6 +1519,47 @@ namespace BazaarStateExporter
             if (string.Equals(value, "mid", StringComparison.Ordinal)) return "中期";
             if (string.Equals(value, "late", StringComparison.Ordinal)) return "后期";
             return string.IsNullOrEmpty(value) ? "阶段未知" : value;
+        }
+
+        private static string ImportanceLabel(string value)
+        {
+            if (string.Equals(value, "critical", StringComparison.Ordinal)) return "关键";
+            if (string.Equals(value, "high", StringComparison.Ordinal)) return "高";
+            if (string.Equals(value, "medium", StringComparison.Ordinal)) return "中";
+            if (string.Equals(value, "low", StringComparison.Ordinal)) return "低";
+            if (string.Equals(value, "ignored", StringComparison.Ordinal)) return "忽略";
+            if (string.Equals(value, "unknown", StringComparison.Ordinal)) return "未知";
+            return string.IsNullOrEmpty(value) ? "未知" : value;
+        }
+
+        private static string ShopRecommendationLabel(string value)
+        {
+            if (string.Equals(value, "buy_now", StringComparison.Ordinal)) return "建议购买";
+            if (string.Equals(value, "tempo_upgrade", StringComparison.Ordinal)) return "节奏补强";
+            if (string.Equals(value, "stash_future", StringComparison.Ordinal)) return "留作后期";
+            if (string.Equals(value, "observe", StringComparison.Ordinal)) return "观察";
+            if (string.Equals(value, "skip", StringComparison.Ordinal)) return "跳过";
+            if (string.Equals(value, "consider_buying_together", StringComparison.Ordinal)) return "可成组购买";
+            if (string.Equals(value, "prioritize_best_core", StringComparison.Ordinal)) return "优先最强核心";
+            if (string.Equals(value, "unknown", StringComparison.Ordinal)) return "待判断";
+            return string.IsNullOrEmpty(value) ? "" : value;
+        }
+
+        private static string ShopActionLabel(string value)
+        {
+            if (string.Equals(value, "buy_visible", StringComparison.Ordinal)) return "购买可见目标";
+            if (string.Equals(value, "consider_bundle", StringComparison.Ordinal)) return "考虑组合购买";
+            if (string.Equals(value, "skip", StringComparison.Ordinal)) return "跳过刷新";
+            if (string.Equals(value, "unknown", StringComparison.Ordinal)) return "暂不强推";
+            return string.IsNullOrEmpty(value) ? "" : value;
+        }
+
+        private static string RecommendationLabel(string value)
+        {
+            if (string.Equals(value, "High Value", StringComparison.Ordinal)) return "优先选择";
+            if (string.Equals(value, "Medium Value", StringComparison.Ordinal)) return "可以考虑";
+            if (string.Equals(value, "Low Value", StringComparison.Ordinal)) return "优先级低";
+            return string.IsNullOrEmpty(value) ? "" : value;
         }
 
         private static string BuildRoleLabel(string value)

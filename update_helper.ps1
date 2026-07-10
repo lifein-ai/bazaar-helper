@@ -94,6 +94,94 @@ function Copy-Payload {
     }
 }
 
+function Get-InstalledGameDir {
+    if ($env:BAZAAR_GAME_DIR -and (Test-Path $env:BAZAAR_GAME_DIR)) {
+        return $env:BAZAAR_GAME_DIR
+    }
+
+    $runtimeGameDir = Join-Path $StateRoot "runtime\game_dir.txt"
+    if (Test-Path $runtimeGameDir) {
+        $stored = (Get-Content -LiteralPath $runtimeGameDir -Raw -Encoding UTF8).Trim()
+        if ($stored -and (Test-Path $stored)) {
+            return $stored
+        }
+    }
+
+    return ""
+}
+
+function Set-PluginConfigValue {
+    param(
+        [string]$ConfigPath,
+        [string]$Key,
+        [string]$Value
+    )
+
+    if (-not (Test-Path $ConfigPath)) {
+        return
+    }
+
+    $lines = [System.Collections.Generic.List[string]]::new()
+    $lines.AddRange([string[]](Get-Content -LiteralPath $ConfigPath -Encoding UTF8))
+    $pattern = "^\s*$([regex]::Escape($Key))\s*="
+    $found = $false
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        if ($lines[$i] -match $pattern) {
+            $lines[$i] = "$Key = $Value"
+            $found = $true
+            break
+        }
+    }
+    if (-not $found) {
+        $overlayIndex = -1
+        for ($i = 0; $i -lt $lines.Count; $i++) {
+            if ($lines[$i] -match "^\s*\[Overlay\]\s*$") {
+                $overlayIndex = $i
+                break
+            }
+        }
+        if ($overlayIndex -ge 0) {
+            $insertAt = $overlayIndex + 1
+            while ($insertAt -lt $lines.Count -and $lines[$insertAt] -notmatch "^\s*\[") {
+                $insertAt++
+            }
+            $lines.Insert($insertAt, "$Key = $Value")
+        }
+    }
+    [System.IO.File]::WriteAllLines($ConfigPath, $lines, [System.Text.UTF8Encoding]::new($false))
+}
+
+function Sync-GamePlugin {
+    param([string]$PayloadRoot)
+
+    $gameDir = Get-InstalledGameDir
+    if (-not $gameDir) {
+        Write-UpdateLog "Game directory is not recorded; run install_plugin.bat once to update the in-game plugin."
+        return
+    }
+
+    $sourceDll = Join-Path $PayloadRoot "bepinex_plugin\BazaarStateExporter.dll"
+    if (-not (Test-Path $sourceDll)) {
+        Write-UpdateLog "Update package does not include the BepInEx plugin DLL; skipping game plugin sync."
+        return
+    }
+
+    $pluginDir = Join-Path $gameDir "BepInEx\plugins\BazaarStateExporter"
+    $configPath = Join-Path $gameDir "BepInEx\config\local.bazaar.stateexporter.cfg"
+    New-Item -ItemType Directory -Path $pluginDir -Force | Out-Null
+    Copy-Item -LiteralPath $sourceDll -Destination (Join-Path $pluginDir "BazaarStateExporter.dll") -Force
+
+    Set-PluginConfigValue $configPath "HelperExecutablePath" (Join-Path $AppRoot "BazaarHelper.exe")
+    Set-PluginConfigValue $configPath "ManualAnalysisKey" "F8"
+    if (Test-Path $configPath) {
+        $configText = Get-Content -LiteralPath $configPath -Raw -Encoding UTF8
+        if ($configText -notmatch "(?m)^\s*AutoAnalyze\s*=") {
+            Set-PluginConfigValue $configPath "AutoAnalyze" "false"
+        }
+    }
+    Write-UpdateLog "Synced BepInEx plugin to game directory: $gameDir"
+}
+
 if (-not $ManifestUrl) {
     Write-UpdateLog "Update manifest URL is not configured; skipping update check."
     exit 0
@@ -163,6 +251,7 @@ Get-Process -Name "BazaarHelper" -ErrorAction SilentlyContinue | Stop-Process -F
 try {
     Write-UpdateLog "Installing update version $($manifest.version)."
     Copy-Payload $payloadRoot $AppRoot
+    Sync-GamePlugin $AppRoot
     Write-UpdateLog "Update complete: $currentVersionText -> $($manifest.version)"
     exit 0
 } catch {

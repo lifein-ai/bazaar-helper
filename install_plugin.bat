@@ -14,6 +14,7 @@ if not defined LOCALAPPDATA (
 set "RUNTIME_DIR=%LOCALAPPDATA%\BazaarHelper\runtime"
 set "OUTPUT_PATH=%RUNTIME_DIR%\game_state.json"
 set "INSTALL_STATUS_PATH=%RUNTIME_DIR%\install_status.json"
+set "GAME_DIR_PATH=%RUNTIME_DIR%\game_dir.txt"
 set "HELPER_EXE=%~dp0BazaarHelper.exe"
 
 if not exist "!RUNTIME_DIR!" mkdir "!RUNTIME_DIR!"
@@ -87,7 +88,9 @@ if errorlevel 1 (
 set "BAZAAR_CONFIG_FILE=!CONFIG_FILE!"
 set "BAZAAR_OUTPUT_PATH=!OUTPUT_PATH!"
 set "BAZAAR_HELPER_EXE=!HELPER_EXE!"
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$lines = @('[Export]', ('OutputPath = ' + $env:BAZAAR_OUTPUT_PATH), 'PollIntervalSeconds = 1', 'EnableHudResourceScanning = true', 'EnableVisibleCardScanning = true', '', '[Debug]', 'WritePlaceholderWhenEmpty = false', 'EnableRuntimeInspection = false', '', '[Overlay]', 'EnableInGameOverlay = true', 'HelperBaseUrl = http://127.0.0.1:8765', 'AutoStartHelper = true', ('HelperExecutablePath = ' + $env:BAZAAR_HELPER_EXE), 'IncludeAi = false', 'ToggleKey = F7', 'LockToggleKey = F6', 'AiAnalysisKey = F5', 'Locked = true', 'RecommendationX = 16', 'RecommendationY = 56', 'RecommendationWidth = 500', 'RecommendationHeight = 620', 'BuildX = 532', 'BuildY = 56', 'BuildWidth = 400', 'BuildHeight = 620'); [System.IO.File]::WriteAllLines($env:BAZAAR_CONFIG_FILE, $lines, [System.Text.UTF8Encoding]::new($false))"
+set "BAZAAR_GAME_DIR_FILE=!GAME_DIR_PATH!"
+set "BAZAAR_GAME_DIR=!GAME_DIR!"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$lines = @('[Export]', ('OutputPath = ' + $env:BAZAAR_OUTPUT_PATH), 'PollIntervalSeconds = 1', 'EnableHudResourceScanning = true', 'EnableVisibleCardScanning = true', '', '[Debug]', 'WritePlaceholderWhenEmpty = false', 'EnableRuntimeInspection = false', '', '[Overlay]', 'EnableInGameOverlay = true', 'HelperBaseUrl = http://127.0.0.1:8765', 'AutoStartHelper = true', ('HelperExecutablePath = ' + $env:BAZAAR_HELPER_EXE), 'IncludeAi = false', 'AutoAnalyze = false', 'ToggleKey = F7', 'LockToggleKey = F6', 'ManualAnalysisKey = F8', 'AiAnalysisKey = F5', 'Locked = true', 'RecommendationX = 16', 'RecommendationY = 56', 'RecommendationWidth = 500', 'RecommendationHeight = 620', 'BuildX = 532', 'BuildY = 56', 'BuildWidth = 400', 'BuildHeight = 620'); [System.IO.File]::WriteAllLines($env:BAZAAR_CONFIG_FILE, $lines, [System.Text.UTF8Encoding]::new($false)); [System.IO.File]::WriteAllText($env:BAZAAR_GAME_DIR_FILE, $env:BAZAAR_GAME_DIR, [System.Text.UTF8Encoding]::new($false))"
 if errorlevel 1 (
     echo ERROR: Cannot write plugin config:
     echo !CONFIG_FILE!

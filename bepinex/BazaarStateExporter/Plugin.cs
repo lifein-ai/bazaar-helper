@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Text;
 using System.IO;
 using BepInEx;
 using BepInEx.Configuration;
@@ -30,8 +32,10 @@ namespace BazaarStateExporter
         private ConfigEntry<float> overlayPollIntervalSeconds;
         private ConfigEntry<int> overlayTopRecommendations;
         private ConfigEntry<bool> overlayIncludeAi;
+        private ConfigEntry<bool> overlayAutoAnalyze;
         private ConfigEntry<string> overlayToggleKey;
         private ConfigEntry<string> overlayLockToggleKey;
+        private ConfigEntry<string> overlayManualAnalysisKey;
         private ConfigEntry<string> overlayAiAnalysisKey;
         private ConfigEntry<bool> overlayLocked;
         private ConfigEntry<float> overlayX;
@@ -44,13 +48,15 @@ namespace BazaarStateExporter
         private ConfigEntry<float> buildOverlayHeight;
         private StateProbe probe;
         private Harmony harmony;
-        private float nextPollAt;
         private float runtimeCardExportAt;
         private bool runtimeCardExportAttempted;
         private InGameAdvisorOverlay overlay;
+        private int manualExportCount;
+        private static Plugin instance;
 
         private void Awake()
         {
+            instance = this;
             string defaultOutputPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "BazaarHelper",
@@ -139,6 +145,11 @@ namespace BazaarStateExporter
                 "IncludeAi",
                 false,
                 "Request AI analysis for the in-game overlay. Disabled by default to avoid repeated model calls.");
+            overlayAutoAnalyze = Config.Bind(
+                "Overlay",
+                "AutoAnalyze",
+                false,
+                "Automatically scan game state and refresh in-game recommendations at Overlay.PollIntervalSeconds. Disabled by default for lower overhead.");
             overlayToggleKey = Config.Bind(
                 "Overlay",
                 "ToggleKey",
@@ -149,6 +160,11 @@ namespace BazaarStateExporter
                 "LockToggleKey",
                 "F6",
                 "Keyboard key used to lock or unlock overlay movement and resizing.");
+            overlayManualAnalysisKey = Config.Bind(
+                "Overlay",
+                "ManualAnalysisKey",
+                "F8",
+                "Keyboard key used to manually scan game state and refresh in-game recommendations.");
             overlayAiAnalysisKey = Config.Bind(
                 "Overlay",
                 "AiAnalysisKey",
@@ -219,8 +235,10 @@ namespace BazaarStateExporter
                 overlayPollIntervalSeconds,
                 overlayTopRecommendations,
                 overlayIncludeAi,
+                overlayAutoAnalyze,
                 overlayToggleKey,
                 overlayLockToggleKey,
+                overlayManualAnalysisKey,
                 overlayAiAnalysisKey,
                 overlayLocked,
                 overlayX,
@@ -286,6 +304,10 @@ namespace BazaarStateExporter
 
         private void OnDestroy()
         {
+            if (ReferenceEquals(instance, this))
+            {
+                instance = null;
+            }
             Logger.LogWarning("Exporter Unity component was destroyed; Harmony event export remains available.");
         }
 
@@ -305,14 +327,46 @@ namespace BazaarStateExporter
         private void UpdateExporter()
         {
             TryRuntimeCardExportOnce();
+            EventDrivenExporter.FlushIfDue();
+        }
 
-            if (Time.unscaledTime < nextPollAt)
+        private void TryRuntimeCardExportOnce()
+        {
+            if (runtimeCardExportAttempted || !enableRuntimeCardExport.Value)
+            {
+                return;
+            }
+            if (Time.unscaledTime < runtimeCardExportAt)
             {
                 return;
             }
 
-            nextPollAt = Time.unscaledTime + Math.Max(0.2f, pollIntervalSeconds.Value);
+            runtimeCardExportAttempted = true;
+            RuntimeCardExportResult result = RuntimeCardExporter.TryExportLatestCards(outputPath.Value, Logger);
+            Logger.LogInfo(
+                "Runtime card export attempt completed. exported="
+                + result.ExportedCardCount
+                + " output="
+                + result.OutputPath);
+        }
 
+        public static void RequestEventExport(string reason = "runtime_event")
+        {
+            EventDrivenExporter.MarkDirty(reason);
+        }
+
+        public static void RequestManualExport()
+        {
+            Plugin current = instance;
+            if (current == null)
+            {
+                return;
+            }
+            current.ExportCurrentStateOnce("manual_overlay");
+        }
+
+        private void ExportCurrentStateOnce(string reason)
+        {
             try
             {
                 if (enableVisibleCardScanning.Value)
@@ -337,41 +391,16 @@ namespace BazaarStateExporter
                     return;
                 }
 
-                WriteSnapshot(snapshot);
+                WriteSnapshot(snapshot, reason);
+                Logger.LogInfo("Manual Bazaar state export completed.");
             }
             catch (Exception ex)
             {
-                Logger.LogWarning("Failed to export Bazaar state: " + ex);
+                Logger.LogWarning("Manual Bazaar state export failed: " + ex);
             }
-
         }
 
-        private void TryRuntimeCardExportOnce()
-        {
-            if (runtimeCardExportAttempted || !enableRuntimeCardExport.Value)
-            {
-                return;
-            }
-            if (Time.unscaledTime < runtimeCardExportAt)
-            {
-                return;
-            }
-
-            runtimeCardExportAttempted = true;
-            RuntimeCardExportResult result = RuntimeCardExporter.TryExportLatestCards(outputPath.Value, Logger);
-            Logger.LogInfo(
-                "Runtime card export attempt completed. exported="
-                + result.ExportedCardCount
-                + " output="
-                + result.OutputPath);
-        }
-
-        public static void RequestEventExport()
-        {
-            EventDrivenExporter.TryExport();
-        }
-
-        private void WriteSnapshot(GameStateSnapshot snapshot)
+        private void WriteSnapshot(GameStateSnapshot snapshot, string reason)
         {
             if (string.IsNullOrEmpty(snapshot.source))
             {
@@ -380,6 +409,8 @@ namespace BazaarStateExporter
             snapshot.status = null;
             snapshot.message = null;
             snapshot.updated_at_utc = DateTime.UtcNow.ToString("o");
+            manualExportCount++;
+            SnapshotExportMetadata.Apply(snapshot, reason, manualExportCount);
             JsonStateWriter.WriteAtomic(outputPath.Value, snapshot);
         }
 
@@ -400,6 +431,128 @@ namespace BazaarStateExporter
         }
     }
 
+    internal static class SnapshotExportMetadata
+    {
+        public static void Apply(GameStateSnapshot snapshot, string reason, int exportCount)
+        {
+            snapshot.last_export_reason = string.IsNullOrEmpty(reason)
+                ? "unknown"
+                : reason;
+            snapshot.state_signature = BuildStateSignature(snapshot);
+            snapshot.debug = new ExportDebugSnapshot
+            {
+                export_count = exportCount,
+                screen_mode = RuntimeStateCache.CurrentScreenMode,
+                event_option_count = snapshot.event_option_ids == null ? 0 : snapshot.event_option_ids.Count,
+                visible_card_count = snapshot.visible_cards == null ? 0 : snapshot.visible_cards.Count,
+                owned_card_count = snapshot.owned_cards == null ? 0 : snapshot.owned_cards.Count,
+                shop_item_count = snapshot.current_shop == null || snapshot.current_shop.visible_items == null
+                    ? 0
+                    : snapshot.current_shop.visible_items.Count,
+                reward_option_count = snapshot.current_reward_options == null
+                    ? 0
+                    : snapshot.current_reward_options.Count,
+                dto_source = RuntimeStateCache.LatestGameStateSource,
+                dto_summary = RuntimeStateCache.LatestGameStateSummary,
+            };
+        }
+
+        public static string BuildStateSignature(GameStateSnapshot snapshot)
+        {
+            StringBuilder builder = new StringBuilder();
+            AppendPart(builder, "v2");
+            AppendPart(builder, snapshot.hero);
+            AppendPart(builder, snapshot.day.ToString());
+            AppendPart(builder, RuntimeStateCache.CurrentScreenMode);
+            AppendPart(builder, snapshot.gold.HasValue ? snapshot.gold.Value.ToString() : "");
+            AppendPart(builder, snapshot.health.HasValue ? snapshot.health.Value.ToString() : "");
+            AppendStrings(builder, snapshot.event_option_ids);
+            AppendStrings(builder, snapshot.event_option_template_ids);
+            AppendCards(builder, snapshot.owned_cards);
+            AppendCards(builder, snapshot.visible_cards);
+            AppendCards(
+                builder,
+                snapshot.current_shop == null ? null : snapshot.current_shop.visible_items);
+            AppendCards(builder, snapshot.current_reward_options);
+            if (snapshot.current_shop != null)
+            {
+                AppendPart(
+                    builder,
+                    snapshot.current_shop.refresh_available.HasValue
+                        ? snapshot.current_shop.refresh_available.Value.ToString()
+                        : "");
+                AppendPart(
+                    builder,
+                    snapshot.current_shop.refresh_cost.HasValue
+                        ? snapshot.current_shop.refresh_cost.Value.ToString()
+                        : "");
+                AppendPart(
+                    builder,
+                    snapshot.current_shop.refreshes_remaining.HasValue
+                        ? snapshot.current_shop.refreshes_remaining.Value.ToString()
+                        : "");
+            }
+            return builder.ToString();
+        }
+
+        private static void AppendStrings(StringBuilder builder, List<string> values)
+        {
+            if (values == null)
+            {
+                AppendPart(builder, "");
+                return;
+            }
+
+            for (int i = 0; i < values.Count; i++)
+            {
+                AppendPart(builder, values[i]);
+            }
+        }
+
+        private static void AppendCards(StringBuilder builder, List<CardSnapshot> cards)
+        {
+            if (cards == null)
+            {
+                AppendPart(builder, "");
+                return;
+            }
+
+            for (int i = 0; i < cards.Count; i++)
+            {
+                CardSnapshot card = cards[i];
+                if (card == null)
+                {
+                    AppendPart(builder, "");
+                    continue;
+                }
+
+                AppendPart(
+                    builder,
+                    (card.id ?? "")
+                    + ":"
+                    + (card.template_id ?? "")
+                    + ":"
+                    + (card.name ?? "")
+                    + ":"
+                    + (card.rarity ?? "")
+                    + ":"
+                    + (card.section ?? "")
+                    + ":"
+                    + (card.price.HasValue ? card.price.Value.ToString() : ""));
+            }
+        }
+
+        private static void AppendPart(StringBuilder builder, string value)
+        {
+            builder.Append('|');
+            if (value == null)
+            {
+                return;
+            }
+            builder.Append(value.Replace("|", "%7C"));
+        }
+    }
+
     internal static class EventDrivenExporter
     {
         private static readonly object SyncRoot = new object();
@@ -407,9 +560,14 @@ namespace BazaarStateExporter
         private static string outputPath;
         private static ManualLogSource logger;
         private static bool exporting;
+        private static bool dirty;
+        private static string dirtyReason;
+        private static float exportDueAt;
+        private static string lastStateSignature;
         private static int exportCount;
         private static float lastExportAt;
-        private const float MinExportIntervalSeconds = 0.2f;
+        private const float DebounceSeconds = 0.35f;
+        private const float MinExportIntervalSeconds = 0.5f;
 
         public static void Initialize(
             StateProbe stateProbe,
@@ -422,29 +580,53 @@ namespace BazaarStateExporter
                 outputPath = stateOutputPath;
                 logger = log;
                 exporting = false;
+                dirty = false;
+                dirtyReason = null;
+                exportDueAt = 0f;
+                lastStateSignature = null;
                 exportCount = 0;
                 lastExportAt = 0f;
             }
         }
 
-        public static void TryExport()
+        public static void MarkDirty(string reason)
+        {
+            lock (SyncRoot)
+            {
+                dirty = true;
+                dirtyReason = CombineReasons(dirtyReason, reason);
+                exportDueAt = Time.unscaledTime + DebounceSeconds;
+            }
+        }
+
+        public static void FlushIfDue()
         {
             StateProbe currentProbe;
             string currentOutputPath;
             ManualLogSource currentLogger;
+            string currentReason;
+            float now = Time.unscaledTime;
             lock (SyncRoot)
             {
-                if (exporting || probe == null || string.IsNullOrEmpty(outputPath))
+                if (!dirty || exporting || probe == null || string.IsNullOrEmpty(outputPath))
                 {
                     return;
                 }
-                if (Time.unscaledTime - lastExportAt < MinExportIntervalSeconds)
+                if (now < exportDueAt)
                 {
+                    return;
+                }
+                if (now - lastExportAt < MinExportIntervalSeconds)
+                {
+                    exportDueAt = lastExportAt + MinExportIntervalSeconds;
                     return;
                 }
 
                 exporting = true;
-                lastExportAt = Time.unscaledTime;
+                dirty = false;
+                currentReason = dirtyReason ?? "runtime_event";
+                dirtyReason = null;
+                lastExportAt = now;
                 currentProbe = probe;
                 currentOutputPath = outputPath;
                 currentLogger = logger;
@@ -460,11 +642,26 @@ namespace BazaarStateExporter
 
                 snapshot.source = "bepinex";
                 snapshot.updated_at_utc = DateTime.UtcNow.ToString("o");
+                SnapshotExportMetadata.Apply(snapshot, currentReason, exportCount + 1);
+                if (string.Equals(
+                    snapshot.state_signature,
+                    lastStateSignature,
+                    StringComparison.Ordinal))
+                {
+                    currentLogger?.LogDebug(
+                        "Skipped event-driven export because state signature did not change. reason="
+                        + currentReason);
+                    return;
+                }
+
                 JsonStateWriter.WriteAtomic(currentOutputPath, snapshot);
                 exportCount++;
+                lastStateSignature = snapshot.state_signature;
                 currentLogger?.LogInfo(
                     "Event-driven state export #"
                     + exportCount
+                    + " reason="
+                    + currentReason
                     + " day="
                     + snapshot.day
                     + " options="
@@ -483,6 +680,23 @@ namespace BazaarStateExporter
                     exporting = false;
                 }
             }
+        }
+
+        private static string CombineReasons(string existing, string incoming)
+        {
+            if (string.IsNullOrEmpty(incoming))
+            {
+                return string.IsNullOrEmpty(existing) ? "runtime_event" : existing;
+            }
+            if (string.IsNullOrEmpty(existing))
+            {
+                return incoming;
+            }
+            if (existing.IndexOf(incoming, StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return existing;
+            }
+            return existing + "," + incoming;
         }
     }
 }

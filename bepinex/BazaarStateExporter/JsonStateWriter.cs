@@ -75,6 +75,9 @@ namespace BazaarStateExporter
             json.Property("status", snapshot.status);
             json.Property("message", snapshot.message);
             json.Property("updated_at_utc", snapshot.updated_at_utc);
+            json.Property("state_signature", snapshot.state_signature);
+            json.Property("last_export_reason", snapshot.last_export_reason);
+            json.Property("debug", snapshot.debug);
             json.Property("hero", snapshot.hero);
             json.Property("day", snapshot.day);
             json.Property("event_options", snapshot.event_options);
@@ -186,6 +189,37 @@ namespace BazaarStateExporter
                 WriteNullableInt(shop.refreshes_used);
                 WriteInlinePropertyName("refreshes_remaining", true);
                 WriteNullableInt(shop.refreshes_remaining);
+                builder.Append('}');
+            }
+
+            public void Property(string name, ExportDebugSnapshot debug)
+            {
+                WritePropertyName(name);
+                if (debug == null)
+                {
+                    builder.Append("null");
+                    return;
+                }
+
+                builder.Append('{');
+                WriteInlinePropertyName("export_count", false);
+                builder.Append(debug.export_count.ToString(CultureInfo.InvariantCulture));
+                WriteInlinePropertyName("screen_mode", true);
+                WriteString(debug.screen_mode);
+                WriteInlinePropertyName("event_option_count", true);
+                builder.Append(debug.event_option_count.ToString(CultureInfo.InvariantCulture));
+                WriteInlinePropertyName("visible_card_count", true);
+                builder.Append(debug.visible_card_count.ToString(CultureInfo.InvariantCulture));
+                WriteInlinePropertyName("owned_card_count", true);
+                builder.Append(debug.owned_card_count.ToString(CultureInfo.InvariantCulture));
+                WriteInlinePropertyName("shop_item_count", true);
+                builder.Append(debug.shop_item_count.ToString(CultureInfo.InvariantCulture));
+                WriteInlinePropertyName("reward_option_count", true);
+                builder.Append(debug.reward_option_count.ToString(CultureInfo.InvariantCulture));
+                WriteInlinePropertyName("dto_source", true);
+                WriteString(debug.dto_source);
+                WriteInlinePropertyName("dto_summary", true);
+                WriteString(debug.dto_summary);
                 builder.Append('}');
             }
 

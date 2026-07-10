@@ -39,14 +39,21 @@ namespace BazaarStateExporter
                 return CreateNewRunTransitionSnapshot();
             }
 
-            object dto = RuntimeStateCache.LatestGameStateSnapshot;
             object processor = RuntimeStateCache.NetMessageProcessor;
-            if (dto == null && processor != null)
+            object dto = RuntimeStateCache.LatestGameStateSnapshot;
+            bool hasLiveDto = dto != null
+                && string.Equals(
+                    RuntimeStateCache.LatestGameStateSource,
+                    "receive_or_queue",
+                    StringComparison.Ordinal);
+            if (!hasLiveDto && processor != null)
             {
                 object latestDto = TryReadLatestGameStateFromProcessor(processor);
-                if (latestDto != null)
+                if (latestDto != null && !object.ReferenceEquals(latestDto, dto))
                 {
                     RuntimeStateCache.LatestGameStateSnapshot = latestDto;
+                    RuntimeStateCache.LatestGameStateSource = "processor_latest";
+                    RuntimeStateCache.LatestGameStateSummary = DescribeGameStateDto(latestDto);
                     dto = latestDto;
                 }
             }
@@ -57,6 +64,8 @@ namespace BazaarStateExporter
                 if (dto != null)
                 {
                     RuntimeStateCache.LatestGameStateSnapshot = dto;
+                    RuntimeStateCache.LatestGameStateSource = "processor_recovery";
+                    RuntimeStateCache.LatestGameStateSummary = DescribeGameStateDto(dto);
                     logger.LogInfo("Recovered current GameStateSnapshotDTO during polling.");
                 }
             }
@@ -128,6 +137,8 @@ namespace BazaarStateExporter
                 object dto = TryReadLatestGameStateFromProcessor(processor);
                 if (dto != null)
                 {
+                    RuntimeStateCache.LatestGameStateSource = "initial_recovery";
+                    RuntimeStateCache.LatestGameStateSummary = DescribeGameStateDto(dto);
                     return dto;
                 }
             }
@@ -149,6 +160,11 @@ namespace BazaarStateExporter
 
             Type type = message.GetType();
             string fullName = type.FullName ?? "";
+            if (fullName == "BazaarGameShared.Infra.Messages.NetMessageAggregate")
+            {
+                return TryGetGameStateDtoFromAggregate(message);
+            }
+
             if (fullName != "BazaarGameShared.Infra.Messages.NetMessageGameStateSync"
                 && fullName.IndexOf(
                     "GameStateSync",
@@ -159,6 +175,27 @@ namespace BazaarStateExporter
 
             object data = GetProperty(message, "Data");
             return LooksLikeGameStateDto(data) ? data : null;
+        }
+
+        private static object TryGetGameStateDtoFromAggregate(object message)
+        {
+            IEnumerable messages = GetProperty(message, "Messages") as IEnumerable
+                ?? GetField(message, "<Messages>k__BackingField") as IEnumerable;
+            if (messages == null)
+            {
+                return null;
+            }
+
+            foreach (object innerMessage in messages)
+            {
+                object dto = TryGetGameStateDtoFromMessage(innerMessage);
+                if (dto != null)
+                {
+                    return dto;
+                }
+            }
+
+            return null;
         }
 
         public static bool LooksLikeGameStateDto(object dto)
@@ -177,6 +214,38 @@ namespace BazaarStateExporter
 
             string hero = StringValue(GetField(player, "Hero"));
             return !string.IsNullOrEmpty(hero);
+        }
+
+        public static string DescribeGameStateDto(object dto)
+        {
+            if (dto == null)
+            {
+                return "null";
+            }
+
+            object run = GetField(dto, "Run");
+            object currentState = GetField(dto, "CurrentState");
+            object player = GetField(dto, "Player");
+            string hero = StringValue(GetField(player, "Hero")) ?? "";
+            int day = IntValue(GetField(run, "Day"), 0);
+            List<string> selectionSet = StringList(GetField(currentState, "SelectionSet"));
+            List<CardSnapshot> cards = CardList(GetField(dto, "Cards")).ToList();
+            int owned = cards.Count(card => card != null && IsOwnedItemSection(card.section));
+            int skills = CardList(GetProperty(dto, "GetPlayerSkillsCards")).Count();
+            return "type="
+                + (dto.GetType().FullName ?? dto.GetType().Name)
+                + " hero="
+                + hero
+                + " day="
+                + day
+                + " selection="
+                + selectionSet.Count
+                + " cards="
+                + cards.Count
+                + " owned="
+                + owned
+                + " skills="
+                + skills;
         }
 
         public void LogRuntimeHints()

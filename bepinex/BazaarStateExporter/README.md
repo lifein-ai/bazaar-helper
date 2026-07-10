@@ -55,7 +55,6 @@ For a smoke test only (never enable this for normal use):
 ```ini
 [Debug]
 WritePlaceholderWhenEmpty = true
-EnableRuntimeInspection = true
 ```
 
 For normal use, keep `WritePlaceholderWhenEmpty = false`; otherwise a temporary
@@ -65,4 +64,6 @@ probe failure continuously writes sample data that looks like a frozen screen.
 
 Implement live reading in `StateProbe.TryReadCurrentState()`. Keep all game-specific reflection or Harmony patches in that layer, then return a `GameStateSnapshot`.
 
-When `EnableRuntimeInspection` is enabled, the plugin logs likely runtime objects and members once after startup. Use `BepInEx/LogOutput.log` to identify the object that owns the current run/session/shop state, then turn the option off.
+The live state hook reads `NetMessageProcessor.ReceiveOrQueue(INetMessage)` so
+fresh `NetMessageGameStateSync` DTOs are captured before processor history
+caches can go stale.

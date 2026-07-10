@@ -1550,14 +1550,16 @@
     "match_notes": [],
     "pilot_tips": [],
     "core_cards": [
-      "Temporal Navigator",
-      "Duct Tape"
+      "Sat-Comm",
+      "Duct Tape",
+      "Micro Dave"
     ],
     "transition_cards": [],
     "optional_cards": [
-      "Sat-Comm",
+      "Temporal Navigator",
       "Tesla Coil",
-      "Micro Dave",
+      "Soldering Gun",
+      "Char Cole",
       "Power Drill",
       "Pulse Rifle",
       "Weakpoint Detector"
@@ -1595,6 +1597,187 @@
     "event_priorities": [],
     "avoid_events": []
   },
+  "feiheqianqi": {
+    "hero": "Dooley",
+    "display_name": "飞核（前）当前最强",
+    "applicable_stages": [
+      "early"
+    ],
+    "day_range": [
+      7,
+      null
+    ],
+    "build_summary": "飞核（前）当前最强",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Wallace",
+      "Launcher Core",
+      "Sat-Comm",
+      "Crude Tools",
+      "Micro Dave",
+      "Remote Control",
+      "Brick Buddy"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Soldering Gun",
+      "Memory Card",
+      "First Aiden",
+      "Bat",
+      "Lightning Butterfly",
+      "Uwashiwali Bird",
+      "Flying Squirrel",
+      "Messenger Sparrow",
+      "Flying Fish",
+      "Levitation Pad",
+      "Clawrence",
+      "Char Cole",
+      "Duct Tape"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "feihezhongqi": {
+    "hero": "Dooley",
+    "display_name": "飞核（中期）当前最强",
+    "applicable_stages": [
+      "mid"
+    ],
+    "day_range": [
+      4,
+      null
+    ],
+    "build_summary": "飞核（中期）当前最强",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Launcher Core",
+      "Sat-Comm",
+      "Party Float",
+      "Crude Tools",
+      "Remote Control"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Z-Shield",
+      "Terry-Dactyl",
+      "Levitation Pad",
+      "Nitro",
+      "Metronome",
+      "Ice 9000",
+      "Trojan",
+      "Kinetic Cannon",
+      "Fiber Optics",
+      "Capacitor",
+      "C.O.R.A",
+      "Nitrogen Hammer",
+      "Combat Core"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "feihehouqi": {
+    "hero": "Dooley",
+    "display_name": "飞核（后期）当前最强",
+    "applicable_stages": [
+      "late"
+    ],
+    "day_range": [
+      1,
+      null
+    ],
+    "build_summary": "飞核（后期）当前最强",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Launcher Core",
+      "Party Float",
+      "Crude Tools",
+      "Remote Control"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Nitro",
+      "Ice 9000",
+      "Kinetic Cannon",
+      "Fiber Optics",
+      "Capacitor",
+      "C.O.R.A",
+      "Combat Core",
+      "Nitrogen Hammer",
+      "Z-Shield",
+      "Thrusters"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "dunheqianqi": {
+    "hero": "Dooley",
+    "display_name": "盾核（前期）",
+    "applicable_stages": [
+      "early"
+    ],
+    "day_range": [
+      1,
+      null
+    ],
+    "build_summary": "盾核（前期）",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Armored Core",
+      "Duct Tape",
+      "Wallace",
+      "Crude Tools"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Micro Dave",
+      "Soldering Gun",
+      "SMG",
+      "Balloon Bot",
+      "Harmadillo"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "dunhehouqi": {
+    "hero": "Dooley",
+    "display_name": "盾核（后期）",
+    "applicable_stages": [
+      "late"
+    ],
+    "day_range": [
+      7,
+      null
+    ],
+    "build_summary": "盾核（后期）",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Armored Core",
+      "Duct Tape",
+      "Welding Torch",
+      "Wallace",
+      "Crude Tools",
+      "Bunker"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Angry Balloon Bot",
+      "Soul of the District",
+      "Fiber Optics",
+      "3D Printer"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
   "dunhe": {
     "hero": "Dooley",
     "display_name": "盾核",
@@ -1611,13 +1794,22 @@
     "core_cards": [
       "Armored Core",
       "Duct Tape",
-      "Welding Torch"
+      "Welding Torch",
+      "Wallace",
+      "Crude Tools"
     ],
     "transition_cards": [],
     "optional_cards": [
+      "Angry Balloon Bot",
+      "Fiber Optics",
+      "Remote Control",
+      "Balloon Bot",
+      "Dino Disguise",
       "Chaff",
       "Pyrocarbon",
-      "Remote Control"
+      "Harmadillo",
+      "Defense Matrix",
+      "Metronome"
     ],
     "wanted_tags": [],
     "event_priorities": [],
@@ -2294,8 +2486,8 @@
     ],
     "core_cards": [
       "Coffee",
+      "Sorbet",
       "Pumpkin",
-      "Pasta",
       "Cake Batter",
       "Pasta Maker",
       "Instant Noodles",
@@ -2305,8 +2497,10 @@
     ],
     "transition_cards": [],
     "optional_cards": [
+      "Eggs",
       "Banu Leaves",
       "Strawberries",
+      "Pasta",
       "Scorchpepper",
       "LauLau"
     ],
@@ -2328,10 +2522,9 @@
     "match_notes": [],
     "pilot_tips": [],
     "core_cards": [
-      "Coffee",
-      "Pumpkin",
-      "Pasta",
+      "Sorbet",
       "Bread Knife",
+      "Coffee",
       "Zarlic",
       "Ice Swan",
       "Cake Batter",
@@ -2341,8 +2534,11 @@
     ],
     "transition_cards": [],
     "optional_cards": [
+      "Eggs",
       "Banu Leaves",
       "Strawberries",
+      "Pumpkin",
+      "Pasta",
       "Building Crescendo",
       "Static Acceleration",
       "Tracer Fire",

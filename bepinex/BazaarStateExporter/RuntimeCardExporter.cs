@@ -1187,7 +1187,8 @@ namespace BazaarStateExporter
             UnityEngine.Object[] objects = null;
             try
             {
-                objects = UnityEngine.Object.FindObjectsOfType<UnityEngine.Object>();
+                objects = UnityEngine.Object.FindObjectsByType<UnityEngine.Object>(
+                    FindObjectsSortMode.None);
             }
             catch
             {

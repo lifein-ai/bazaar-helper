@@ -27,9 +27,16 @@ RECOMMENDATION_LABELS_ZH = {
 }
 ROLE_LABELS_ZH = {
     "core": "核心",
+    "transition": "过渡",
     "optional": "可选",
     "unrelated": "无关",
 }
+
+
+def _role_label(value: Any) -> Any:
+    if not isinstance(value, str):
+        return value
+    return ROLE_LABELS_ZH.get(value, value)
 
 
 def _round_ratio(value: float) -> float:
@@ -69,8 +76,8 @@ def _priority_cards(
     return [
         {
             "名称": _zh_name(data, card.get("name")),
-            "tier": card.get("tier"),
-            "定位": ROLE_LABELS_ZH.get(card.get("role"), card.get("role")),
+            "评级": card.get("tier"),
+            "定位": _role_label(card.get("role")),
             "可升级": card.get("can_upgrade", False),
         }
         for card in sorted(priority_cards, key=sort_key)[:limit]
@@ -242,7 +249,7 @@ def compact_recommendations(
     )
 
     payload = {
-        "AI任务": "根据当前天数和候选阵容命中情况进行简短阵容分析",
+        "分析任务": "根据当前天数和候选阵容命中情况进行简短阵容分析",
         "英雄": hero,
         "天数": current_day,
         "当前阶段": STAGE_LABELS_ZH.get(current_stage, current_stage),
@@ -268,6 +275,8 @@ def build_ai_messages(payload: dict[str, Any]) -> list[dict[str, str]]:
             "role": "system",
             "content": (
                 "你是《The Bazaar》的阵容判断助手。只能根据结构化数据解释当前更适合关注哪个阵容。\n"
+                "必须全程使用简体中文。不要输出英文标题、英文枚举值、英文解释或中英混排。\n"
+                "把 Build 说成“阵容”，把 core 说成“核心”，把 optional 说成“可选”，把 tier 说成“评级”。\n"
                 "禁止编造未提供的卡牌、阵容、概率或游戏机制。\n"
                 "核心卡权重必须高于可选卡。\n"
                 "如果某个阵容可选卡很多但核心卡很少，要说明它有关联但还不能认为稳定成型。\n"
@@ -304,7 +313,7 @@ def resolve_api_key(api_key: str | None = None) -> str | None:
 
 
 def clean_ai_output(text: str) -> str:
-    """清理 AI 输出中的 Markdown 符号，避免前端直接显示 **、缩进列表等。"""
+    """清理智能分析输出中的 Markdown 符号，避免前端直接显示 **、缩进列表等。"""
     if not text:
         return ""
 
@@ -325,6 +334,34 @@ def clean_ai_output(text: str) -> str:
 
     # 压缩空行
     text = re.sub(r"\n{3,}", "\n\n", text)
+
+    replacements = [
+        ("Current recommendation", "当前推荐"),
+        ("Current base", "当前基础"),
+        ("Main issue", "主要问题"),
+        ("Next step", "下一步建议"),
+        ("High Value", "优先选择"),
+        ("Medium Value", "可以考虑"),
+        ("Low Value", "优先级低"),
+        ("current_build", "当前阶段"),
+        ("future_build", "后续方向"),
+        ("late_build", "后期方向"),
+        ("past_build", "已过期"),
+        ("Recommendation", "推荐"),
+        ("Reasons", "原因"),
+        ("Reason", "原因"),
+        ("Transition", "过渡"),
+        ("transition", "过渡"),
+        ("Optional", "可选"),
+        ("optional", "可选"),
+        ("Build", "阵容"),
+        ("build", "阵容"),
+        ("Core", "核心"),
+        ("core", "核心"),
+        ("tier", "评级"),
+    ]
+    for source, target in replacements:
+        text = text.replace(source, target)
 
     return text.strip()
 

@@ -8,6 +8,9 @@ namespace BazaarStateExporter
         public string status;
         public string message;
         public string updated_at_utc;
+        public string state_signature;
+        public string last_export_reason;
+        public ExportDebugSnapshot debug;
         public string hero;
         public int day;
         public List<string> event_options = new List<string>();
@@ -65,6 +68,19 @@ namespace BazaarStateExporter
                 message = "Bazaar State Exporter loaded, but no live run state has been captured yet. Start or restart the game and enter a run."
             };
         }
+    }
+
+    public sealed class ExportDebugSnapshot
+    {
+        public int export_count;
+        public string screen_mode;
+        public int event_option_count;
+        public int visible_card_count;
+        public int owned_card_count;
+        public int shop_item_count;
+        public int reward_option_count;
+        public string dto_source;
+        public string dto_summary;
     }
 
     public sealed class CurrentShopSnapshot

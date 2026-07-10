@@ -16,6 +16,8 @@ namespace BazaarStateExporter
         public const string ScreenModeShop = "shop";
         public static ManualLogSource Logger;
         public static object LatestGameStateSnapshot;
+        public static string LatestGameStateSource;
+        public static string LatestGameStateSummary;
         public static object NetMessageProcessor;
         public static int? LatestGold;
         public static int? LatestHealth;
@@ -343,9 +345,46 @@ namespace BazaarStateExporter
             if (data != null)
             {
                 RuntimeStateCache.LatestGameStateSnapshot = data;
+                RuntimeStateCache.LatestGameStateSource = "harmony_specific";
+                RuntimeStateCache.LatestGameStateSummary = StateProbe.DescribeGameStateDto(data);
                 RuntimeStateCache.Logger?.LogInfo("Captured NetMessageGameStateSync via Harmony patch.");
-                Plugin.RequestEventExport();
+                Plugin.RequestEventExport("game_state_sync");
             }
+        }
+    }
+
+    [HarmonyPatch]
+    public static class NetMessageReceiveOrQueuePatch
+    {
+        public static MethodBase TargetMethod()
+        {
+            Type processorType = AccessTools.TypeByName("TheBazaar.NetMessageProcessor");
+            Type messageType = AccessTools.TypeByName("BazaarGameShared.Infra.Messages.INetMessage");
+            if (processorType == null || messageType == null)
+            {
+                RuntimeStateCache.Logger?.LogWarning("Could not find NetMessageProcessor.ReceiveOrQueue for live state patching.");
+                return null;
+            }
+
+            return AccessTools.Method(processorType, "ReceiveOrQueue", new[] { messageType });
+        }
+
+        public static void Prefix(object __instance, object __0)
+        {
+            RuntimeStateCache.NetMessageProcessor = __instance;
+            object dto = StateProbe.TryGetGameStateDtoFromMessage(__0);
+            if (dto == null)
+            {
+                return;
+            }
+
+            RuntimeStateCache.LatestGameStateSnapshot = dto;
+            RuntimeStateCache.LatestGameStateSource = "receive_or_queue";
+            RuntimeStateCache.LatestGameStateSummary = StateProbe.DescribeGameStateDto(dto);
+            RuntimeStateCache.Logger?.LogInfo(
+                "Captured live GameStateSnapshotDTO via NetMessageProcessor.ReceiveOrQueue. "
+                + RuntimeStateCache.LatestGameStateSummary);
+            Plugin.RequestEventExport("receive_or_queue_game_state");
         }
     }
 
@@ -386,6 +425,8 @@ namespace BazaarStateExporter
                 if (gameStateDto != null)
                 {
                     RuntimeStateCache.LatestGameStateSnapshot = gameStateDto;
+                    RuntimeStateCache.LatestGameStateSource = "harmony_generic";
+                    RuntimeStateCache.LatestGameStateSummary = StateProbe.DescribeGameStateDto(gameStateDto);
                     RuntimeStateCache.Logger?.LogInfo(
                         "Captured NetMessageGameStateSync via generic Handle patch.");
                 }
@@ -407,7 +448,7 @@ namespace BazaarStateExporter
             {
                 RuntimeStateCache.Logger?.LogDebug("Resource message capture failed: " + ex.Message);
             }
-            Plugin.RequestEventExport();
+            Plugin.RequestEventExport("resource_message");
         }
 
         public static void Postfix(object __instance)
@@ -419,12 +460,14 @@ namespace BazaarStateExporter
                 if (dto != null)
                 {
                     RuntimeStateCache.LatestGameStateSnapshot = dto;
+                    RuntimeStateCache.LatestGameStateSource = "processor_postfix_recovery";
+                    RuntimeStateCache.LatestGameStateSummary = StateProbe.DescribeGameStateDto(dto);
                     RuntimeStateCache.Logger?.LogInfo(
                         "Recovered initial GameStateSnapshotDTO from current NetMessageProcessor.");
                 }
             }
 
-            Plugin.RequestEventExport();
+            Plugin.RequestEventExport("processor_postfix");
         }
     }
 
@@ -694,7 +737,7 @@ namespace BazaarStateExporter
             if (__originalMethod != null && __originalMethod.Name == "OnDisable")
             {
                 RuntimeStateCache.ClearShopRefresh();
-                Plugin.RequestEventExport();
+                Plugin.RequestEventExport("shop_refresh_hidden");
                 return;
             }
             Type type = __instance.GetType();
@@ -705,7 +748,7 @@ namespace BazaarStateExporter
                 CombineAvailable(enabled, canInteract, canAfford),
                 ReadInt(type, __instance, "_rerollCost"),
                 ReadInt(type, __instance, "_rerollsRemaining"));
-            Plugin.RequestEventExport();
+            Plugin.RequestEventExport("shop_refresh");
         }
 
         private static int? ReadInt(Type type, object instance, string name)
@@ -920,7 +963,7 @@ namespace BazaarStateExporter
                 }
                 if (changed)
                 {
-                    Plugin.RequestEventExport();
+                    Plugin.RequestEventExport("ui_card_changed");
                 }
                 if (changed && card != null && !string.IsNullOrEmpty(card.id))
                 {

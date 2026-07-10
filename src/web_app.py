@@ -1241,6 +1241,48 @@ def recommendation_label(label: str | None) -> str:
     }.get(label or "", label or "")
 
 
+def importance_label(label: str | None) -> str:
+    return {
+        "critical": "关键",
+        "high": "高",
+        "medium": "中",
+        "low": "低",
+        "ignored": "忽略",
+        "unknown": "未知",
+    }.get(label or "", label or "")
+
+
+def shop_recommendation_label(label: str | None) -> str:
+    return {
+        "buy_now": "建议购买",
+        "tempo_upgrade": "节奏补强",
+        "stash_future": "留作后期",
+        "observe": "观察",
+        "skip": "跳过",
+        "consider_buying_together": "可成组购买",
+        "prioritize_best_core": "优先最强核心",
+        "unknown": "待判断",
+    }.get(label or "", label or "")
+
+
+def relation_label(label: str | None) -> str:
+    return {
+        "current_build": "当前阶段",
+        "future_build": "后续阶段",
+        "late_build": "后期方向",
+        "past_build": "已过期",
+    }.get(label or "", label or "")
+
+
+def shop_action_label(label: str | None) -> str:
+    return {
+        "buy_visible": "购买可见目标",
+        "consider_bundle": "考虑组合购买",
+        "skip": "跳过刷新",
+        "unknown": "暂不强推",
+    }.get(label or "", label or "")
+
+
 def load_observed_event_graph() -> dict[str, Any]:
     if not OBSERVED_EVENT_GRAPH_PATH.exists():
         return {}
@@ -1536,7 +1578,7 @@ def summarize_recommendation(data: dict[str, Any], result: dict[str, Any]) -> di
         event_rule_status = "normal_low_value"
         base_reasons.insert(
             0,
-            "有可计算收益规则，但当前 Build 下命中核心卡、可选卡或有效收益较低，所以显示为低收益事件。",
+            "有可计算收益规则，但当前阵容下命中核心卡、可选卡或有效收益较低，所以显示为低收益事件。",
         )
 
     pool_stats = result.get("pool_stats", {})
@@ -1664,7 +1706,7 @@ def analyze_payload(
     try:
         auto_observe_event_graph(data, payload)
     except Exception as exc:  # noqa: BLE001 - observation failure must not block analysis.
-        observation_warning = f"observation graph update failed: {exc}"
+        observation_warning = f"事件关系观察记录更新失败：{exc}"
 
     normalized = normalize_payload_for_analysis(data, payload, build_override)
     if not str(normalized.get("hero") or "").strip() or int(normalized.get("day") or 0) <= 0:
@@ -1761,11 +1803,30 @@ def analyze_payload(
         candidate["card_display_name"] = zh_name(
             data, candidate.get("card_name")
         )
+        candidate["importance_label"] = importance_label(candidate.get("importance"))
+        candidate["recommendation_type_label"] = shop_recommendation_label(
+            candidate.get("recommendation_type")
+        )
+        for hit in candidate.get("build_hits", []):
+            hit["build_phase_label"] = STAGE_LABELS_ZH.get(
+                hit.get("build_phase"),
+                hit.get("build_phase") or "",
+            )
+            hit["role_label"] = role_label(hit.get("role"))
+            hit["relation_label"] = relation_label(hit.get("relation"))
+    if build_analysis.get("shop_action"):
+        build_analysis["shop_action_label"] = shop_action_label(
+            build_analysis.get("shop_action")
+        )
     for bundle in build_analysis.get("visible_core_bundles", []):
         bundle["candidate_core_cards_display"] = [
             zh_name(data, name)
             for name in bundle.get("candidate_core_cards", [])
         ]
+        bundle["importance_label"] = importance_label(bundle.get("importance"))
+        bundle["recommendation_label"] = shop_recommendation_label(
+            bundle.get("recommendation")
+        )
     owned_items_display, skills_display = displayed_owned_groups(data, state)
 
     response: dict[str, Any] = {
@@ -2070,7 +2131,7 @@ HTML_PAGE = r"""<!doctype html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>The Bazaar AI 助手</title>
+  <title>The Bazaar 智能助手</title>
   <style>
     :root {
       color-scheme: dark;
@@ -2269,11 +2330,12 @@ HTML_PAGE = r"""<!doctype html>
 </head>
 <body>
   <header>
-    <h1>The Bazaar AI 助手</h1>
+    <h1>The Bazaar 智能助手</h1>
     <div class="toolbar">
       <select id="buildSelect"></select>
-      <button id="refreshBtn">刷新</button>
-      <button id="aiBtn" class="primary">AI 分析</button>
+      <button id="refreshBtn" title="快捷键：F8">扫描分析</button>
+      <button id="autoBtn">自动分析：关</button>
+      <button id="aiBtn" class="primary">智能分析</button>
     </div>
   </header>
   <main>
@@ -2320,6 +2382,8 @@ HTML_PAGE = r"""<!doctype html>
     let lastRenderedSignature = null;
     let lastSeenStateSignature = null;
     let analyzeDebounceTimer = null;
+    let autoAnalyzeTimer = null;
+    let autoAnalyzeEnabled = localStorage.getItem("bazaar_auto_analyze") === "1";
     const ANALYZE_DEBOUNCE_MS = 400;
 
     function pct(value) {
@@ -2330,6 +2394,65 @@ HTML_PAGE = r"""<!doctype html>
       if (label === "Medium Value") return "badge medium";
       if (label === "Low Value") return "badge low";
       return "badge";
+    }
+
+    function enumLabel(value, labels) {
+      return labels[String(value || "")] || value || "";
+    }
+
+    function stageLabel(value) {
+      return enumLabel(value, { early: "前期", mid: "中期", late: "后期" });
+    }
+
+    function roleLabel(value) {
+      return enumLabel(value, {
+        core: "核心",
+        transition: "过渡",
+        optional: "可选",
+        unrelated: "无关",
+      });
+    }
+
+    function relationLabel(value) {
+      return enumLabel(value, {
+        current_build: "当前阶段",
+        future_build: "后续阶段",
+        late_build: "后期方向",
+        past_build: "已过期",
+      });
+    }
+
+    function importanceLabel(value) {
+      return enumLabel(value, {
+        critical: "关键",
+        high: "高",
+        medium: "中",
+        low: "低",
+        ignored: "忽略",
+        unknown: "未知",
+      });
+    }
+
+    function shopRecommendationLabel(value) {
+      return enumLabel(value, {
+        buy_now: "建议购买",
+        tempo_upgrade: "节奏补强",
+        stash_future: "留作后期",
+        observe: "观察",
+        skip: "跳过",
+        consider_buying_together: "可成组购买",
+        prioritize_best_core: "优先最强核心",
+        unknown: "待判断",
+      });
+    }
+
+    function shopActionLabel(value) {
+      return enumLabel(value, {
+        buy_visible: "购买可见目标",
+        consider_bundle: "考虑组合购买",
+        skip: "跳过刷新",
+        unknown: "暂不强推",
+      });
     }
 
     async function loadOptions(hero = null, preferredBuild = null) {
@@ -2367,11 +2490,11 @@ HTML_PAGE = r"""<!doctype html>
       return await res.json();
     }
 
-    function scheduleAnalyze(includeAi = false, force = false) {
+    function scheduleAnalyze(includeAi = false) {
       if (analyzeDebounceTimer) clearTimeout(analyzeDebounceTimer);
       analyzeDebounceTimer = setTimeout(() => {
         analyzeDebounceTimer = null;
-        analyze(includeAi, force);
+        analyze(includeAi);
       }, ANALYZE_DEBOUNCE_MS);
     }
 
@@ -2382,7 +2505,7 @@ HTML_PAGE = r"""<!doctype html>
       messageEl.innerHTML = "";
       if (includeAi) {
         aiRequestInFlight = true;
-        aiBox.innerHTML = `<div class="ai">AI 分析中...</div>`;
+        aiBox.innerHTML = `<div class="ai">智能分析中...</div>`;
       } else {
         analysisRequestInFlight = true;
       }
@@ -2398,7 +2521,7 @@ HTML_PAGE = r"""<!doctype html>
         data = await res.json();
       } catch (error) {
         if (includeAi) {
-          aiBox.innerHTML = `<div class="error">AI 请求失败：${error.message}</div>`;
+          aiBox.innerHTML = `<div class="error">智能分析请求失败：${error.message}</div>`;
           aiRequestInFlight = false;
         } else {
           messageEl.innerHTML = `<div class="error">刷新失败：${error.message}</div>`;
@@ -2415,7 +2538,6 @@ HTML_PAGE = r"""<!doctype html>
       }
 
       const responseSignature = data.analysis_signature || null;
-      if (data.state_signature) lastSeenStateSignature = data.state_signature;
       if (!includeAi && responseSignature && responseSignature === lastRenderedSignature) {
         analysisRequestInFlight = false;
         return;
@@ -2480,7 +2602,7 @@ HTML_PAGE = r"""<!doctype html>
           return `<li>${hit.card_display_name || hit.card_name}：${buildNames || "其他阵容"}核心卡</li>`;
         }).join("");
         const sellGold = Number(stats.expected_sell_gold || 0);
-        const sellText = sellGold > 0 ? ` · 卖价 +${sellGold.toFixed(1)}g` : "";
+        const sellText = sellGold > 0 ? ` · 卖价 +${sellGold.toFixed(1)} 金币` : "";
         return `
           <article class="event">
             <h2>${item.event_display_name || item.event_name}<span class="${badgeClass(item.recommendation)}">${item.recommendation_label || item.recommendation}</span></h2>
@@ -2505,25 +2627,25 @@ HTML_PAGE = r"""<!doctype html>
       const buildAnalysis = data.build_analysis || {};
       const shopCandidates = (buildAnalysis.candidate_cards || []).map((card) => {
         const hits = (card.build_hits || []).map((hit) =>
-          `<li>${hit.build_name} · ${hit.build_phase} · ${hit.role} · ${hit.relation}</li>`
+          `<li>${hit.build_name} · ${hit.build_phase_label || stageLabel(hit.build_phase)} · ${hit.role_label || roleLabel(hit.role)} · ${hit.relation_label || relationLabel(hit.relation)}</li>`
         ).join("");
         const reasons = (card.reasons || []).map((reason) => `<li>${reason}</li>`).join("");
         const risks = (card.risks || []).map((risk) => `<li>${risk}</li>`).join("");
         return `
           <article class="event">
-            <h2>${card.card_display_name || card.card_name}<span class="badge ${card.importance === "medium" ? "medium" : card.importance === "low" || card.importance === "ignored" ? "low" : ""}">${card.importance}</span></h2>
-            <p><strong>${card.recommendation_type}</strong>${card.price != null ? ` · ${card.price}g` : " · 价格未知"}${card.affordable === true ? " · 买得起" : card.affordable === false ? " · 金币不足" : ""}</p>
-            <strong>Build 命中</strong>
-            <ul>${hits || "<li>未命中已维护 Build，不代表废卡</li>"}</ul>
+            <h2>${card.card_display_name || card.card_name}<span class="badge ${card.importance === "medium" ? "medium" : card.importance === "low" || card.importance === "ignored" ? "low" : ""}">${card.importance_label || importanceLabel(card.importance)}</span></h2>
+            <p><strong>${card.recommendation_type_label || shopRecommendationLabel(card.recommendation_type)}</strong>${card.price != null ? ` · ${card.price} 金币` : " · 价格未知"}${card.affordable === true ? " · 买得起" : card.affordable === false ? " · 金币不足" : ""}</p>
+            <strong>阵容命中</strong>
+            <ul>${hits || "<li>未命中已维护阵容，不代表废卡</li>"}</ul>
             <strong>原因</strong>
             <ul>${reasons || "<li>暂无</li>"}</ul>
-            ${risks ? `<strong>风险 / 不确定性</strong><ul>${risks}</ul>` : ""}
+            ${risks ? `<strong>风险与不确定性</strong><ul>${risks}</ul>` : ""}
           </article>
         `;
       }).join("");
       const shopSummary = buildAnalysis.shop_action ? `
         <article class="event">
-          <h2>商店操作<span class="badge">${buildAnalysis.shop_action}</span></h2>
+          <h2>商店操作<span class="badge">${buildAnalysis.shop_action_label || shopActionLabel(buildAnalysis.shop_action)}</span></h2>
           <p>${buildAnalysis.refresh_reason || ""}</p>
         </article>
       ` : "";
@@ -2636,13 +2758,18 @@ HTML_PAGE = r"""<!doctype html>
       }).join("");
     }
 
-    document.querySelector("#refreshBtn").addEventListener("click", () => analyze(false));
-    document.querySelector("#aiBtn").addEventListener("click", () => scheduleAnalyze(true, true));
+    document.querySelector("#refreshBtn").addEventListener("click", () => scheduleAnalyze(false));
+    document.querySelector("#autoBtn").addEventListener("click", toggleAutoAnalyze);
+    document.querySelector("#aiBtn").addEventListener("click", () => scheduleAnalyze(true));
     buildSelect.addEventListener("change", () => {
       localStorage.setItem("bazaar_selected_build", buildSelect.value);
       aiBox.innerHTML = "";
       lastRenderedSignature = null;
-      scheduleAnalyze(false, true);
+      if (autoAnalyzeEnabled) {
+        scheduleAnalyze(false);
+      } else {
+        messageEl.innerHTML = `<div class="ai">阵容目标已切换，点击“扫描分析”或按 F8 更新结果。</div>`;
+      }
     });
     buildMetric.addEventListener("click", toggleBuildDetail);
     buildMetric.addEventListener("keydown", (event) => {
@@ -2653,14 +2780,50 @@ HTML_PAGE = r"""<!doctype html>
     });
 
     loadState()
+      .catch(() => null)
       .then((state) => loadOptions(state && state.hero ? state.hero : null))
-      .then(() => scheduleAnalyze(false, true));
-    document.addEventListener("visibilitychange", () => {
-      if (!document.hidden) pollStateSignature(true);
+      .then(() => {
+        updateAutoButton();
+        startOrStopAutoAnalyze();
+        messageEl.innerHTML = `<div class="ai">${autoAnalyzeEnabled ? "已切换为自动模式：局面变化时会自动分析。" : "已切换为手动模式：点击“扫描分析”或按 F8 读取当前局面。"}</div>`;
+      })
+      .catch((error) => {
+        messageEl.innerHTML = `<div class="error">初始化失败：${error.message}</div>`;
+      });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "F8") {
+        event.preventDefault();
+        scheduleAnalyze(false);
+      }
     });
 
+    function updateAutoButton() {
+      document.querySelector("#autoBtn").textContent = autoAnalyzeEnabled ? "自动分析：开" : "自动分析：关";
+    }
+
+    function toggleAutoAnalyze() {
+      autoAnalyzeEnabled = !autoAnalyzeEnabled;
+      localStorage.setItem("bazaar_auto_analyze", autoAnalyzeEnabled ? "1" : "0");
+      updateAutoButton();
+      startOrStopAutoAnalyze();
+      messageEl.innerHTML = `<div class="ai">${autoAnalyzeEnabled ? "自动分析已开启，局面变化时会自动更新。" : "自动分析已关闭，点击“扫描分析”或按 F8 手动更新。"}</div>`;
+      if (autoAnalyzeEnabled) {
+        pollStateSignature(true);
+      }
+    }
+
+    function startOrStopAutoAnalyze() {
+      if (autoAnalyzeTimer) {
+        clearInterval(autoAnalyzeTimer);
+        autoAnalyzeTimer = null;
+      }
+      if (autoAnalyzeEnabled) {
+        autoAnalyzeTimer = setInterval(() => pollStateSignature(false), 1000);
+      }
+    }
+
     async function pollStateSignature(force = false) {
-      if (document.hidden) return;
+      if (!autoAnalyzeEnabled || document.hidden) return;
       try {
         const data = await loadStateSignature();
         if (data.error) {
@@ -2670,13 +2833,11 @@ HTML_PAGE = r"""<!doctype html>
         const signature = data.state_signature || null;
         if (!force && signature && signature === lastSeenStateSignature) return;
         if (signature) lastSeenStateSignature = signature;
-        scheduleAnalyze(false, force);
+        scheduleAnalyze(false);
       } catch (error) {
         messageEl.innerHTML = `<div class="error">状态检查失败：${error.message}</div>`;
       }
     }
-
-    setInterval(() => pollStateSignature(false), 1000);
   </script>
 </body>
 </html>
