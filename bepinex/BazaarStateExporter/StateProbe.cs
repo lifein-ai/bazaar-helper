@@ -26,6 +26,7 @@ namespace BazaarStateExporter
         private string pendingNewRunHero;
         private int pendingNewRunDay = 1;
         private string lastLoggedAttributeKeys;
+        private string lastLoggedSnapshotSummary;
 
         public StateProbe(ManualLogSource logger)
         {
@@ -645,6 +646,8 @@ namespace BazaarStateExporter
                 RuntimeStateCache.GetCapturedUiCards(30f, shopCaptureMinSeenAt);
             List<CardSnapshot> latestSocketOffers =
                 RuntimeStateCache.GetLatestOpponentItemSocketCards(30f, shopCaptureMinSeenAt);
+            CardSnapshot latestMerchant =
+                RuntimeStateCache.GetLatestMerchantCard(30f, shopCaptureMinSeenAt);
             bool merchantScreen = recentlyCapturedCards.Any(card =>
                 (card.ui_context ?? "").IndexOf(
                     "OpponentPortraitSocketMerchant",
@@ -698,6 +701,12 @@ namespace BazaarStateExporter
                 || RuntimeStateCache.ShopRefreshesRemaining.HasValue)
             {
                 snapshot.current_shop = new CurrentShopSnapshot();
+                if (latestMerchant != null)
+                {
+                    snapshot.current_shop.merchant_id = latestMerchant.id;
+                    snapshot.current_shop.merchant_template_id = latestMerchant.template_id;
+                    snapshot.current_shop.merchant_name = latestMerchant.name;
+                }
                 snapshot.current_shop.visible_items.AddRange(shopCards);
                 snapshot.current_shop.refresh_available =
                     RuntimeStateCache.ShopRefreshAvailable;
@@ -745,19 +754,35 @@ namespace BazaarStateExporter
 
             if (snapshot.event_option_ids.Count > 0 || snapshot.owned_cards.Count > 0)
             {
-                logger.LogInfo(
-                    "Captured game state hero="
-                    + snapshot.hero
-                    + " day="
+                string summary =
+                    snapshot.hero
+                    + "|"
                     + snapshot.day
-                    + " options="
+                    + "|"
                     + snapshot.event_option_ids.Count
                     + "/"
                     + snapshot.event_option_template_ids.Count
-                    + " owned="
+                    + "|"
                     + snapshot.owned_cards.Count
-                    + " visible="
-                    + snapshot.visible_cards.Count);
+                    + "|"
+                    + snapshot.visible_cards.Count;
+                if (!string.Equals(lastLoggedSnapshotSummary, summary, StringComparison.Ordinal))
+                {
+                    lastLoggedSnapshotSummary = summary;
+                    logger.LogInfo(
+                        "Captured game state hero="
+                        + snapshot.hero
+                        + " day="
+                        + snapshot.day
+                        + " options="
+                        + snapshot.event_option_ids.Count
+                        + "/"
+                        + snapshot.event_option_template_ids.Count
+                        + " owned="
+                        + snapshot.owned_cards.Count
+                        + " visible="
+                        + snapshot.visible_cards.Count);
+                }
             }
 
             return snapshot;
@@ -781,6 +806,7 @@ namespace BazaarStateExporter
             lastLoggedUiHealth = null;
             latestUiDay = null;
             lastLoggedUiDay = null;
+            lastLoggedSnapshotSummary = null;
         }
 
         private static List<CardSnapshot> BuildCurrentOwnedCards(
@@ -1603,9 +1629,30 @@ namespace BazaarStateExporter
                 source = card.source,
                 ui_context = card.ui_context,
                 price = card.price,
+                runtime_type = card.runtime_type,
             };
             clone.enchantments.AddRange(card.enchantments);
+            clone.runtime_sources.AddRange(card.runtime_sources);
+            CopyObjectDictionary(card.runtime_values, clone.runtime_values);
+            CopyObjectDictionary(card.current_attributes, clone.current_attributes);
+            CopyObjectDictionary(card.base_attributes, clone.base_attributes);
+            CopyObjectDictionary(card.attribute_modifiers, clone.attribute_modifiers);
             return clone;
+        }
+
+        private static void CopyObjectDictionary(
+            Dictionary<string, object> source,
+            Dictionary<string, object> target)
+        {
+            if (source == null || target == null)
+            {
+                return;
+            }
+
+            foreach (KeyValuePair<string, object> item in source)
+            {
+                target[item.Key] = item.Value;
+            }
         }
 
         private static IEnumerable<CardSnapshot> CardList(object value)
@@ -1638,6 +1685,11 @@ namespace BazaarStateExporter
                 {
                     card.enchantments.Add(StringValue(enchantment));
                 }
+
+                RuntimeCardInstanceReader.AddRuntimeSnapshot(
+                    card,
+                    item,
+                    "game_state_card");
 
                 yield return card;
             }

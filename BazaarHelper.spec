@@ -6,7 +6,12 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[],
-    hiddenimports=[],
+    hiddenimports=[
+        'combat_simulator',
+        'build_simulation_evaluator',
+        'tkinter',
+        'tkinter.filedialog',
+    ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

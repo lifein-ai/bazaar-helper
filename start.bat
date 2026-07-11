@@ -27,10 +27,6 @@ if not exist "BazaarHelper.exe" (
     exit /b 1
 )
 
-if exist "update_helper.ps1" (
-    powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0update_helper.ps1" -Quiet
-)
-
 for /f "tokens=5" %%P in ('netstat -ano ^| findstr /R /C:"127.0.0.1:8765 .*LISTENING"') do (
     taskkill /PID %%P /F >nul 2>&1
 )

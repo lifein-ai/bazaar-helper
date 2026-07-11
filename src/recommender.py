@@ -29,6 +29,7 @@ RECOMMENDATION_RANK = {
 
 VISIBLE_OFFER_COUNT = 3
 REFRESH_OFFER_COUNT = 3
+SHOP_ITEM_TIER_DISTRIBUTION_RULE = "shop_item_tier_distribution_by_day"
 
 ENCHANTMENT_TAGS = {
     "fiery": ["burn"],
@@ -476,6 +477,107 @@ def expected_unrelated_sell_gold(
     return draw_count * total_sell_value / len(analyzed_cards)
 
 
+def shop_item_tier_distribution_for_day(
+    rarity_rules: dict[str, Any],
+    current_day: int,
+) -> dict[str, float]:
+    distributions = rarity_rules.get(SHOP_ITEM_TIER_DISTRIBUTION_RULE)
+    if not isinstance(distributions, dict):
+        return {}
+
+    try:
+        day = max(1, int(current_day))
+    except (TypeError, ValueError):
+        return {}
+
+    key = str(min(day, 14))
+    raw_distribution = distributions.get(key)
+    if not isinstance(raw_distribution, dict):
+        return {}
+
+    distribution: dict[str, float] = {}
+    for rarity in ("bronze", "silver", "gold", "diamond"):
+        value = raw_distribution.get(rarity)
+        if not isinstance(value, (int, float)) or value <= 0:
+            continue
+        distribution[rarity] = float(value)
+
+    total = sum(distribution.values())
+    if total <= 0:
+        return {}
+    return {rarity: value / total for rarity, value in distribution.items()}
+
+
+def average_price_by_rarity(cards: list[dict[str, Any]]) -> dict[str, float]:
+    values: dict[str, list[float]] = {}
+    for card in cards:
+        raw = card.get("raw") if isinstance(card, dict) else None
+        if not isinstance(raw, dict):
+            continue
+        buy_prices = raw.get("buy_prices")
+        if not isinstance(buy_prices, dict):
+            continue
+        for rarity, price in buy_prices.items():
+            normalized = normalize_text(str(rarity))
+            if normalized not in RARITY_ORDER or not isinstance(price, (int, float)):
+                continue
+            values.setdefault(normalized, []).append(float(price))
+
+    return {
+        rarity: sum(prices) / len(prices)
+        for rarity, prices in values.items()
+        if prices
+    }
+
+
+def estimated_avg_shop_item_price(
+    current_day: int,
+    merchant_pool: list[dict[str, Any]],
+    all_cards: dict[str, Any],
+    rarity_rules: dict[str, Any],
+) -> float | None:
+    distribution = shop_item_tier_distribution_for_day(rarity_rules, current_day)
+    if not distribution:
+        return None
+
+    pool_prices = average_price_by_rarity(merchant_pool)
+    global_prices = average_price_by_rarity(
+        [
+            {"raw": card_data}
+            for card_data in all_cards.values()
+            if isinstance(card_data, dict)
+            and normalize_text(card_data.get("type") or card_data.get("card_type"))
+            == "item"
+        ]
+    )
+
+    weighted_total = 0.0
+    usable_probability = 0.0
+    for rarity, probability in distribution.items():
+        price = pool_prices.get(rarity, global_prices.get(rarity))
+        if price is None:
+            continue
+        weighted_total += probability * price
+        usable_probability += probability
+
+    if usable_probability <= 0:
+        return None
+    return weighted_total / usable_probability
+
+
+def max_known_visible_item_price(visible_items: Any) -> int | None:
+    if not isinstance(visible_items, list):
+        return None
+    prices: list[int] = []
+    for item in visible_items:
+        if not isinstance(item, dict):
+            continue
+        price = item.get("price")
+        if isinstance(price, (int, float)) and price >= 0:
+            prices.append(int(price))
+    return max(prices) if prices else None
+
+
 def get_event_draw_count(event_data: dict[str, Any]) -> int:
     """
     返回这个事件一次能看到/获得多少个物品。
@@ -604,6 +706,17 @@ def analyze_event(
         refresh_pool_valuable_count / len(possible_cards)
         if possible_cards
         else 0.0
+    )
+    merchant_pool = list(possible_cards)
+    estimated_avg_item_price = (
+        estimated_avg_shop_item_price(
+            current_day,
+            merchant_pool,
+            cards,
+            rarity_rules,
+        )
+        if is_shop
+        else None
     )
     visible_items = current_shop.get("visible_items") if is_shop and current_shop else None
     using_visible_items = isinstance(visible_items, list)
@@ -742,6 +855,28 @@ def analyze_event(
     if is_shop:
         refresh_available = current_shop.get("refresh_available") if current_shop else None
         refresh_cost = _optional_nonnegative_int(current_shop.get("refresh_cost")) if current_shop else None
+        visible_known_price = max_known_visible_item_price(visible_items)
+        purchase_budget_price = (
+            float(visible_known_price)
+            if visible_known_price is not None
+            else estimated_avg_item_price
+        )
+        purchase_budget_price_source = (
+            "runtime_visible_price"
+            if visible_known_price is not None
+            else "estimated_avg_shop_item_price"
+            if estimated_avg_item_price is not None
+            else "unknown"
+        )
+        gold_sufficient_for_refresh = (
+            current_gold - refresh_cost >= purchase_budget_price
+            if current_gold is not None
+            and refresh_cost is not None
+            and purchase_budget_price is not None
+            else current_gold > refresh_cost
+            if current_gold is not None and refresh_cost is not None
+            else None
+        )
         visible_valuable = [
             card for card in analyzed_cards
             if card.get("role") in {"core", "transition", "optional"}
@@ -756,6 +891,8 @@ def analyze_event(
             action, rationale = "skip", "当前金币未知，无法确认刷新后购买力。"
         elif current_gold <= refresh_cost:
             action, rationale = "skip", "金币不足以在刷新后保留购买预算。"
+        elif gold_sufficient_for_refresh is False:
+            action, rationale = "skip", "Gold can pay the refresh cost, but the day-based shop item price estimate says there may not be enough left to buy an item."
         elif refresh_pool_ratio >= 0.2:
             action, rationale = "refresh", "当前没有明显目标，卡池匹配度较高且金币可承担刷新并保留购买预算。"
         else:
@@ -768,11 +905,10 @@ def analyze_event(
             "using_visible_items": using_visible_items,
             "refresh_available": refresh_available,
             "refresh_cost": refresh_cost,
-            "gold_sufficient_for_refresh": (
-                current_gold > refresh_cost
-                if current_gold is not None and refresh_cost is not None
-                else None
-            ),
+            "estimated_avg_item_price": estimated_avg_item_price,
+            "purchase_budget_price": purchase_budget_price,
+            "purchase_budget_price_source": purchase_budget_price_source,
+            "gold_sufficient_for_refresh": gold_sufficient_for_refresh,
             "refresh_pool_valuable_ratio": refresh_pool_ratio,
         }
         reasons.insert(0, rationale)

@@ -284,6 +284,50 @@ namespace BazaarStateExporter
                 .ToList();
         }
 
+        public static CardSnapshot GetLatestMerchantCard(
+            float maxAgeSeconds,
+            float minSeenAt)
+        {
+            float now = Time.unscaledTime;
+            CapturedCardEntry latest = null;
+            lock (CapturedCardsLock)
+            {
+                foreach (CapturedCardEntry entry in CapturedCardsByInstanceId.Values)
+                {
+                    CardSnapshot card = entry.Card;
+                    if (card == null
+                        || now - entry.LastSeenAt > maxAgeSeconds
+                        || entry.LastSeenAt < minSeenAt)
+                    {
+                        continue;
+                    }
+
+                    string context = card.ui_context ?? "";
+                    string cardType = card.card_type ?? "";
+                    bool merchantPortrait = context.IndexOf(
+                        "OpponentPortraitSocketMerchant",
+                        StringComparison.OrdinalIgnoreCase) >= 0;
+                    bool merchantEncounter = cardType.IndexOf(
+                            "EventEncounter",
+                            StringComparison.OrdinalIgnoreCase) >= 0
+                        && context.IndexOf(
+                            "Merchant",
+                            StringComparison.OrdinalIgnoreCase) >= 0;
+                    if (!merchantPortrait && !merchantEncounter)
+                    {
+                        continue;
+                    }
+
+                    if (latest == null || entry.LastSeenAt > latest.LastSeenAt)
+                    {
+                        latest = entry;
+                    }
+                }
+            }
+
+            return latest == null ? null : latest.Card;
+        }
+
         public static void SetCurrentVisibleCards(List<CardSnapshot> cards)
         {
             lock (CapturedCardsLock)
@@ -1064,6 +1108,15 @@ namespace BazaarStateExporter
             {
                 card.enchantments.Add(StringValue(enchantment));
             }
+
+            RuntimeCardInstanceReader.AddRuntimeSnapshot(
+                card,
+                cardData,
+                "ui_card_data");
+            RuntimeCardInstanceReader.AddRuntimeSnapshot(
+                card,
+                controller,
+                "ui_controller");
 
             return card;
         }

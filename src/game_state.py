@@ -32,6 +32,7 @@ class GameState:
     skills: list[dict[str, Any]] | None = None
     current_events: list[dict[str, Any]] | None = None
     current_shop: dict[str, Any] | None = None
+    effective_shop: dict[str, Any] | None = None
     current_reward_options: list[dict[str, Any]] | None = None
     inventory_slots_used: int | None = None
     inventory_slots_total: int | None = None
@@ -82,6 +83,9 @@ class GameState:
         current_shop = payload.get("current_shop")
         if not isinstance(current_shop, dict):
             current_shop = None
+        effective_shop = payload.get("effective_shop")
+        if not isinstance(effective_shop, dict):
+            effective_shop = current_shop
 
         return cls(
             hero=str(payload["hero"]),
@@ -104,6 +108,7 @@ class GameState:
             skills=_optional_list(payload.get("skills", _by_type(entries, "skill"))),
             current_events=_optional_list(payload.get("current_events")),
             current_shop=dict(current_shop) if current_shop is not None else None,
+            effective_shop=dict(effective_shop) if effective_shop is not None else None,
             current_reward_options=_optional_list(payload.get("current_reward_options")),
             inventory_slots_used=_optional_int(payload.get("inventory_slots_used")),
             inventory_slots_total=_optional_int(payload.get("inventory_slots_total")),

@@ -23,7 +23,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Vehicles or Drones"
+      "notes": "Sells Vehicles or Drones",
+      "merchant_profile": {
+        "id": "847b1294-649d-4f02-ab04-0ee9f838c462",
+        "source_id": "847b1294-649d-4f02-ab04-0ee9f838c462",
+        "template_id": "847b1294-649d-4f02-ab04-0ee9f838c462",
+        "name": "Aero",
+        "internal_name": "Aero",
+        "source_ids": [
+          "847b1294-649d-4f02-ab04-0ee9f838c462"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Aila",
@@ -55,7 +67,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Weapons"
+      "notes": "Sells Weapons",
+      "merchant_profile": {
+        "id": "0cb20108-dcbb-48e2-8294-519d09c60b3e",
+        "source_id": "0cb20108-dcbb-48e2-8294-519d09c60b3e",
+        "template_id": "0cb20108-dcbb-48e2-8294-519d09c60b3e",
+        "name": "Aila",
+        "internal_name": "Tutorial Day 3 Hour 4 - Aila",
+        "source_ids": [
+          "0cb20108-dcbb-48e2-8294-519d09c60b3e"
+        ],
+        "shop_tier": "bronze",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Aimbot",
@@ -85,7 +109,19 @@
         ],
         "hero_scope": "any"
       },
-      "notes": "Sells Crit items from any Hero"
+      "notes": "Sells Crit items from any Hero",
+      "merchant_profile": {
+        "id": "f22fd14f-7e00-40cb-9e44-a46f34d64764",
+        "source_id": "f22fd14f-7e00-40cb-9e44-a46f34d64764",
+        "template_id": "f22fd14f-7e00-40cb-9e44-a46f34d64764",
+        "name": "Aimbot",
+        "internal_name": "Aimbot",
+        "source_ids": [
+          "f22fd14f-7e00-40cb-9e44-a46f34d64764"
+        ],
+        "shop_tier": "gold",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Ande",
@@ -115,7 +151,19 @@
           "small"
         ]
       },
-      "notes": "Sells Small items"
+      "notes": "Sells Small items",
+      "merchant_profile": {
+        "id": "60e67364-7aab-4ffa-9751-db5ec0caf452",
+        "source_id": "60e67364-7aab-4ffa-9751-db5ec0caf452",
+        "template_id": "60e67364-7aab-4ffa-9751-db5ec0caf452",
+        "name": "Ande",
+        "internal_name": "Tutorial Day 3 Hour 5 - Ande",
+        "source_ids": [
+          "60e67364-7aab-4ffa-9751-db5ec0caf452"
+        ],
+        "shop_tier": "bronze",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Barkun",
@@ -142,7 +190,19 @@
           "large"
         ]
       },
-      "notes": "Sells Medium and Large items. Buys your Small items at +{aura.3} Value"
+      "notes": "Sells Medium and Large items. Buys your Small items at +{aura.3} Value",
+      "merchant_profile": {
+        "id": "8f0aea10-9894-4ded-a726-72b23142589c",
+        "source_id": "8f0aea10-9894-4ded-a726-72b23142589c",
+        "template_id": "8f0aea10-9894-4ded-a726-72b23142589c",
+        "name": "Barkun",
+        "internal_name": "Barkun",
+        "source_ids": [
+          "8f0aea10-9894-4ded-a726-72b23142589c"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Chronos",
@@ -168,7 +228,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Haste items."
+      "notes": "Sells Haste items.",
+      "merchant_profile": {
+        "id": "3346b0d5-20a0-4aa4-a7d4-b86ad0109e59",
+        "source_id": "3346b0d5-20a0-4aa4-a7d4-b86ad0109e59",
+        "template_id": "3346b0d5-20a0-4aa4-a7d4-b86ad0109e59",
+        "name": "Chronos",
+        "internal_name": "Tutorial Day 4 Hour 1 - Chronos",
+        "source_ids": [
+          "3346b0d5-20a0-4aa4-a7d4-b86ad0109e59"
+        ],
+        "shop_tier": "diamond",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Cobweb",
@@ -194,7 +266,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Slow items."
+      "notes": "Sells Slow items.",
+      "merchant_profile": {
+        "id": "b10f79af-da26-4b27-88da-3e7fea49a3b9",
+        "source_id": "b10f79af-da26-4b27-88da-3e7fea49a3b9",
+        "template_id": "b10f79af-da26-4b27-88da-3e7fea49a3b9",
+        "name": "Cobweb",
+        "internal_name": "Tutorial Day 4 Hour 4 - Cobweb",
+        "source_ids": [
+          "b10f79af-da26-4b27-88da-3e7fea49a3b9"
+        ],
+        "shop_tier": "diamond",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Colt",
@@ -222,7 +306,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Ammo items"
+      "notes": "Sells Ammo items",
+      "merchant_profile": {
+        "id": "816e6ba0-8f5f-412e-9756-8e1901dd9d49",
+        "source_id": "816e6ba0-8f5f-412e-9756-8e1901dd9d49",
+        "template_id": "816e6ba0-8f5f-412e-9756-8e1901dd9d49",
+        "name": "Colt",
+        "internal_name": "Colt",
+        "source_ids": [
+          "816e6ba0-8f5f-412e-9756-8e1901dd9d49"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Curio",
@@ -249,7 +345,19 @@
         "hero_scope": "fixed",
         "hero_filter": "Common"
       },
-      "notes": "Sells Bronze-tier Neutral items"
+      "notes": "Sells Bronze-tier Neutral items",
+      "merchant_profile": {
+        "id": "c6cffe25-8e94-4a7b-a821-3e3c7093333b",
+        "source_id": "c6cffe25-8e94-4a7b-a821-3e3c7093333b",
+        "template_id": "c6cffe25-8e94-4a7b-a821-3e3c7093333b",
+        "name": "Curio",
+        "internal_name": "Curio",
+        "source_ids": [
+          "c6cffe25-8e94-4a7b-a821-3e3c7093333b"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Dooley",
@@ -277,7 +385,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells items from this Hero"
+      "notes": "Sells items from this Hero",
+      "merchant_profile": {
+        "id": "4580fb31-b2ea-4f9b-9ab9-2979602f83d8",
+        "source_id": "4580fb31-b2ea-4f9b-9ab9-2979602f83d8",
+        "template_id": "4580fb31-b2ea-4f9b-9ab9-2979602f83d8",
+        "name": "Dooley",
+        "internal_name": "Dooley (Hero Merchant)",
+        "source_ids": [
+          "4580fb31-b2ea-4f9b-9ab9-2979602f83d8"
+        ],
+        "shop_tier": "diamond",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Eli",
@@ -302,7 +422,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Potions"
+      "notes": "Sells Potions",
+      "merchant_profile": {
+        "id": "0ff275f7-60ef-4428-acb6-1a138d03152d",
+        "source_id": "0ff275f7-60ef-4428-acb6-1a138d03152d",
+        "template_id": "0ff275f7-60ef-4428-acb6-1a138d03152d",
+        "name": "Eli",
+        "internal_name": "Eli",
+        "source_ids": [
+          "0ff275f7-60ef-4428-acb6-1a138d03152d"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Flex",
@@ -329,7 +461,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Max Health items"
+      "notes": "Sells Max Health items",
+      "merchant_profile": {
+        "id": "7bd967dd-4631-4252-bdff-ee0bd5e3ddb7",
+        "source_id": "7bd967dd-4631-4252-bdff-ee0bd5e3ddb7",
+        "template_id": "7bd967dd-4631-4252-bdff-ee0bd5e3ddb7",
+        "name": "Flex",
+        "internal_name": "Flex",
+        "source_ids": [
+          "7bd967dd-4631-4252-bdff-ee0bd5e3ddb7"
+        ],
+        "shop_tier": "diamond",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Freiya",
@@ -354,7 +498,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Freeze items"
+      "notes": "Sells Freeze items",
+      "merchant_profile": {
+        "id": "c246ee53-51ea-40c1-ac2f-71435e179531",
+        "source_id": "c246ee53-51ea-40c1-ac2f-71435e179531",
+        "template_id": "c246ee53-51ea-40c1-ac2f-71435e179531",
+        "name": "Freiya",
+        "internal_name": "Freiya",
+        "source_ids": [
+          "c246ee53-51ea-40c1-ac2f-71435e179531"
+        ],
+        "shop_tier": "diamond",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Gaseo",
@@ -379,7 +535,19 @@
         ],
         "hero_scope": "any"
       },
-      "notes": "Sells Apparel from any Hero"
+      "notes": "Sells Apparel from any Hero",
+      "merchant_profile": {
+        "id": "9fc8b5a3-f522-4999-b310-26a0fadc7708",
+        "source_id": "9fc8b5a3-f522-4999-b310-26a0fadc7708",
+        "template_id": "9fc8b5a3-f522-4999-b310-26a0fadc7708",
+        "name": "Gaseo",
+        "internal_name": "Gaseo",
+        "source_ids": [
+          "9fc8b5a3-f522-4999-b310-26a0fadc7708"
+        ],
+        "shop_tier": "gold",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Gastro",
@@ -404,7 +572,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Foods"
+      "notes": "Sells Foods",
+      "merchant_profile": {
+        "id": "c3d9c329-0db6-478e-ad0f-ef2ae78834ce",
+        "source_id": "c3d9c329-0db6-478e-ad0f-ef2ae78834ce",
+        "template_id": "c3d9c329-0db6-478e-ad0f-ef2ae78834ce",
+        "name": "Gastro",
+        "internal_name": "Gastro",
+        "source_ids": [
+          "c3d9c329-0db6-478e-ad0f-ef2ae78834ce"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Goldie",
@@ -431,7 +611,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Gold-tier items"
+      "notes": "Sells Gold-tier items",
+      "merchant_profile": {
+        "id": "1f72700a-fe11-4792-8a47-9e52b9387f29",
+        "source_id": "1f72700a-fe11-4792-8a47-9e52b9387f29",
+        "template_id": "1f72700a-fe11-4792-8a47-9e52b9387f29",
+        "name": "Goldie",
+        "internal_name": "Goldie",
+        "source_ids": [
+          "1f72700a-fe11-4792-8a47-9e52b9387f29"
+        ],
+        "shop_tier": "gold",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Hef",
@@ -457,7 +649,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Burn items"
+      "notes": "Sells Burn items",
+      "merchant_profile": {
+        "id": "43dbd6ed-6989-4ae4-acdc-f8bfcb8a008f",
+        "source_id": "43dbd6ed-6989-4ae4-acdc-f8bfcb8a008f",
+        "template_id": "43dbd6ed-6989-4ae4-acdc-f8bfcb8a008f",
+        "name": "Hef",
+        "internal_name": "Hef",
+        "source_ids": [
+          "43dbd6ed-6989-4ae4-acdc-f8bfcb8a008f"
+        ],
+        "shop_tier": "diamond",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Herma",
@@ -486,7 +690,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Heal and Regen items"
+      "notes": "Sells Heal and Regen items",
+      "merchant_profile": {
+        "id": "2708055d-a8be-4c2f-a8d6-574e884a254e",
+        "source_id": "2708055d-a8be-4c2f-a8d6-574e884a254e",
+        "template_id": "2708055d-a8be-4c2f-a8d6-574e884a254e",
+        "name": "Herma",
+        "internal_name": "Herma",
+        "source_ids": [
+          "2708055d-a8be-4c2f-a8d6-574e884a254e"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Jay Jay",
@@ -519,7 +735,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells items"
+      "notes": "Sells items",
+      "merchant_profile": {
+        "id": "00b9bc97-b751-48c3-b3ae-6d96adf7a929",
+        "source_id": "00b9bc97-b751-48c3-b3ae-6d96adf7a929",
+        "template_id": "00b9bc97-b751-48c3-b3ae-6d96adf7a929",
+        "name": "Jay Jay",
+        "internal_name": "Tutorial Day 1 Hour 5 - Jay Jay",
+        "source_ids": [
+          "00b9bc97-b751-48c3-b3ae-6d96adf7a929"
+        ],
+        "shop_tier": "bronze",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Jules",
@@ -547,7 +775,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells items from this Hero"
+      "notes": "Sells items from this Hero",
+      "merchant_profile": {
+        "id": "7fdc233f-b81f-4216-a646-4c807c2240da",
+        "source_id": "7fdc233f-b81f-4216-a646-4c807c2240da",
+        "template_id": "7fdc233f-b81f-4216-a646-4c807c2240da",
+        "name": "Jules",
+        "internal_name": "Jules (Hero Merchant)",
+        "source_ids": [
+          "7fdc233f-b81f-4216-a646-4c807c2240da"
+        ],
+        "shop_tier": "diamond",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Karnok",
@@ -575,7 +815,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells items from this Hero"
+      "notes": "Sells items from this Hero",
+      "merchant_profile": {
+        "id": "379d881b-4524-4db9-a606-47bd35749f44",
+        "source_id": "379d881b-4524-4db9-a606-47bd35749f44",
+        "template_id": "379d881b-4524-4db9-a606-47bd35749f44",
+        "name": "Karnok",
+        "internal_name": "Karnok (Hero Merchant)",
+        "source_ids": [
+          "379d881b-4524-4db9-a606-47bd35749f44"
+        ],
+        "shop_tier": "diamond",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Kev's Armory",
@@ -607,7 +859,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Health and Shield items"
+      "notes": "Sells Health and Shield items",
+      "merchant_profile": {
+        "id": "a4fa13f8-6beb-4b6c-839b-60af167628d9",
+        "source_id": "a4fa13f8-6beb-4b6c-839b-60af167628d9",
+        "template_id": "a4fa13f8-6beb-4b6c-839b-60af167628d9",
+        "name": "Kev's Armory",
+        "internal_name": "Kev's Armory",
+        "source_ids": [
+          "a4fa13f8-6beb-4b6c-839b-60af167628d9"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Kina",
@@ -634,7 +898,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells non-Weapon items"
+      "notes": "Sells non-Weapon items",
+      "merchant_profile": {
+        "id": "3ab184ce-bdb8-4dee-9169-8b383a25eae6",
+        "source_id": "3ab184ce-bdb8-4dee-9169-8b383a25eae6",
+        "template_id": "3ab184ce-bdb8-4dee-9169-8b383a25eae6",
+        "name": "Kina",
+        "internal_name": "Kina Tutorial Day 1 Hour 5",
+        "source_ids": [
+          "3ab184ce-bdb8-4dee-9169-8b383a25eae6"
+        ],
+        "shop_tier": "bronze",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Knightshade",
@@ -660,7 +936,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Poison items"
+      "notes": "Sells Poison items",
+      "merchant_profile": {
+        "id": "2745a661-095c-44a5-bb6e-8dc76e07bda2",
+        "source_id": "2745a661-095c-44a5-bb6e-8dc76e07bda2",
+        "template_id": "2745a661-095c-44a5-bb6e-8dc76e07bda2",
+        "name": "Knightshade",
+        "internal_name": "Knightshade",
+        "source_ids": [
+          "2745a661-095c-44a5-bb6e-8dc76e07bda2"
+        ],
+        "shop_tier": "diamond",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Luxe",
@@ -686,7 +974,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Diamond-tier items"
+      "notes": "Sells Diamond-tier items",
+      "merchant_profile": {
+        "id": "892de564-d894-4e07-ab21-959e16e8cdf8",
+        "source_id": "892de564-d894-4e07-ab21-959e16e8cdf8",
+        "template_id": "892de564-d894-4e07-ab21-959e16e8cdf8",
+        "name": "Luxe",
+        "internal_name": "Luxe",
+        "source_ids": [
+          "892de564-d894-4e07-ab21-959e16e8cdf8"
+        ],
+        "shop_tier": "diamond",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Mak",
@@ -714,7 +1014,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells items from this Hero"
+      "notes": "Sells items from this Hero",
+      "merchant_profile": {
+        "id": "4475cff5-6105-4f4a-978c-b282e36173eb",
+        "source_id": "4475cff5-6105-4f4a-978c-b282e36173eb",
+        "template_id": "4475cff5-6105-4f4a-978c-b282e36173eb",
+        "name": "Mak",
+        "internal_name": "Mak (Hero Merchant)",
+        "source_ids": [
+          "4475cff5-6105-4f4a-978c-b282e36173eb"
+        ],
+        "shop_tier": "diamond",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Maximus",
@@ -740,7 +1052,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Health, Speed, Strength and Toughness items"
+      "notes": "Sells Health, Speed, Strength and Toughness items",
+      "merchant_profile": {
+        "id": "e80ebe4b-6bb3-480a-bc06-32973c84cf90",
+        "source_id": "e80ebe4b-6bb3-480a-bc06-32973c84cf90",
+        "template_id": "e80ebe4b-6bb3-480a-bc06-32973c84cf90",
+        "name": "Maximus",
+        "internal_name": "Maximus",
+        "source_ids": [
+          "e80ebe4b-6bb3-480a-bc06-32973c84cf90"
+        ],
+        "shop_tier": "bronze",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Midsworth",
@@ -769,7 +1093,19 @@
           "large"
         ]
       },
-      "notes": "Sells Small and Large items"
+      "notes": "Sells Small and Large items",
+      "merchant_profile": {
+        "id": "0e5caade-789e-4184-92dc-d1ab03fcf926",
+        "source_id": "0e5caade-789e-4184-92dc-d1ab03fcf926",
+        "template_id": "0e5caade-789e-4184-92dc-d1ab03fcf926",
+        "name": "Midsworth",
+        "internal_name": "Tutorial Day 3 Hour 1 - Midsworth",
+        "source_ids": [
+          "0e5caade-789e-4184-92dc-d1ab03fcf926"
+        ],
+        "shop_tier": "bronze",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Mittel",
@@ -798,7 +1134,19 @@
           "medium"
         ]
       },
-      "notes": "Sells Medium items"
+      "notes": "Sells Medium items",
+      "merchant_profile": {
+        "id": "912c8b09-3b76-4aa1-8e21-245e0dfb5046",
+        "source_id": "912c8b09-3b76-4aa1-8e21-245e0dfb5046",
+        "template_id": "912c8b09-3b76-4aa1-8e21-245e0dfb5046",
+        "name": "Mittel",
+        "internal_name": "Mittel",
+        "source_ids": [
+          "912c8b09-3b76-4aa1-8e21-245e0dfb5046"
+        ],
+        "shop_tier": "bronze",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Mr. Morland",
@@ -823,7 +1171,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Property items"
+      "notes": "Sells Property items",
+      "merchant_profile": {
+        "id": "e30d8bef-5bea-4e95-b4c2-e29e17325a82",
+        "source_id": "e30d8bef-5bea-4e95-b4c2-e29e17325a82",
+        "template_id": "e30d8bef-5bea-4e95-b4c2-e29e17325a82",
+        "name": "Mr. Morland",
+        "internal_name": "Mr. Morland",
+        "source_ids": [
+          "e30d8bef-5bea-4e95-b4c2-e29e17325a82"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Nautica",
@@ -850,7 +1210,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Aquatic items"
+      "notes": "Sells Aquatic items",
+      "merchant_profile": {
+        "id": "1a21931f-6183-4251-914b-c8f83dc58a30",
+        "source_id": "1a21931f-6183-4251-914b-c8f83dc58a30",
+        "template_id": "1a21931f-6183-4251-914b-c8f83dc58a30",
+        "name": "Nautica",
+        "internal_name": "Nautica",
+        "source_ids": [
+          "1a21931f-6183-4251-914b-c8f83dc58a30"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Orion",
@@ -876,7 +1248,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Tools"
+      "notes": "Sells Tools",
+      "merchant_profile": {
+        "id": "d3727a3a-3dd2-4ea7-a396-515e2c41c1b0",
+        "source_id": "d3727a3a-3dd2-4ea7-a396-515e2c41c1b0",
+        "template_id": "d3727a3a-3dd2-4ea7-a396-515e2c41c1b0",
+        "name": "Orion",
+        "internal_name": "Orion",
+        "source_ids": [
+          "d3727a3a-3dd2-4ea7-a396-515e2c41c1b0"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Pinfeather",
@@ -906,7 +1290,19 @@
         ],
         "hero_scope": "any"
       },
-      "notes": "Sells Flying items from any Hero"
+      "notes": "Sells Flying items from any Hero",
+      "merchant_profile": {
+        "id": "7066e72e-40b7-4104-b521-159de457f2d0",
+        "source_id": "7066e72e-40b7-4104-b521-159de457f2d0",
+        "template_id": "7066e72e-40b7-4104-b521-159de457f2d0",
+        "name": "Pinfeather",
+        "internal_name": "Pinfeather",
+        "source_ids": [
+          "7066e72e-40b7-4104-b521-159de457f2d0"
+        ],
+        "shop_tier": "gold",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Pol",
@@ -932,7 +1328,19 @@
           "large"
         ]
       },
-      "notes": "Sells Large items"
+      "notes": "Sells Large items",
+      "merchant_profile": {
+        "id": "065f6793-8607-4f02-abfe-db6afb221ab2",
+        "source_id": "065f6793-8607-4f02-abfe-db6afb221ab2",
+        "template_id": "065f6793-8607-4f02-abfe-db6afb221ab2",
+        "name": "Pol",
+        "internal_name": "Pol",
+        "source_ids": [
+          "065f6793-8607-4f02-abfe-db6afb221ab2"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Private Pitchfork",
@@ -956,7 +1364,19 @@
         "hero_scope": "fixed",
         "hero_filter": "Common"
       },
-      "notes": "Sells Neutral items"
+      "notes": "Sells Neutral items",
+      "merchant_profile": {
+        "id": "15b88e74-024e-40a3-a811-aa5810e68ca2",
+        "source_id": "15b88e74-024e-40a3-a811-aa5810e68ca2",
+        "template_id": "15b88e74-024e-40a3-a811-aa5810e68ca2",
+        "name": "Private Pitchfork",
+        "internal_name": "Private Pitchfork",
+        "source_ids": [
+          "15b88e74-024e-40a3-a811-aa5810e68ca2"
+        ],
+        "shop_tier": "gold",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Prospero",
@@ -983,7 +1403,19 @@
         ],
         "hero_scope": "any"
       },
-      "notes": "Sells Economic items from any hero"
+      "notes": "Sells Economic items from any hero",
+      "merchant_profile": {
+        "id": "bcdaa6d4-9057-4ea1-8110-a2dae217c55f",
+        "source_id": "bcdaa6d4-9057-4ea1-8110-a2dae217c55f",
+        "template_id": "bcdaa6d4-9057-4ea1-8110-a2dae217c55f",
+        "name": "Prospero",
+        "internal_name": "Prospero",
+        "source_ids": [
+          "bcdaa6d4-9057-4ea1-8110-a2dae217c55f"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Proteus",
@@ -1008,7 +1440,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Shield items"
+      "notes": "Sells Shield items",
+      "merchant_profile": {
+        "id": "c770d3da-3f41-41c2-91d9-4eb49a9e8ae5",
+        "source_id": "c770d3da-3f41-41c2-91d9-4eb49a9e8ae5",
+        "template_id": "c770d3da-3f41-41c2-91d9-4eb49a9e8ae5",
+        "name": "Proteus",
+        "internal_name": "Proteus",
+        "source_ids": [
+          "c770d3da-3f41-41c2-91d9-4eb49a9e8ae5"
+        ],
+        "shop_tier": "gold",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Pygmalien",
@@ -1036,7 +1480,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells items from this Hero"
+      "notes": "Sells items from this Hero",
+      "merchant_profile": {
+        "id": "f9074804-1812-445a-8688-b8c86f9c7711",
+        "source_id": "f9074804-1812-445a-8688-b8c86f9c7711",
+        "template_id": "f9074804-1812-445a-8688-b8c86f9c7711",
+        "name": "Pygmalien",
+        "internal_name": "Pygmalien (Hero Merchant)",
+        "source_ids": [
+          "f9074804-1812-445a-8688-b8c86f9c7711"
+        ],
+        "shop_tier": "diamond",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Quixel",
@@ -1065,7 +1521,19 @@
           "medium"
         ]
       },
-      "notes": "Sells Small and Medium items. Buys your Large items at +{aura.3} value"
+      "notes": "Sells Small and Medium items. Buys your Large items at +{aura.3} value",
+      "merchant_profile": {
+        "id": "323e2c05-f077-4774-84a5-9e89d8d1c9b9",
+        "source_id": "323e2c05-f077-4774-84a5-9e89d8d1c9b9",
+        "template_id": "323e2c05-f077-4774-84a5-9e89d8d1c9b9",
+        "name": "Quixel",
+        "internal_name": "Quixel",
+        "source_ids": [
+          "323e2c05-f077-4774-84a5-9e89d8d1c9b9"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Serafina",
@@ -1090,7 +1558,19 @@
         "enchanted_shop": true,
         "enchantment_required": true
       },
-      "notes": "Sells Enchanted items"
+      "notes": "Sells Enchanted items",
+      "merchant_profile": {
+        "id": "b690812d-108b-49ce-82f3-e1a41379022c",
+        "source_id": "b690812d-108b-49ce-82f3-e1a41379022c",
+        "template_id": "b690812d-108b-49ce-82f3-e1a41379022c",
+        "name": "Serafina",
+        "internal_name": "Serafina",
+        "source_ids": [
+          "b690812d-108b-49ce-82f3-e1a41379022c"
+        ],
+        "shop_tier": "diamond",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Seraphim",
@@ -1116,7 +1596,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Heal or Shield items"
+      "notes": "Sells Heal or Shield items",
+      "merchant_profile": {
+        "id": "ee6887f7-4bde-4a54-a7ab-540eb43d46a1",
+        "source_id": "ee6887f7-4bde-4a54-a7ab-540eb43d46a1",
+        "template_id": "ee6887f7-4bde-4a54-a7ab-540eb43d46a1",
+        "name": "Seraphim",
+        "internal_name": "Seraphim",
+        "source_ids": [
+          "ee6887f7-4bde-4a54-a7ab-540eb43d46a1"
+        ],
+        "shop_tier": "bronze",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Shelter Shelby",
@@ -1142,7 +1634,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Friend items"
+      "notes": "Sells Friend items",
+      "merchant_profile": {
+        "id": "9459a01b-edf5-432b-81cd-1fd2cacfadad",
+        "source_id": "9459a01b-edf5-432b-81cd-1fd2cacfadad",
+        "template_id": "9459a01b-edf5-432b-81cd-1fd2cacfadad",
+        "name": "Shelter Shelby",
+        "internal_name": "Shelter Shelby (Merchant)",
+        "source_ids": [
+          "9459a01b-edf5-432b-81cd-1fd2cacfadad"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Silvia",
@@ -1169,7 +1673,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Silver-tier items."
+      "notes": "Sells Silver-tier items.",
+      "merchant_profile": {
+        "id": "5fcd3081-0daa-4e50-b749-c884b405ef9c",
+        "source_id": "5fcd3081-0daa-4e50-b749-c884b405ef9c",
+        "template_id": "5fcd3081-0daa-4e50-b749-c884b405ef9c",
+        "name": "Silvia",
+        "internal_name": "Tutorial Day 4 Hour 2 - Silvia",
+        "source_ids": [
+          "5fcd3081-0daa-4e50-b749-c884b405ef9c"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Stelle",
@@ -1197,7 +1713,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells items from this Hero"
+      "notes": "Sells items from this Hero",
+      "merchant_profile": {
+        "id": "e48b3243-1e7e-4a97-bf4f-0699fd0b4616",
+        "source_id": "e48b3243-1e7e-4a97-bf4f-0699fd0b4616",
+        "template_id": "e48b3243-1e7e-4a97-bf4f-0699fd0b4616",
+        "name": "Stelle",
+        "internal_name": "Stelle (Hero Merchant)",
+        "source_ids": [
+          "e48b3243-1e7e-4a97-bf4f-0699fd0b4616"
+        ],
+        "shop_tier": "diamond",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Stickybeans",
@@ -1220,7 +1748,19 @@
         ],
         "hero_scope": "other"
       },
-      "notes": "Sells items from other Heroes"
+      "notes": "Sells items from other Heroes",
+      "merchant_profile": {
+        "id": "d0276b47-be8a-4bbc-ab55-9f92b352480a",
+        "source_id": "d0276b47-be8a-4bbc-ab55-9f92b352480a",
+        "template_id": "d0276b47-be8a-4bbc-ab55-9f92b352480a",
+        "name": "Stickybeans",
+        "internal_name": "Stickybeans",
+        "source_ids": [
+          "d0276b47-be8a-4bbc-ab55-9f92b352480a"
+        ],
+        "shop_tier": "gold",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Tatiana",
@@ -1245,7 +1785,19 @@
         ],
         "hero_scope": "any"
       },
-      "notes": "Sells Toys from any Hero"
+      "notes": "Sells Toys from any Hero",
+      "merchant_profile": {
+        "id": "22bb0004-5131-4588-a567-03ee3c96003b",
+        "source_id": "22bb0004-5131-4588-a567-03ee3c96003b",
+        "template_id": "22bb0004-5131-4588-a567-03ee3c96003b",
+        "name": "Tatiana",
+        "internal_name": "Tatiana",
+        "source_ids": [
+          "22bb0004-5131-4588-a567-03ee3c96003b"
+        ],
+        "shop_tier": "gold",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "The Antiquarian",
@@ -1274,7 +1826,19 @@
         ],
         "hero_scope": "any"
       },
-      "notes": "Sells Relics from any Hero"
+      "notes": "Sells Relics from any Hero",
+      "merchant_profile": {
+        "id": "e840f7a3-0a04-455d-852c-286dc5011efc",
+        "source_id": "e840f7a3-0a04-455d-852c-286dc5011efc",
+        "template_id": "e840f7a3-0a04-455d-852c-286dc5011efc",
+        "name": "The Antiquarian",
+        "internal_name": "The Antiquarian",
+        "source_ids": [
+          "e840f7a3-0a04-455d-852c-286dc5011efc"
+        ],
+        "shop_tier": "gold",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "The Tester",
@@ -1300,7 +1864,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Tech items"
+      "notes": "Sells Tech items",
+      "merchant_profile": {
+        "id": "41cdf4ee-7790-4da1-96f8-a46d3391a0d9",
+        "source_id": "41cdf4ee-7790-4da1-96f8-a46d3391a0d9",
+        "template_id": "41cdf4ee-7790-4da1-96f8-a46d3391a0d9",
+        "name": "The Tester",
+        "internal_name": "The Tester",
+        "source_ids": [
+          "41cdf4ee-7790-4da1-96f8-a46d3391a0d9"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "The Travel Agent",
@@ -1328,7 +1904,19 @@
         ],
         "hero_scope": "any"
       },
-      "notes": "Sells Expedition Tickets"
+      "notes": "Sells Expedition Tickets",
+      "merchant_profile": {
+        "id": "002d8f6d-0e36-4921-89ed-3f0f28682d7b",
+        "source_id": "002d8f6d-0e36-4921-89ed-3f0f28682d7b",
+        "template_id": "002d8f6d-0e36-4921-89ed-3f0f28682d7b",
+        "name": "The Travel Agent",
+        "internal_name": "The Travel Agent",
+        "source_ids": [
+          "002d8f6d-0e36-4921-89ed-3f0f28682d7b"
+        ],
+        "shop_tier": "diamond",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Tinker",
@@ -1353,7 +1941,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Friend items"
+      "notes": "Sells Friend items",
+      "merchant_profile": {
+        "id": "b1b1f445-e625-4397-b4e2-ee4feeb729fa",
+        "source_id": "b1b1f445-e625-4397-b4e2-ee4feeb729fa",
+        "template_id": "b1b1f445-e625-4397-b4e2-ee4feeb729fa",
+        "name": "Tinker",
+        "internal_name": "Tinker",
+        "source_ids": [
+          "b1b1f445-e625-4397-b4e2-ee4feeb729fa"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Tok's Clocks",
@@ -1385,7 +1985,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Haste, Slow and Cooldown items"
+      "notes": "Sells Haste, Slow and Cooldown items",
+      "merchant_profile": {
+        "id": "3e871bbb-fb25-417f-8643-cb43456c3fc7",
+        "source_id": "3e871bbb-fb25-417f-8643-cb43456c3fc7",
+        "template_id": "3e871bbb-fb25-417f-8643-cb43456c3fc7",
+        "name": "Tok's Clocks",
+        "internal_name": "Tok's Clocks",
+        "source_ids": [
+          "3e871bbb-fb25-417f-8643-cb43456c3fc7"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Valpak",
@@ -1409,7 +2021,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells items"
+      "notes": "Sells items",
+      "merchant_profile": {
+        "id": "42bd0dae-7215-48cf-a526-437289e7f8d1",
+        "source_id": "42bd0dae-7215-48cf-a526-437289e7f8d1",
+        "template_id": "42bd0dae-7215-48cf-a526-437289e7f8d1",
+        "name": "Valpak",
+        "internal_name": "Tutorial Day 3 Hour 2 - Valpak",
+        "source_ids": [
+          "42bd0dae-7215-48cf-a526-437289e7f8d1"
+        ],
+        "shop_tier": "bronze",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Vanessa",
@@ -1437,7 +2061,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells items from this Hero"
+      "notes": "Sells items from this Hero",
+      "merchant_profile": {
+        "id": "580ba494-a852-4d80-a82d-5cd66fcfd2f3",
+        "source_id": "580ba494-a852-4d80-a82d-5cd66fcfd2f3",
+        "template_id": "580ba494-a852-4d80-a82d-5cd66fcfd2f3",
+        "name": "Vanessa",
+        "internal_name": "Vanessa (Hero Merchant)",
+        "source_ids": [
+          "580ba494-a852-4d80-a82d-5cd66fcfd2f3"
+        ],
+        "shop_tier": "diamond",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "Vox",
@@ -1465,7 +2101,19 @@
         ],
         "hero_scope": "current"
       },
-      "notes": "Sells Burn, Poison, Freeze, and Slow items"
+      "notes": "Sells Burn, Poison, Freeze, and Slow items",
+      "merchant_profile": {
+        "id": "39ea83a9-0cd2-47af-b1d0-37fa8384c966",
+        "source_id": "39ea83a9-0cd2-47af-b1d0-37fa8384c966",
+        "template_id": "39ea83a9-0cd2-47af-b1d0-37fa8384c966",
+        "name": "Vox",
+        "internal_name": "Vox",
+        "source_ids": [
+          "39ea83a9-0cd2-47af-b1d0-37fa8384c966"
+        ],
+        "shop_tier": "bronze",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "[DEBUG] Burn Merchant",
@@ -1490,7 +2138,19 @@
         ],
         "hero_scope": "any"
       },
-      "notes": "Sells Burn items from any Hero"
+      "notes": "Sells Burn items from any Hero",
+      "merchant_profile": {
+        "id": "2f80f1fe-462b-4a8d-8819-d211d11904d1",
+        "source_id": "2f80f1fe-462b-4a8d-8819-d211d11904d1",
+        "template_id": "2f80f1fe-462b-4a8d-8819-d211d11904d1",
+        "name": "[DEBUG] Burn Merchant",
+        "internal_name": "[DEBUG] Burn Merchant",
+        "source_ids": [
+          "2f80f1fe-462b-4a8d-8819-d211d11904d1"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "[DEBUG] Crit Merchant",
@@ -1515,7 +2175,19 @@
         ],
         "hero_scope": "any"
       },
-      "notes": "Sells Crit items from any Hero"
+      "notes": "Sells Crit items from any Hero",
+      "merchant_profile": {
+        "id": "3f99df7b-5c30-4da5-98e4-89ff5409a777",
+        "source_id": "3f99df7b-5c30-4da5-98e4-89ff5409a777",
+        "template_id": "3f99df7b-5c30-4da5-98e4-89ff5409a777",
+        "name": "[DEBUG] Crit Merchant",
+        "internal_name": "[DEBUG] Crit Merchant",
+        "source_ids": [
+          "3f99df7b-5c30-4da5-98e4-89ff5409a777"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "[DEBUG] Economic Merchant",
@@ -1542,7 +2214,19 @@
         ],
         "hero_scope": "any"
       },
-      "notes": "Sells Economic items from any Hero"
+      "notes": "Sells Economic items from any Hero",
+      "merchant_profile": {
+        "id": "fe0aff36-c0d4-46ba-81dd-51881891b958",
+        "source_id": "fe0aff36-c0d4-46ba-81dd-51881891b958",
+        "template_id": "fe0aff36-c0d4-46ba-81dd-51881891b958",
+        "name": "[DEBUG] Economic Merchant",
+        "internal_name": "[DEBUG] Economic Merchant",
+        "source_ids": [
+          "fe0aff36-c0d4-46ba-81dd-51881891b958"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "[DEBUG] Flying Merchant",
@@ -1567,7 +2251,19 @@
         ],
         "hero_scope": "any"
       },
-      "notes": "Sells Flying items from any Hero"
+      "notes": "Sells Flying items from any Hero",
+      "merchant_profile": {
+        "id": "ba7960c6-9352-4795-9844-bdecc25fdb9f",
+        "source_id": "ba7960c6-9352-4795-9844-bdecc25fdb9f",
+        "template_id": "ba7960c6-9352-4795-9844-bdecc25fdb9f",
+        "name": "[DEBUG] Flying Merchant",
+        "internal_name": "[DEBUG] Flying Merchant",
+        "source_ids": [
+          "ba7960c6-9352-4795-9844-bdecc25fdb9f"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "[DEBUG] Freeze Merchant",
@@ -1592,7 +2288,19 @@
         ],
         "hero_scope": "any"
       },
-      "notes": "Sells Freeze items from any Hero"
+      "notes": "Sells Freeze items from any Hero",
+      "merchant_profile": {
+        "id": "4657a8ab-6f39-4ec9-97d3-cfc7d193dabb",
+        "source_id": "4657a8ab-6f39-4ec9-97d3-cfc7d193dabb",
+        "template_id": "4657a8ab-6f39-4ec9-97d3-cfc7d193dabb",
+        "name": "[DEBUG] Freeze Merchant",
+        "internal_name": "[DEBUG] Freeze Merchant",
+        "source_ids": [
+          "4657a8ab-6f39-4ec9-97d3-cfc7d193dabb"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "[DEBUG] Haste, Slow and Cooldown Merchant",
@@ -1619,7 +2327,19 @@
         ],
         "hero_scope": "any"
       },
-      "notes": "Sells Haste, Slow and Cooldown items from any Hero"
+      "notes": "Sells Haste, Slow and Cooldown items from any Hero",
+      "merchant_profile": {
+        "id": "b2de7a98-b63a-4c53-81aa-b5e09efc245a",
+        "source_id": "b2de7a98-b63a-4c53-81aa-b5e09efc245a",
+        "template_id": "b2de7a98-b63a-4c53-81aa-b5e09efc245a",
+        "name": "[DEBUG] Haste, Slow and Cooldown Merchant",
+        "internal_name": "[DEBUG] Haste/Slow/Cooldown Merchant",
+        "source_ids": [
+          "b2de7a98-b63a-4c53-81aa-b5e09efc245a"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "[DEBUG] Heal or Regen Merchant",
@@ -1645,7 +2365,19 @@
         ],
         "hero_scope": "any"
       },
-      "notes": "Sells Heal or Regen items from any Hero"
+      "notes": "Sells Heal or Regen items from any Hero",
+      "merchant_profile": {
+        "id": "cffe0e90-ea71-4ab8-94af-c7c8edb4c4fa",
+        "source_id": "cffe0e90-ea71-4ab8-94af-c7c8edb4c4fa",
+        "template_id": "cffe0e90-ea71-4ab8-94af-c7c8edb4c4fa",
+        "name": "[DEBUG] Heal or Regen Merchant",
+        "internal_name": "[DEBUG] Heal or Regen Merchant",
+        "source_ids": [
+          "cffe0e90-ea71-4ab8-94af-c7c8edb4c4fa"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "[DEBUG] Merchant All Item Cost increase",
@@ -1672,7 +2404,19 @@
           "large"
         ]
       },
-      "notes": "Sells Medium and Large items. It's items are 50% off"
+      "notes": "Sells Medium and Large items. It's items are 50% off",
+      "merchant_profile": {
+        "id": "673b01a4-da04-47ea-8ee5-ef18c9d8dedf",
+        "source_id": "673b01a4-da04-47ea-8ee5-ef18c9d8dedf",
+        "template_id": "673b01a4-da04-47ea-8ee5-ef18c9d8dedf",
+        "name": "[DEBUG] Merchant All Item Cost increase",
+        "internal_name": "[DEBUG] Merchant All Item Cost increase",
+        "source_ids": [
+          "673b01a4-da04-47ea-8ee5-ef18c9d8dedf"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "[DEBUG] Merchant Discount",
@@ -1699,7 +2443,19 @@
           "large"
         ]
       },
-      "notes": "Sells Medium and Large items - when an item is sold, an item's cost is halved"
+      "notes": "Sells Medium and Large items - when an item is sold, an item's cost is halved",
+      "merchant_profile": {
+        "id": "c00377f2-0683-42b4-94a5-db9b9a1eef86",
+        "source_id": "c00377f2-0683-42b4-94a5-db9b9a1eef86",
+        "template_id": "c00377f2-0683-42b4-94a5-db9b9a1eef86",
+        "name": "[DEBUG] Merchant Discount",
+        "internal_name": "[DEBUG] Merchant Discount",
+        "source_ids": [
+          "c00377f2-0683-42b4-94a5-db9b9a1eef86"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "[DEBUG] Poison Merchant",
@@ -1724,7 +2480,19 @@
         ],
         "hero_scope": "any"
       },
-      "notes": "Sells Poison items from any Hero"
+      "notes": "Sells Poison items from any Hero",
+      "merchant_profile": {
+        "id": "b072d8ae-ee3e-44cb-b047-4608e77e3174",
+        "source_id": "b072d8ae-ee3e-44cb-b047-4608e77e3174",
+        "template_id": "b072d8ae-ee3e-44cb-b047-4608e77e3174",
+        "name": "[DEBUG] Poison Merchant",
+        "internal_name": "[DEBUG] Poison Merchant",
+        "source_ids": [
+          "b072d8ae-ee3e-44cb-b047-4608e77e3174"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "[DEBUG] Shield and Heakth Merchant",
@@ -1751,7 +2519,19 @@
         ],
         "hero_scope": "any"
       },
-      "notes": "Sells Shield and Health items from any Hero"
+      "notes": "Sells Shield and Health items from any Hero",
+      "merchant_profile": {
+        "id": "81ad4a6f-a953-4a10-bdb9-f9a857579aa4",
+        "source_id": "81ad4a6f-a953-4a10-bdb9-f9a857579aa4",
+        "template_id": "81ad4a6f-a953-4a10-bdb9-f9a857579aa4",
+        "name": "[DEBUG] Shield and Heakth Merchant",
+        "internal_name": "[DEBUG] Shield and Health Merchant",
+        "source_ids": [
+          "81ad4a6f-a953-4a10-bdb9-f9a857579aa4"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     },
     {
       "name": "[DEBUG] Weapon and Damage Merchant",
@@ -1777,7 +2557,19 @@
         ],
         "hero_scope": "any"
       },
-      "notes": "Sells Weapon and Damage items from any Hero"
+      "notes": "Sells Weapon and Damage items from any Hero",
+      "merchant_profile": {
+        "id": "634ad92f-a1b4-43c6-8e15-3031ffe7dd16",
+        "source_id": "634ad92f-a1b4-43c6-8e15-3031ffe7dd16",
+        "template_id": "634ad92f-a1b4-43c6-8e15-3031ffe7dd16",
+        "name": "[DEBUG] Weapon and Damage Merchant",
+        "internal_name": "[DEBUG] Weapon and Damage Merchant",
+        "source_ids": [
+          "634ad92f-a1b4-43c6-8e15-3031ffe7dd16"
+        ],
+        "shop_tier": "silver",
+        "shop_tier_source": "merchant_card_rarity"
+      }
     }
   ],
   "skill_shops": [
@@ -7346,7 +8138,7 @@
         "exp": 0,
         "health": 0
       },
-      "notes": "Enchant an item with Obsidian (damage efects)"
+      "notes": "Enchant an item with Obsidian (damage effects)"
     },
     {
       "name": "Sirocco Steppe",

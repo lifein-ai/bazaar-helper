@@ -1,7 +1,7 @@
 param(
     [string]$ReleaseRoot = (Join-Path (Split-Path -Parent $PSScriptRoot) "release\BazaarHelper"),
     [string]$OutputRoot = (Join-Path (Split-Path -Parent $PSScriptRoot) "releases"),
-    [string]$DownloadBaseUrl = ""
+    [string[]]$Changelog = @()
 )
 
 $ErrorActionPreference = "Stop"
@@ -24,35 +24,20 @@ if (-not $version) {
 
 New-Item -ItemType Directory -Path $OutputRoot -Force | Out-Null
 
-$zipName = "BazaarHelper-$version.zip"
-$zipPath = Join-Path $OutputRoot $zipName
-if (Test-Path $zipPath) {
-    Remove-Item -LiteralPath $zipPath -Force
-}
-
-Compress-Archive -Path (Join-Path $ReleaseRoot "*") -DestinationPath $zipPath -Force
-$sha256 = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
-
-if ($DownloadBaseUrl) {
-    $base = $DownloadBaseUrl.TrimEnd("/")
-    $downloadUrl = "$base/$zipName"
-} else {
-    $downloadUrl = $zipName
-}
-
 $manifest = [ordered]@{
     name = "BazaarHelper"
     version = $version
-    url = $downloadUrl
-    sha256 = $sha256
-    notes = ""
+    download_url = "TODO: paste Quark share link here"
+    sha256 = ""
+    changelog = $Changelog
+    force_update = $false
     published_at = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
 }
 
-$manifestPath = Join-Path $OutputRoot "latest.json"
+$manifestPath = Join-Path $OutputRoot "latest.template.json"
 $manifest | ConvertTo-Json | Set-Content -LiteralPath $manifestPath -Encoding UTF8
 
-Write-Host "Update package created:" -ForegroundColor Green
-Write-Host $zipPath
-Write-Host "Manifest:"
+Write-Host "Manifest template created:" -ForegroundColor Green
 Write-Host $manifestPath
+Write-Host ""
+Write-Host "Compress release\BazaarHelper yourself, upload it to Quark, then paste the Quark link into download_url."

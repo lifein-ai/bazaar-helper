@@ -500,7 +500,7 @@ class RecommenderTests(unittest.TestCase):
             all(card["enchantment_required"] for card in enchanted_pool)
         )
 
-    def test_ande_karnok_day_three_audit_matches_recommender_at_46(self) -> None:
+    def test_ande_karnok_day_three_audit_matches_recommender_at_47(self) -> None:
         data = load_all_data(DATA_DIR)
         event = data["events"]["Ande"]
         report = audit_event_pool(
@@ -513,8 +513,8 @@ class RecommenderTests(unittest.TestCase):
             recommender=recommender,
         )
 
-        self.assertEqual(report["parity_check"]["audit_count"], 46)
-        self.assertEqual(report["parity_check"]["recommender_count"], 46)
+        self.assertEqual(report["parity_check"]["audit_count"], 47)
+        self.assertEqual(report["parity_check"]["recommender_count"], 47)
         self.assertTrue(report["parity_check"]["matches_recommender"])
 
     def test_any_hero_shop_pool_can_include_other_heroes(self) -> None:

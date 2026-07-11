@@ -23,21 +23,11 @@ namespace BazaarStateExporter
             result.OutputPath = liveCardsPath;
             result.DiagnosticsPath = diagnosticsPath;
 
-            try
-            {
-                CacheDiagnostics diagnostics = BuildCacheDiagnostics();
-                result.ScannedAssemblyCount = diagnostics.ScannedAssemblyCount;
-                result.CandidateTypeCount = diagnostics.CandidateTypeCount;
-                result.CandidateObjectCount = diagnostics.CandidateObjectCount;
-                WriteJsonAtomic(diagnosticsPath, diagnostics.ToSerializable());
-            }
-            catch (Exception ex)
-            {
-                if (logger != null)
-                {
-                    logger.LogWarning("Failed to write cache diagnostics: " + ex);
-                }
-            }
+            // Keep the one-shot export light. Full diagnostics scan every loaded type and
+            // Unity object, which is useful for discovery but too expensive during play.
+            result.ScannedAssemblyCount = 0;
+            result.CandidateTypeCount = 0;
+            result.CandidateObjectCount = 0;
 
             try
             {
@@ -89,7 +79,7 @@ namespace BazaarStateExporter
                     logger.LogInfo("Runtime card export: exported card count=" + result.ExportedCardCount);
                     logger.LogInfo("Runtime card export: found Karnok=" + result.FoundKarnok);
                     logger.LogInfo("Runtime card export: live_cards_raw.json write path=" + liveCardsPath);
-                    logger.LogInfo("Runtime card export: cache_diagnostics.json path=" + diagnosticsPath);
+                    logger.LogInfo("Runtime card export: cache diagnostics skipped for performance.");
                     if (cards.Count == 0)
                     {
                         logger.LogInfo("Runtime card export: exported card count is 0, so live_cards_raw.json was not overwritten.");
@@ -120,6 +110,22 @@ namespace BazaarStateExporter
                 "Catalog",
                 "Item",
                 "Skill",
+                "Ability",
+                "Abilities",
+                "Aura",
+                "Auras",
+                "Effect",
+                "Effects",
+                "Action",
+                "Actions",
+                "Trigger",
+                "Triggers",
+                "Condition",
+                "Conditions",
+                "Value",
+                "Values",
+                "Spawn",
+                "Spawning",
             };
 
             foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
@@ -1493,6 +1499,21 @@ namespace BazaarStateExporter
             record["sell_prices"] = sellPrices;
             record["raw_type"] = SafeTypeName(resolvedTemplate);
 
+            Dictionary<string, object> rawEffects =
+                BuildRawEffectRecord(resolvedTemplate, attributeSource);
+            if (rawEffects.Count > 0)
+            {
+                record["raw_effects"] = rawEffects;
+                record["raw_effect_fields"] = rawEffects.Keys.ToList();
+            }
+
+            Dictionary<string, object> spawningFilter =
+                BuildSpawningFilterRecord(resolvedTemplate, attributeSource);
+            if (spawningFilter.Count > 0)
+            {
+                record["spawning_filter"] = spawningFilter;
+            }
+
             object cardPackId;
             if ((TryGetMemberValue(resolvedTemplate, "CardPackId", out cardPackId) && cardPackId != null)
                 || (attributeSource != null && TryGetMemberValue(attributeSource, "CardPackId", out cardPackId) && cardPackId != null))
@@ -1515,6 +1536,709 @@ namespace BazaarStateExporter
             }
 
             return record;
+        }
+
+        private static Dictionary<string, object> BuildRawEffectRecord(
+            object primary,
+            object secondary)
+        {
+            Dictionary<string, object> result =
+                new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+
+            AddRawEffectMember(result, primary, secondary, "abilities", "Abilities", "Ability", "CardAbilities");
+            AddRawEffectMember(result, primary, secondary, "auras", "Auras", "Aura", "CardAuras");
+            AddRawEffectMember(result, primary, secondary, "effects", "Effects", "Effect", "CardEffects");
+            AddRawEffectMember(result, primary, secondary, "actions", "Actions", "Action", "CardActions");
+            AddRawEffectMember(result, primary, secondary, "triggers", "Triggers", "Trigger", "CardTriggers");
+            AddRawEffectMember(result, primary, secondary, "conditions", "Conditions", "Condition", "Requirements", "SelectionRequirements");
+            AddRawEffectMember(result, primary, secondary, "values", "Values", "Value");
+            AddRawEffectMember(result, primary, secondary, "tiers_raw", "Tiers");
+            AddRawEffectMember(result, primary, secondary, "attributes", "Attributes", "Data");
+            AddRawEffectMember(result, primary, secondary, "spawn_context", "SpawnContext", "SpawningContext", "SelectionContext");
+            AddRawEffectMember(result, primary, secondary, "spawn_contexts", "SpawnContexts", "SpawningContexts", "SelectionContexts");
+            AddRawEffectMember(result, primary, secondary, "spawn_filter_raw", "SpawningFilter", "SpawnFilter", "CardSpawningFilter");
+            AddRawEffectMember(result, primary, secondary, "spawn_groups", "SpawnGroups", "Groups");
+            AddRawEffectMember(result, primary, secondary, "spawn_behaviors", "SpawnBehaviors", "Behaviors");
+            AddRawEffectMember(result, primary, secondary, "selection_criteria", "SelectionCriteria");
+
+            return result;
+        }
+
+        private static void AddRawEffectMember(
+            Dictionary<string, object> target,
+            object primary,
+            object secondary,
+            string outputName,
+            params string[] memberNames)
+        {
+            if (target == null || string.IsNullOrEmpty(outputName))
+            {
+                return;
+            }
+
+            object value = ReadValueFromSources(primary, secondary, memberNames);
+            if (value == null)
+            {
+                return;
+            }
+
+            object serialized = SerializeRawEffectValue(
+                value,
+                0,
+                new HashSet<object>(ReferenceEqualityComparer.Instance));
+            if (serialized != null)
+            {
+                target[outputName] = serialized;
+            }
+        }
+
+        private static object SerializeRawEffectValue(
+            object value,
+            int depth,
+            HashSet<object> visited)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+
+            Type type = value.GetType();
+            if (IsSimpleSerializableValue(type))
+            {
+                return SimpleSerializableValue(value, type);
+            }
+
+            if (IsUnsafeRawEffectObject(type))
+            {
+                return DescribeRawEffectValue(value, "skipped_runtime_object");
+            }
+
+            if (depth >= GetRawEffectDepthLimit(type))
+            {
+                return DescribeRawEffectValue(value, "max_depth");
+            }
+
+            if (!type.IsValueType)
+            {
+                if (visited.Contains(value))
+                {
+                    return DescribeRawEffectValue(value, "cycle");
+                }
+                visited.Add(value);
+            }
+
+            IDictionary dictionary = value as IDictionary;
+            if (dictionary != null)
+            {
+                OrderedDictionary result = new OrderedDictionary(StringComparer.OrdinalIgnoreCase);
+                int maxItems = GetRawEffectCollectionLimit(type);
+                int count = 0;
+                foreach (DictionaryEntry entry in dictionary)
+                {
+                    if (count >= maxItems)
+                    {
+                        result["$truncated"] = true;
+                        break;
+                    }
+
+                    string key = entry.Key == null ? string.Empty : entry.Key.ToString();
+                    result[key] = SerializeRawEffectValue(entry.Value, depth + 1, visited);
+                    count++;
+                }
+                return result;
+            }
+
+            IEnumerable enumerable = value as IEnumerable;
+            if (enumerable != null && !(value is string))
+            {
+                List<object> result = new List<object>();
+                int maxItems = GetRawEffectCollectionLimit(type);
+                int count = 0;
+                foreach (object item in enumerable)
+                {
+                    if (count >= maxItems)
+                    {
+                        result.Add(DescribeRawEffectValue(value, "truncated"));
+                        break;
+                    }
+
+                    result.Add(SerializeRawEffectValue(item, depth + 1, visited));
+                    count++;
+                }
+                return result;
+            }
+
+            OrderedDictionary record = new OrderedDictionary(StringComparer.OrdinalIgnoreCase);
+            record["$type"] = SafeTypeName(value);
+            AppendRawEffectMembers(record, value, type, depth, visited);
+            if (record.Count == 1)
+            {
+                record["$value"] = SafeToString(value);
+            }
+            return record;
+        }
+
+        private static void AppendRawEffectMembers(
+            OrderedDictionary record,
+            object value,
+            Type type,
+            int depth,
+            HashSet<object> visited)
+        {
+            BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+            HashSet<string> added = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            int maxMembers = GetRawEffectMemberLimit(type);
+            int count = 0;
+
+            FieldInfo[] fields = null;
+            try
+            {
+                fields = type.GetFields(flags);
+            }
+            catch
+            {
+            }
+
+            if (fields != null)
+            {
+                foreach (FieldInfo field in fields)
+                {
+                    if (field == null || field.IsStatic || count >= maxMembers)
+                    {
+                        continue;
+                    }
+
+                    string name = CleanRawEffectMemberName(field.Name);
+                    if (string.IsNullOrEmpty(name) || !ShouldIncludeRawEffectMember(name) || !added.Add(name))
+                    {
+                        continue;
+                    }
+
+                    object child = SafeGetFieldValue(field, value);
+                    if (child == null)
+                    {
+                        continue;
+                    }
+
+                    record[name] = SerializeRawEffectValue(child, depth + 1, visited);
+                    count++;
+                }
+            }
+
+            PropertyInfo[] properties = null;
+            try
+            {
+                properties = type.GetProperties(flags);
+            }
+            catch
+            {
+            }
+
+            if (properties != null)
+            {
+                foreach (PropertyInfo property in properties)
+                {
+                    if (property == null || property.GetIndexParameters().Length != 0 || count >= maxMembers)
+                    {
+                        continue;
+                    }
+
+                    MethodInfo getter = null;
+                    try
+                    {
+                        getter = property.GetGetMethod(true);
+                    }
+                    catch
+                    {
+                    }
+                    if (getter == null || getter.IsStatic)
+                    {
+                        continue;
+                    }
+
+                    string name = CleanRawEffectMemberName(property.Name);
+                    if (string.IsNullOrEmpty(name) || !ShouldIncludeRawEffectMember(name) || !added.Add(name))
+                    {
+                        continue;
+                    }
+
+                    object child = SafeGetPropertyValue(property, value);
+                    if (child == null)
+                    {
+                        continue;
+                    }
+
+                    record[name] = SerializeRawEffectValue(child, depth + 1, visited);
+                    count++;
+                }
+            }
+
+            if (count >= maxMembers)
+            {
+                record["$members_truncated"] = true;
+            }
+        }
+
+        private static int GetRawEffectDepthLimit(Type type)
+        {
+            return IsRawEffectDomainType(type) || IsRawEffectCollectionType(type) ? 16 : 5;
+        }
+
+        private static int GetRawEffectCollectionLimit(Type type)
+        {
+            return IsRawEffectDomainType(type) || IsRawEffectCollectionType(type) ? 160 : 80;
+        }
+
+        private static int GetRawEffectMemberLimit(Type type)
+        {
+            return IsRawEffectDomainType(type) ? 80 : 40;
+        }
+
+        private static bool IsRawEffectCollectionType(Type type)
+        {
+            if (type == null)
+            {
+                return false;
+            }
+
+            if (IsRawEffectDomainType(type))
+            {
+                return true;
+            }
+
+            try
+            {
+                if (type.IsArray)
+                {
+                    return IsRawEffectDomainType(type.GetElementType());
+                }
+
+                if (type.IsGenericType)
+                {
+                    foreach (Type argument in type.GetGenericArguments())
+                    {
+                        if (IsRawEffectDomainType(argument) || IsSimpleSerializableValue(argument))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            catch
+            {
+            }
+
+            return false;
+        }
+
+        private static bool IsRawEffectDomainType(Type type)
+        {
+            if (type == null)
+            {
+                return false;
+            }
+
+            string fullName = type.FullName ?? type.Name ?? string.Empty;
+            return fullName.StartsWith("BazaarGameShared.Domain.Effect.", StringComparison.Ordinal)
+                || fullName.StartsWith("BazaarGameShared.Domain.Spawning.", StringComparison.Ordinal)
+                || fullName.StartsWith("BazaarGameShared.Domain.Prerequisites.", StringComparison.Ordinal)
+                || fullName.StartsWith("BazaarGameShared.Domain.Targeting.", StringComparison.Ordinal)
+                || fullName.StartsWith("BazaarGameShared.Domain.Values.", StringComparison.Ordinal)
+                || fullName.StartsWith("BazaarGameShared.Domain.Durations.", StringComparison.Ordinal)
+                || fullName.StartsWith("BazaarGameShared.Domain.Core.Types.", StringComparison.Ordinal);
+        }
+
+        private static bool ShouldIncludeRawEffectMember(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                return false;
+            }
+
+            string lower = name.ToLowerInvariant();
+            string[] keywords = new string[]
+            {
+                "id",
+                "name",
+                "type",
+                "ability",
+                "abilities",
+                "aura",
+                "auras",
+                "effect",
+                "effects",
+                "action",
+                "actions",
+                "trigger",
+                "triggers",
+                "condition",
+                "conditions",
+                "constraint",
+                "constraints",
+                "requirement",
+                "requirements",
+                "target",
+                "targets",
+                "value",
+                "values",
+                "amount",
+                "modifier",
+                "mod",
+                "attribute",
+                "attributes",
+                "tier",
+                "tiers",
+                "duration",
+                "cooldown",
+                "second",
+                "seconds",
+                "count",
+                "chance",
+                "probability",
+                "operation",
+                "operator",
+                "comparison",
+                "compare",
+                "min",
+                "max",
+                "default",
+                "modify",
+                "mode",
+                "round",
+                "subject",
+                "source",
+                "origin",
+                "include",
+                "exclude",
+                "ignore",
+                "priority",
+                "weight",
+                "spawn",
+                "spawning",
+                "filter",
+                "filters",
+                "group",
+                "groups",
+                "behavior",
+                "behaviors",
+                "card",
+                "cards",
+                "item",
+                "items",
+                "skill",
+                "skills",
+                "hero",
+                "heroes",
+                "tag",
+                "tags",
+                "size",
+                "sizes",
+                "enchant",
+                "enchantment",
+                "rarity",
+                "rarities",
+                "quest",
+                "xp",
+            };
+
+            foreach (string keyword in keywords)
+            {
+                if (lower.IndexOf(keyword, StringComparison.Ordinal) >= 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsUnsafeRawEffectObject(Type type)
+        {
+            if (type == null)
+            {
+                return false;
+            }
+
+            try
+            {
+                if (typeof(UnityEngine.Object).IsAssignableFrom(type))
+                {
+                    return true;
+                }
+            }
+            catch
+            {
+            }
+
+            string fullName = type.FullName ?? type.Name ?? string.Empty;
+            return fullName.StartsWith("System.Reflection.", StringComparison.Ordinal)
+                || fullName.StartsWith("System.RuntimeType", StringComparison.Ordinal)
+                || fullName.StartsWith("BepInEx.", StringComparison.Ordinal)
+                || fullName.StartsWith("HarmonyLib.", StringComparison.Ordinal);
+        }
+
+        private static string CleanRawEffectMemberName(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                return null;
+            }
+
+            if (name.StartsWith("<", StringComparison.Ordinal)
+                && name.IndexOf(">k__BackingField", StringComparison.Ordinal) > 1)
+            {
+                int end = name.IndexOf('>');
+                if (end > 1)
+                {
+                    return name.Substring(1, end - 1);
+                }
+            }
+
+            return name;
+        }
+
+        private static bool IsSimpleSerializableValue(Type type)
+        {
+            if (type == null)
+            {
+                return false;
+            }
+
+            return type.IsPrimitive
+                || type.IsEnum
+                || type == typeof(string)
+                || type == typeof(decimal)
+                || type == typeof(Guid)
+                || type == typeof(DateTime)
+                || type == typeof(TimeSpan);
+        }
+
+        private static object SimpleSerializableValue(object value, Type type)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+
+            if (type.IsEnum || type == typeof(Guid) || type == typeof(DateTime) || type == typeof(TimeSpan))
+            {
+                return value.ToString();
+            }
+
+            return value;
+        }
+
+        private static OrderedDictionary DescribeRawEffectValue(object value, string reason)
+        {
+            OrderedDictionary result = new OrderedDictionary(StringComparer.OrdinalIgnoreCase);
+            result["$type"] = SafeTypeName(value);
+            result["$reason"] = reason;
+            string text = SafeToString(value);
+            if (!string.IsNullOrEmpty(text))
+            {
+                result["$value"] = text;
+            }
+            return result;
+        }
+
+        private static string SafeToString(object value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+
+            try
+            {
+                return value.ToString();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static Dictionary<string, object> BuildSpawningFilterRecord(
+            object primary,
+            object secondary)
+        {
+            Dictionary<string, object> result =
+                new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            object filter = ReadValueFromSources(
+                primary,
+                secondary,
+                "SpawningFilter",
+                "SpawnFilter",
+                "CardSpawningFilter");
+            if (filter == null)
+            {
+                filter = primary;
+            }
+
+            AddStringList(result, filter, "ItemTierFilters", "item_tier_filters");
+            AddStringList(result, filter, "CardTypeFilters", "card_type_filters");
+            AddStringList(result, filter, "MerchantHeroFilters", "merchant_hero_filters");
+            AddStringList(result, filter, "EncounterHeroFilters", "encounter_hero_filters");
+            AddStringList(result, filter, "CardSizeFilters", "card_size_filters");
+            AddStringList(result, filter, "CardTagFilters", "card_tag_filters");
+            AddStringList(result, filter, "EnchantmentFilters", "enchantment_filters");
+            AddStringList(result, filter, "HiddenTagFilters", "hidden_tag_filters");
+            AddInt(result, filter, "NumberCardsToSpawn", "number_cards_to_spawn");
+            AddInt(result, filter, "GoldRewardAmount", "gold_reward_amount");
+
+            object rerolls = ReadValue(filter, "Rerolls", "rerolls");
+            List<Dictionary<string, object>> rerollRecords = BuildRerollRecords(rerolls);
+            if (rerollRecords.Count > 0)
+            {
+                result["Rerolls"] = rerollRecords;
+            }
+            else
+            {
+                Dictionary<string, object> directReroll = BuildSingleRerollRecord(filter);
+                if (directReroll.Count > 0)
+                {
+                    result["Rerolls"] = new List<Dictionary<string, object>> { directReroll };
+                }
+            }
+
+            return result;
+        }
+
+        private static object ReadValueFromSources(
+            object primary,
+            object secondary,
+            params string[] memberNames)
+        {
+            object value = ReadValue(primary, memberNames);
+            if (value != null)
+            {
+                return value;
+            }
+
+            return secondary == null ? null : ReadValue(secondary, memberNames);
+        }
+
+        private static void AddStringList(
+            Dictionary<string, object> target,
+            object source,
+            string memberName,
+            string outputName)
+        {
+            object value = ReadValue(source, memberName);
+            List<string> items = ReadStringList(value);
+            if (items.Count > 0)
+            {
+                target[outputName] = items;
+            }
+        }
+
+        private static void AddInt(
+            Dictionary<string, object> target,
+            object source,
+            string memberName,
+            string outputName)
+        {
+            object value = ReadValue(source, memberName);
+            int parsed;
+            if (TryParseInt(value, out parsed) && parsed >= 0)
+            {
+                target[outputName] = parsed;
+            }
+        }
+
+        private static List<Dictionary<string, object>> BuildRerollRecords(object value)
+        {
+            List<Dictionary<string, object>> result = new List<Dictionary<string, object>>();
+            if (value == null || value is string)
+            {
+                return result;
+            }
+
+            IEnumerable enumerable = value as IEnumerable;
+            if (enumerable == null)
+            {
+                Dictionary<string, object> record = BuildSingleRerollRecord(value);
+                if (record.Count > 0)
+                {
+                    result.Add(record);
+                }
+                return result;
+            }
+
+            foreach (object item in enumerable)
+            {
+                Dictionary<string, object> record = BuildSingleRerollRecord(item);
+                if (record.Count > 0)
+                {
+                    result.Add(record);
+                }
+            }
+
+            return result;
+        }
+
+        private static Dictionary<string, object> BuildSingleRerollRecord(object source)
+        {
+            Dictionary<string, object> record =
+                new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            AddInt(record, source, "RerollCost", "reroll_cost");
+            AddInt(record, source, "RerollScalar", "reroll_scalar");
+            AddInt(record, source, "NumberOfRerolls", "number_of_rerolls");
+            AddBool(record, source, "RerollEnabled", "reroll_enabled");
+            AddBool(record, source, "RerollRepeats", "reroll_repeats");
+            return record;
+        }
+
+        private static void AddBool(
+            Dictionary<string, object> target,
+            object source,
+            string memberName,
+            string outputName)
+        {
+            object value = ReadValue(source, memberName);
+            bool parsed;
+            if (TryParseBool(value, out parsed))
+            {
+                target[outputName] = parsed;
+            }
+        }
+
+        private static bool TryParseInt(object value, out int result)
+        {
+            result = 0;
+            if (value == null)
+            {
+                return false;
+            }
+
+            try
+            {
+                result = Convert.ToInt32(value);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static bool TryParseBool(object value, out bool result)
+        {
+            result = false;
+            if (value == null)
+            {
+                return false;
+            }
+
+            try
+            {
+                result = Convert.ToBoolean(value);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private static List<string> BuildVisibleTags(List<string> tags, List<string> hiddenTags)
@@ -2358,6 +3082,25 @@ namespace BazaarStateExporter
             }
 
             return (source ?? string.Empty) + "|" + typeName + "|" + hash.ToString(CultureInfo.InvariantCulture);
+        }
+    }
+
+    internal sealed class ReferenceEqualityComparer : IEqualityComparer<object>
+    {
+        public static readonly ReferenceEqualityComparer Instance = new ReferenceEqualityComparer();
+
+        private ReferenceEqualityComparer()
+        {
+        }
+
+        public new bool Equals(object x, object y)
+        {
+            return object.ReferenceEquals(x, y);
+        }
+
+        public int GetHashCode(object obj)
+        {
+            return obj == null ? 0 : RuntimeHelpers.GetHashCode(obj);
         }
     }
 

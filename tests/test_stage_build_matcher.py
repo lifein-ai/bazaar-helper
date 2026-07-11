@@ -163,6 +163,30 @@ def test_live_candidate_price_takes_priority_over_missing_static_price() -> None
     assert card["affordable"] is True
 
 
+def test_estimated_shop_price_is_last_resort_for_candidate_affordability() -> None:
+    data = _data()
+    result = analyze_stage_builds(
+        data=data,
+        hero="Vanessa",
+        day=7,
+        owned_cards={"A", "B"},
+        candidates=[{"name": "C"}],
+        gold=4,
+        prestige=15,
+        inventory_slots_used=5,
+        inventory_slots_total=10,
+        current_shop={
+            "refresh_available": True,
+            "refresh_cost": 1,
+            "estimated_avg_item_price": 5.5,
+        },
+    )
+
+    card = result["candidate_cards"][0]
+    assert card["price"] == 5.5
+    assert card["affordable"] is False
+
+
 def test_early_can_surface_late_core_as_future_stash() -> None:
     result = analyze_stage_builds(
         data=_data(),

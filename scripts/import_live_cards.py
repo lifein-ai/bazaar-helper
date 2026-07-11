@@ -100,6 +100,10 @@ def normalize_rarity(value: Any) -> str:
     return mapped or text
 
 
+def normalize_rarity_lower(value: Any) -> str:
+    return normalize_rarity(value).lower()
+
+
 def normalize_rarity_list(values: Any) -> list[str]:
     if not isinstance(values, list):
         return []
@@ -125,6 +129,151 @@ def normalize_price_map(values: Any) -> dict[str, Any]:
         if rarity:
             result[rarity] = value
     return result
+
+
+def optional_int(value: Any) -> int | None:
+    if value in (None, ""):
+        return None
+    try:
+        result = int(value)
+    except (TypeError, ValueError):
+        return None
+    return result if result >= 0 else None
+
+
+def optional_bool(value: Any) -> bool | None:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in {"true", "yes", "1"}:
+            return True
+        if normalized in {"false", "no", "0"}:
+            return False
+    return None
+
+
+def first_dict(*values: Any) -> dict[str, Any]:
+    for value in values:
+        if isinstance(value, dict):
+            return value
+    return {}
+
+
+def first_present(mapping: dict[str, Any], *keys: str) -> Any:
+    for key in keys:
+        if key in mapping and mapping[key] not in (None, ""):
+            return mapping[key]
+    return None
+
+
+def normalize_rarity_filters(values: Any) -> list[str]:
+    if not isinstance(values, list):
+        return []
+
+    result: list[str] = []
+    seen: set[str] = set()
+    for value in values:
+        rarity = normalize_rarity_lower(value)
+        if not rarity or rarity in seen:
+            continue
+        seen.add(rarity)
+        result.append(rarity)
+    return result
+
+
+def merchant_profile_from_raw(
+    raw: dict[str, Any],
+    *,
+    source_id: str,
+    template_id: str,
+    name: str,
+) -> dict[str, Any] | None:
+    tags = {tag.lower() for tag in normalize_tags(raw.get("tags"))}
+    description = normalize_text(raw.get("description")).lower()
+    if "merchant" not in tags and not description.startswith("sells "):
+        return None
+
+    spawn_filter = first_dict(
+        raw.get("spawning_filter"),
+        raw.get("SpawningFilter"),
+        raw.get("spawningFilter"),
+        raw.get("spawn_filter"),
+    )
+    reroll = first_dict(
+        raw.get("reroll"),
+        raw.get("Reroll"),
+        spawn_filter.get("Reroll"),
+        spawn_filter.get("reroll"),
+    )
+    rerolls = spawn_filter.get("Rerolls") or spawn_filter.get("rerolls")
+    if not reroll and isinstance(rerolls, list) and rerolls:
+        reroll = first_dict(*rerolls)
+
+    base_refresh_cost = optional_int(
+        first_present(
+            raw,
+            "base_refresh_cost",
+            "reroll_cost",
+            "RerollCost",
+            "refresh_cost",
+        )
+    )
+    if base_refresh_cost is None:
+        base_refresh_cost = optional_int(
+            first_present(reroll, "RerollCost", "reroll_cost", "Cost", "cost")
+        )
+
+    base_refresh_count = optional_int(
+        first_present(
+            raw,
+            "base_refresh_count",
+            "number_of_rerolls",
+            "NumberOfRerolls",
+            "refresh_count",
+        )
+    )
+    if base_refresh_count is None:
+        base_refresh_count = optional_int(
+            first_present(
+                reroll,
+                "NumberOfRerolls",
+                "number_of_rerolls",
+                "Count",
+                "count",
+            )
+        )
+
+    refresh_enabled = optional_bool(
+        first_present(raw, "refresh_enabled", "RerollEnabled", "reroll_enabled")
+    )
+    if refresh_enabled is None:
+        refresh_enabled = optional_bool(
+            first_present(reroll, "RerollEnabled", "reroll_enabled", "Enabled", "enabled")
+        )
+
+    sold_item_tier_filters = normalize_rarity_filters(
+        first_present(raw, "ItemTierFilters", "item_tier_filters")
+        or first_present(spawn_filter, "ItemTierFilters", "item_tier_filters")
+        or []
+    )
+
+    shop_tier = normalize_rarity_lower(raw.get("rarity"))
+    profile = {
+        "id": source_id,
+        "source_id": source_id,
+        "template_id": template_id,
+        "name": name,
+        "internal_name": normalize_text(raw.get("internal_name")),
+        "source_ids": [source_id] if source_id else [],
+        "shop_tier": shop_tier,
+        "shop_tier_source": "merchant_card_rarity" if shop_tier else None,
+        "base_refresh_cost": base_refresh_cost,
+        "base_refresh_count": base_refresh_count,
+        "refresh_enabled": refresh_enabled,
+        "sold_item_tier_filters": sold_item_tier_filters,
+    }
+    return {key: value for key, value in profile.items() if value not in (None, "", [])}
 
 
 def read_live_cards(path: Path) -> list[dict[str, Any]]:
@@ -159,6 +308,14 @@ def merge_visible_tags(tags: list[str], hidden_tags: list[str], visible_tags: An
     return [tag for tag in tags if tag.lower() not in hidden]
 
 
+def attach_runtime_raw_fields(record: dict[str, Any], raw: dict[str, Any]) -> dict[str, Any]:
+    for key in ["raw_effects", "raw_effect_fields", "spawning_filter"]:
+        value = raw.get(key)
+        if value not in (None, "", [], {}):
+            record[key] = value
+    return record
+
+
 def convert_card(raw: dict[str, Any]) -> dict[str, Any] | None:
     name = first_nonempty(raw.get("name"), raw.get("internal_name"), raw.get("source_id"), raw.get("template_id"))
     if not name:
@@ -179,7 +336,7 @@ def convert_card(raw: dict[str, Any]) -> dict[str, Any] | None:
     source_id = first_nonempty(raw.get("source_id"), raw.get("id"))
     template_id = first_nonempty(raw.get("template_id"), source_id)
 
-    return {
+    return attach_runtime_raw_fields({
         "id": first_nonempty(source_id, template_id, name),
         "source_id": source_id,
         "template_id": template_id,
@@ -204,7 +361,7 @@ def convert_card(raw: dict[str, Any]) -> dict[str, Any] | None:
         "sell_prices": normalize_price_map(raw.get("sell_prices")),
         "description": normalize_text(raw.get("description")),
         "card_pack_id": normalize_text(raw.get("card_pack_id")),
-    }
+    }, raw)
 
 
 def build_cards(raw_cards: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
@@ -242,17 +399,30 @@ def build_encounters(raw_cards: list[dict[str, Any]]) -> dict[str, dict[str, Any
         if not source_id or not name:
             continue
 
-        encounter = {
+        encounter = attach_runtime_raw_fields({
             "id": source_id,
+            "source_id": source_id,
+            "template_id": first_nonempty(raw.get("template_id"), source_id),
             "internal_name": normalize_text(raw.get("internal_name")),
             "name": name,
             "cache_type": cache_type,
             "type": card_type,
             "heroes": normalize_heroes(raw.get("heroes")),
             "tags": normalize_tags(raw.get("tags")),
+            "rarity": normalize_rarity_lower(raw.get("rarity")),
+            "min_rarity": normalize_rarity_lower(raw.get("min_rarity")),
+            "max_rarity": normalize_rarity_lower(raw.get("max_rarity")),
             "description": normalize_text(raw.get("description")),
             "isReselectable": bool(raw.get("isReselectable", False)),
-        }
+        }, raw)
+        merchant_profile = merchant_profile_from_raw(
+            raw,
+            source_id=source_id,
+            template_id=encounter["template_id"],
+            name=name,
+        )
+        if merchant_profile:
+            encounter["merchant_profile"] = merchant_profile
         key = name
         if key in encounters:
             key = f"{name} <{source_id[:8]}>"

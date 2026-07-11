@@ -5,6 +5,8 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
+from shop_state import build_merchant_profiles, merchant_profile_index
+
 
 def load_json(path: str | Path) -> dict[str, Any]:
     path = Path(path)
@@ -207,11 +209,13 @@ def load_all_data(data_dir: str | Path) -> dict[str, Any]:
     card_ratings = load_json(data_dir / "card_ratings.json")
     cards = merge_cards_with_ratings(official_cards, card_ratings)
 
+    encounters = load_json_if_exists(data_dir / "encounters_generated.json")
     raw_events = load_json(data_dir / "events.json")
     events = flatten_events_list(raw_events)
 
     event_overrides = load_json_if_exists(data_dir / "event_overrides.json")
     events = apply_event_overrides(events, event_overrides)
+    merchant_profiles = build_merchant_profiles(encounters, events)
 
     builds = load_json(data_dir / "community_builds.json")
     rarity_rules = load_json(data_dir / "rarity_rules.json")
@@ -221,6 +225,9 @@ def load_all_data(data_dir: str | Path) -> dict[str, Any]:
     return {
         "cards": cards,
         "events": events,
+        "encounters": encounters,
+        "merchant_profiles": merchant_profiles,
+        "merchant_profile_index": merchant_profile_index(merchant_profiles),
         "event_index": build_index(events),
         "builds": builds,
         "build_index": build_index(builds),

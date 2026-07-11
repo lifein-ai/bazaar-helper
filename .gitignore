@@ -58,6 +58,7 @@ Desktop.ini
 !.env.example
 *.key
 *.secret
+build_python_path.txt
 
 # Archives
 *.zip

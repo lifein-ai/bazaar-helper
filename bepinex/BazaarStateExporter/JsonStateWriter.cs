@@ -1,7 +1,9 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 
@@ -179,7 +181,13 @@ namespace BazaarStateExporter
                 }
 
                 builder.Append('{');
-                WriteInlinePropertyName("visible_items", false);
+                WriteInlinePropertyName("merchant_id", false);
+                WriteString(shop.merchant_id);
+                WriteInlinePropertyName("merchant_template_id", true);
+                WriteString(shop.merchant_template_id);
+                WriteInlinePropertyName("merchant_name", true);
+                WriteString(shop.merchant_name);
+                WriteInlinePropertyName("visible_items", true);
                 WriteCards(shop.visible_items);
                 WriteInlinePropertyName("refresh_available", true);
                 WriteNullableBool(shop.refresh_available);
@@ -334,6 +342,7 @@ namespace BazaarStateExporter
                 WriteOptionalCardProperty("card_type", card.card_type, ref wrote);
                 WriteOptionalCardProperty("source", card.source, ref wrote);
                 WriteOptionalCardProperty("ui_context", card.ui_context, ref wrote);
+                WriteOptionalCardProperty("runtime_type", card.runtime_type, ref wrote);
                 if (card.price.HasValue)
                 {
                     if (wrote)
@@ -363,8 +372,170 @@ namespace BazaarStateExporter
                         WriteString(card.enchantments[i]);
                     }
                     builder.Append(']');
+                    wrote = true;
+                }
+                WriteOptionalStringListProperty(
+                    "runtime_sources",
+                    card.runtime_sources,
+                    ref wrote);
+                WriteOptionalObjectDictionaryProperty(
+                    "runtime_values",
+                    card.runtime_values,
+                    ref wrote);
+                WriteOptionalObjectDictionaryProperty(
+                    "current_attributes",
+                    card.current_attributes,
+                    ref wrote);
+                WriteOptionalObjectDictionaryProperty(
+                    "base_attributes",
+                    card.base_attributes,
+                    ref wrote);
+                WriteOptionalObjectDictionaryProperty(
+                    "attribute_modifiers",
+                    card.attribute_modifiers,
+                    ref wrote);
+                builder.Append('}');
+            }
+
+            private void WriteOptionalStringListProperty(
+                string name,
+                List<string> values,
+                ref bool wrote)
+            {
+                if (values == null || values.Count == 0)
+                {
+                    return;
+                }
+
+                if (wrote)
+                {
+                    builder.Append(',');
+                }
+                WriteString(name);
+                builder.Append(':');
+                builder.Append('[');
+                for (int i = 0; i < values.Count; i++)
+                {
+                    if (i > 0)
+                    {
+                        builder.Append(',');
+                    }
+                    WriteString(values[i]);
+                }
+                builder.Append(']');
+                wrote = true;
+            }
+
+            private void WriteOptionalObjectDictionaryProperty(
+                string name,
+                Dictionary<string, object> values,
+                ref bool wrote)
+            {
+                if (values == null || values.Count == 0)
+                {
+                    return;
+                }
+
+                if (wrote)
+                {
+                    builder.Append(',');
+                }
+                WriteString(name);
+                builder.Append(':');
+                WriteObjectDictionary(values);
+                wrote = true;
+            }
+
+            private void WriteObjectDictionary(IDictionary values)
+            {
+                builder.Append('{');
+                bool first = true;
+                List<string> keys = new List<string>();
+                foreach (object rawKey in values.Keys)
+                {
+                    if (rawKey != null)
+                    {
+                        keys.Add(rawKey.ToString());
+                    }
+                }
+                keys.Sort(StringComparer.OrdinalIgnoreCase);
+
+                foreach (string key in keys)
+                {
+                    if (!first)
+                    {
+                        builder.Append(',');
+                    }
+                    first = false;
+                    WriteString(key);
+                    builder.Append(':');
+                    WriteAnyValue(values[key]);
                 }
                 builder.Append('}');
+            }
+
+            private void WriteAnyValue(object value)
+            {
+                if (value == null)
+                {
+                    builder.Append("null");
+                    return;
+                }
+
+                if (value is string)
+                {
+                    WriteString((string)value);
+                    return;
+                }
+
+                if (value is bool)
+                {
+                    builder.Append((bool)value ? "true" : "false");
+                    return;
+                }
+
+                if (value is byte
+                    || value is sbyte
+                    || value is short
+                    || value is ushort
+                    || value is int
+                    || value is uint
+                    || value is long
+                    || value is ulong
+                    || value is float
+                    || value is double
+                    || value is decimal)
+                {
+                    builder.Append(Convert.ToString(value, CultureInfo.InvariantCulture));
+                    return;
+                }
+
+                IDictionary dictionary = value as IDictionary;
+                if (dictionary != null)
+                {
+                    WriteObjectDictionary(dictionary);
+                    return;
+                }
+
+                IEnumerable enumerable = value as IEnumerable;
+                if (enumerable != null)
+                {
+                    builder.Append('[');
+                    bool first = true;
+                    foreach (object item in enumerable)
+                    {
+                        if (!first)
+                        {
+                            builder.Append(',');
+                        }
+                        first = false;
+                        WriteAnyValue(item);
+                    }
+                    builder.Append(']');
+                    return;
+                }
+
+                WriteString(value.ToString());
             }
 
             private void WriteOptionalCardProperty(string name, string value, ref bool wrote)

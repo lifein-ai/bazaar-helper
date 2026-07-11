@@ -11,14 +11,31 @@ from typing import Any
 from urllib.parse import parse_qs, urlparse
 import re
 
-from recommender import get_card_role_for_build
+from recommender import (
+    estimated_avg_shop_item_price,
+    get_card_role_for_build,
+    infer_possible_cards_for_event,
+)
 from advisor import analyze_game_state
 from ai_advisor import analyze_with_ai, compact_recommendations
 from build_strategy import applicable_build_names, build_applies_to_day, get_game_stage_for_day
+from combat_simulator import estimate_self_health_ttk
 from data_loader import load_all_data
 from game_state import GameState
 from app_paths import get_app_root, get_runtime_dir
 from stage_build_matcher import analyze_stage_builds
+from shop_state import merge_effective_shop
+from update_manager import (
+    UpdateError,
+    dismiss_update_prompt,
+    find_update_package_candidates,
+    get_update_status,
+    launch_update_install,
+    open_download_page,
+    select_update_package_with_dialog,
+    start_background_update_check,
+    expected_update_info,
+)
 
 
 BASE_DIR = get_app_root()
@@ -194,6 +211,8 @@ def signature_card_identity(item: Any) -> Any:
         "enchantment": item.get("enchantment"),
         "enchantments": stable_cache_value(item.get("enchantments", [])),
         "section": item.get("section"),
+        "runtime_values": stable_cache_value(item.get("runtime_values", {})),
+        "current_attributes": stable_cache_value(item.get("current_attributes", {})),
     }
 
 
@@ -219,8 +238,12 @@ def state_signature_payload(payload: dict[str, Any]) -> dict[str, Any]:
     if isinstance(current_shop, dict):
         visible_items = current_shop.get("visible_items") or []
         shop_facts = {
+            "merchant_id": current_shop.get("merchant_id"),
+            "merchant_template_id": current_shop.get("merchant_template_id"),
+            "merchant_name": current_shop.get("merchant_name"),
             "refresh_available": current_shop.get("refresh_available"),
             "refresh_cost": current_shop.get("refresh_cost"),
+            "refreshes_used": current_shop.get("refreshes_used"),
             "refreshes_remaining": current_shop.get("refreshes_remaining"),
         }
     detailed_options = payload.get("event_options_detailed") or []
@@ -554,6 +577,14 @@ def normalize_payload_for_analysis(
             data, current_shop.get("visible_items")
         )
         normalized["current_shop"] = current_shop
+        normalized["effective_shop"] = merge_effective_shop(
+            data,
+            current_shop,
+            normalized.get("event_options", []),
+        )
+        attach_effective_shop_price_estimate(data, normalized)
+    else:
+        normalized["effective_shop"] = None
     hero = str(normalized.get("hero", ""))
     day = int(normalized.get("day", 1))
     normalized.pop("build", None)
@@ -567,6 +598,48 @@ def normalize_payload_for_analysis(
     normalized.setdefault("source", "runtime")
     normalized.setdefault("event_options", [])
     return normalized
+
+
+def attach_effective_shop_price_estimate(
+    data: dict[str, Any],
+    normalized: dict[str, Any],
+) -> None:
+    effective_shop = normalized.get("effective_shop")
+    if not isinstance(effective_shop, dict):
+        return
+
+    day = int(normalized.get("day") or 1)
+    hero = str(normalized.get("hero") or "")
+    candidate_event_names = list(normalized.get("event_options", []))
+    merchant_name = effective_shop.get("merchant_name")
+    if merchant_name:
+        candidate_event_names.append(str(merchant_name))
+
+    for event_name in dict.fromkeys(candidate_event_names):
+        event_data = data.get("events", {}).get(event_name)
+        if not isinstance(event_data, dict):
+            continue
+        if event_data.get("event_category") not in {"shops", "skill_shops"}:
+            continue
+        merchant_pool, _ = infer_possible_cards_for_event(
+            event_data,
+            data.get("cards", {}),
+            day,
+            data.get("rarity_rules", {}),
+            hero,
+        )
+        estimate = estimated_avg_shop_item_price(
+            day,
+            merchant_pool,
+            data.get("cards", {}),
+            data.get("rarity_rules", {}),
+        )
+        if estimate is not None:
+            effective_shop["estimated_avg_item_price"] = estimate
+            effective_shop["estimated_avg_item_price_source"] = (
+                "shop_item_tier_distribution_by_day"
+            )
+        return
 
 
 def inventory_slots_used(data: dict[str, Any], board_items: Any) -> int | None:
@@ -1732,6 +1805,7 @@ def analyze_payload(
                 "skills": normalized.get("skills", []),
                 "current_events": normalized.get("current_events", []),
                 "current_shop": normalized.get("current_shop"),
+                "effective_shop": normalized.get("effective_shop"),
                 "current_reward_options": normalized.get("current_reward_options", []),
                 "gold": normalized.get("gold"),
                 "health": normalized.get("combat_health", normalized.get("health")),
@@ -1797,7 +1871,7 @@ def analyze_payload(
         prestige=state.prestige,
         inventory_slots_used=state.inventory_slots_used,
         inventory_slots_total=state.inventory_slots_total,
-        current_shop=state.current_shop,
+        current_shop=state.effective_shop,
     )
     for candidate in build_analysis.get("candidate_cards", []):
         candidate["card_display_name"] = zh_name(
@@ -1828,6 +1902,7 @@ def analyze_payload(
             bundle.get("recommendation")
         )
     owned_items_display, skills_display = displayed_owned_groups(data, state)
+    self_ttk_estimate = estimate_self_health_ttk(data, state)
 
     response: dict[str, Any] = {
         "state": {
@@ -1886,6 +1961,18 @@ def analyze_payload(
                 if isinstance(state.current_shop, dict)
                 else None
             ),
+            "effective_shop": (
+                {
+                    **state.effective_shop,
+                    "visible_items": [
+                        display_card_entry(data, item)
+                        for item in state.effective_shop.get("visible_items", [])
+                        if isinstance(item, dict)
+                    ],
+                }
+                if isinstance(state.effective_shop, dict)
+                else None
+            ),
             "current_reward_options": state.current_reward_options,
             "inventory_slots_used": state.inventory_slots_used,
             "inventory_slots_total": state.inventory_slots_total,
@@ -1911,6 +1998,11 @@ def analyze_payload(
             for item in result.recommendations
         ],
         "build_analysis": build_analysis,
+        "self_ttk": (
+            self_ttk_estimate.to_dict()
+            if self_ttk_estimate is not None
+            else None
+        ),
         "state_signature": cache_signature,
         "analysis_signature": render_signature,
         "cache_hit": False,
@@ -1946,7 +2038,7 @@ def analyze_payload(
             owned_cards=state.owned_cards,
             results=ai_results,
             current_gold=state.gold,
-            current_shop=state.current_shop,
+            current_shop=state.effective_shop,
             build_analysis=build_analysis,
         )
         remember_ai_payload_cache(cache_key, ai_payload)
@@ -2050,6 +2142,14 @@ class BazaarHandler(BaseHTTPRequestHandler):
                     }
                 )
                 return
+            if parsed.path == "/api/update/status":
+                if query.get("refresh", ["0"])[0] == "1":
+                    start_background_update_check(force=True)
+                self.send_json(get_update_status(wait_seconds=3.0))
+                return
+            if parsed.path == "/api/update/candidates":
+                self.send_json({"candidates": find_update_package_candidates()})
+                return
             if parsed.path == "/api/analysis":
                 payload, path = load_runtime_payload()
                 response = analyze_payload(
@@ -2069,6 +2169,9 @@ class BazaarHandler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         parsed = urlparse(self.path)
+        if parsed.path.startswith("/api/update/"):
+            self.handle_update_post(parsed.path)
+            return
         if parsed.path != "/api/state":
             self.send_error(HTTPStatus.NOT_FOUND, "未找到")
             return
@@ -2097,6 +2200,51 @@ class BazaarHandler(BaseHTTPRequestHandler):
             return
 
         self.send_json({"ok": True, "path": str(STATE_PATH)})
+
+    def handle_update_post(self, path: str) -> None:
+        try:
+            if path == "/api/update/check":
+                start_background_update_check(force=True)
+                self.send_json(get_update_status())
+                return
+            if path == "/api/update/dismiss":
+                self.send_json(dismiss_update_prompt())
+                return
+            if path == "/api/update/open-download":
+                open_download_page()
+                self.send_json({"ok": True})
+                return
+            if path == "/api/update/select-package":
+                package = select_update_package_with_dialog()
+                self.send_json({"ok": True, "package": package.to_dict()})
+                return
+            if path == "/api/update/install":
+                payload = self.read_json_body()
+                package_path = str(payload.get("path", "")).strip()
+                if not package_path:
+                    raise UpdateError("缺少更新包路径。")
+                launch_update_install(Path(package_path), expected_update_info())
+                self.send_json({"ok": True, "message": "更新器已启动，程序即将退出并安装新版。"})
+                return
+
+            self.send_error(HTTPStatus.NOT_FOUND, "未找到")
+        except UpdateError as exc:
+            self.send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
+        except Exception as exc:  # noqa: BLE001 - local update endpoint should report errors.
+            self.send_json({"error": str(exc)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+    def read_json_body(self) -> dict[str, Any]:
+        length = int(self.headers.get("Content-Length", "0"))
+        if length <= 0:
+            return {}
+        raw_body = self.rfile.read(length).decode("utf-8")
+        try:
+            payload = json.loads(raw_body)
+        except json.JSONDecodeError as exc:
+            raise UpdateError(f"JSON 格式无效：{exc}") from exc
+        if not isinstance(payload, dict):
+            raise UpdateError("请求体必须是 JSON 对象。")
+        return payload
 
     def send_json(self, payload: dict[str, Any], status: HTTPStatus = HTTPStatus.OK) -> None:
         body = json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8")
@@ -2347,6 +2495,7 @@ HTML_PAGE = r"""<!doctype html>
         <div class="metric"><span>生命</span><strong id="health">-</strong></div>
         <div class="metric"><span>声望</span><strong id="prestige">-</strong></div>
         <div class="metric"><span>收入</span><strong id="income">-</strong></div>
+        <div class="metric"><span>自测击杀</span><strong id="selfTtk">-</strong></div>
       </div>
       <div class="metric metric-button" id="buildMetric" role="button" tabindex="0" aria-expanded="false">
         <span>阵容目标</span><strong id="build">-</strong><div class="muted" id="stage">-</div>
@@ -2555,6 +2704,7 @@ HTML_PAGE = r"""<!doctype html>
       document.querySelector("#day").textContent = state.day || "-";
       document.querySelector("#gold").textContent = state.gold ?? "-";
       document.querySelector("#health").textContent = state.health ?? "-";
+      document.querySelector("#selfTtk").textContent = formatSelfTtk(data.self_ttk || null);
       document.querySelector("#prestige").textContent = formatPrestige(state);
       document.querySelector("#income").textContent = state.income ?? "-";
       document.querySelector("#build").textContent = state.build_display_name || state.build || "-";
@@ -2686,6 +2836,16 @@ HTML_PAGE = r"""<!doctype html>
         shopVisible.length ? shopVisible : (state.visible_cards_display || []),
         (item) => item.display_name || item.name || item.template_id
       );
+    }
+
+    function formatSelfTtk(ttk) {
+      if (!ttk || !ttk.target_health) return "-";
+      if (ttk.kill_time_sec == null) {
+        return `>${Math.round(ttk.horizon_sec || 60)}s`;
+      }
+      const seconds = Number(ttk.kill_time_sec);
+      if (!Number.isFinite(seconds)) return "-";
+      return `${seconds.toFixed(seconds < 10 ? 1 : 0)}s`;
     }
 
     function renderBuildDetail(detail) {
@@ -2859,6 +3019,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
+    start_background_update_check()
     server = ThreadingHTTPServer((args.host, args.port), BazaarHandler)
     print(f"The Bazaar AI helper API service: http://{args.host}:{args.port}")
     print(f"Runtime state file: {STATE_PATH}")

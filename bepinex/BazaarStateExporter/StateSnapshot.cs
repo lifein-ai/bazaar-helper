@@ -85,6 +85,9 @@ namespace BazaarStateExporter
 
     public sealed class CurrentShopSnapshot
     {
+        public string merchant_id;
+        public string merchant_template_id;
+        public string merchant_name;
         public List<CardSnapshot> visible_items = new List<CardSnapshot>();
         public bool? refresh_available;
         public int? refresh_cost;
@@ -115,5 +118,11 @@ namespace BazaarStateExporter
         public string ui_context;
         public int? price;
         public List<string> enchantments = new List<string>();
+        public string runtime_type;
+        public List<string> runtime_sources = new List<string>();
+        public Dictionary<string, object> runtime_values = new Dictionary<string, object>();
+        public Dictionary<string, object> current_attributes = new Dictionary<string, object>();
+        public Dictionary<string, object> base_attributes = new Dictionary<string, object>();
+        public Dictionary<string, object> attribute_modifiers = new Dictionary<string, object>();
     }
 }

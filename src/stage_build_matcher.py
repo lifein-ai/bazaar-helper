@@ -50,6 +50,7 @@ def analyze_stage_builds(
             prestige=prestige,
             inventory_slots_used=inventory_slots_used,
             inventory_slots_total=inventory_slots_total,
+            fallback_price=estimated_avg_item_price(current_shop),
         )
         for candidate in candidates
         if candidate.get("name")
@@ -176,6 +177,7 @@ def evaluate_candidate(
     prestige: int | None,
     inventory_slots_used: int | None,
     inventory_slots_total: int | None,
+    fallback_price: float | None = None,
 ) -> dict[str, Any]:
     card_name = str(candidate["name"])
     hits: list[dict[str, Any]] = []
@@ -237,7 +239,7 @@ def evaluate_candidate(
                     recommendation = "stash_future"
                 reasons.append("这是后期核心，只是可屯候选，不等于当前必买。")
 
-    price = candidate_price(candidate, data)
+    price = candidate_price(candidate, data, fallback_price)
     space_known = inventory_slots_used is not None and inventory_slots_total is not None
     space_available = (
         inventory_slots_used < inventory_slots_total if space_known else None
@@ -426,16 +428,27 @@ def match_band_rank(value: str) -> int:
     return {"none": 0, "seed": 1, "developing": 2, "close": 3, "locked": 4}.get(value, 0)
 
 
-def candidate_price(candidate: dict[str, Any], data: dict[str, Any]) -> int | None:
+def candidate_price(
+    candidate: dict[str, Any],
+    data: dict[str, Any],
+    fallback_price: float | None = None,
+) -> float | None:
     live_price = candidate.get("price")
     if isinstance(live_price, (int, float)):
         return int(live_price)
     card = data.get("cards", {}).get(candidate.get("name"))
     rarity = str(candidate.get("rarity") or "").lower()
     if not isinstance(card, dict) or not rarity:
-        return None
+        return fallback_price
     price = (card.get("buy_prices") or {}).get(rarity)
-    return int(price) if isinstance(price, (int, float)) else None
+    return int(price) if isinstance(price, (int, float)) else fallback_price
+
+
+def estimated_avg_item_price(current_shop: dict[str, Any] | None) -> float | None:
+    if not isinstance(current_shop, dict):
+        return None
+    value = current_shop.get("estimated_avg_item_price")
+    return float(value) if isinstance(value, (int, float)) and value >= 0 else None
 
 
 def phase_from_day_range(day_range: Any) -> str:

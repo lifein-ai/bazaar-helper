@@ -1,4 +1,90 @@
 {
+  "shop_item_tier_distribution_by_day": {
+    "1": {
+      "bronze": 0.97,
+      "silver": 0.03,
+      "gold": 0.0,
+      "diamond": 0.0
+    },
+    "2": {
+      "bronze": 0.88,
+      "silver": 0.12,
+      "gold": 0.0,
+      "diamond": 0.0
+    },
+    "3": {
+      "bronze": 0.68,
+      "silver": 0.32,
+      "gold": 0.0,
+      "diamond": 0.0
+    },
+    "4": {
+      "bronze": 0.49,
+      "silver": 0.51,
+      "gold": 0.0,
+      "diamond": 0.0
+    },
+    "5": {
+      "bronze": 0.25,
+      "silver": 0.75,
+      "gold": 0.0,
+      "diamond": 0.0
+    },
+    "6": {
+      "bronze": 0.02,
+      "silver": 0.9,
+      "gold": 0.08,
+      "diamond": 0.0
+    },
+    "7": {
+      "bronze": 0.01,
+      "silver": 0.78,
+      "gold": 0.21,
+      "diamond": 0.0
+    },
+    "8": {
+      "bronze": 0.0,
+      "silver": 0.45,
+      "gold": 0.5,
+      "diamond": 0.05
+    },
+    "9": {
+      "bronze": 0.0,
+      "silver": 0.35,
+      "gold": 0.55,
+      "diamond": 0.1
+    },
+    "10": {
+      "bronze": 0.0,
+      "silver": 0.21,
+      "gold": 0.64,
+      "diamond": 0.15
+    },
+    "11": {
+      "bronze": 0.0,
+      "silver": 0.21,
+      "gold": 0.64,
+      "diamond": 0.15
+    },
+    "12": {
+      "bronze": 0.0,
+      "silver": 0.21,
+      "gold": 0.63,
+      "diamond": 0.15
+    },
+    "13": {
+      "bronze": 0.0,
+      "silver": 0.21,
+      "gold": 0.64,
+      "diamond": 0.15
+    },
+    "14": {
+      "bronze": 0.0,
+      "silver": 0.21,
+      "gold": 0.64,
+      "diamond": 0.15
+    }
+  },
   "normal_shop_by_day": [
     {
       "from_day": 1,

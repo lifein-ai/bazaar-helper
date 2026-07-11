@@ -49,10 +49,13 @@ namespace BazaarStateExporter
         private bool layoutLocked = true;
         private bool nextRequestIncludeAi;
         private volatile bool requestInFlight;
+        private volatile bool updateRequestInFlight;
         private float nextAutoAnalyzeAt;
         private DateTime lastSuccessfulAnalysisUtc = DateTime.MinValue;
         private DateTime lastHelperStartAttemptUtc = DateTime.MinValue;
         private DateTime lastFailureLogUtc = DateTime.MinValue;
+        private DateTime lastUpdateFailureLogUtc = DateTime.MinValue;
+        private string lastSuccessfulAnalysisKey = "";
         private string cachedBuildOptionsHero = "";
         private readonly List<OverlayBuildOption> cachedBuildOptions = new List<OverlayBuildOption>();
         private Rect windowRect = new Rect(16f, 56f, 500f, 620f);
@@ -64,6 +67,7 @@ namespace BazaarStateExporter
         private Vector2 scrollPosition;
         private Vector2 buildScrollPosition;
         private OverlayAnalysis latest = OverlayAnalysis.Waiting("正在等待 BazaarHelper...");
+        private OverlayUpdateState updateState = new OverlayUpdateState();
         private string selectedBuildOverride = "";
         private GUIStyle windowStyle;
         private GUIStyle titleStyle;
@@ -138,6 +142,7 @@ namespace BazaarStateExporter
         {
             logger?.LogInfo("In-game overlay started.");
             latest = OverlayAnalysis.Waiting(ModeStatusText());
+            RequestUpdateStatus(false);
         }
 
         private void Update()
@@ -152,7 +157,7 @@ namespace BazaarStateExporter
             }
 
             nextAutoAnalyzeAt = Time.unscaledTime + AutoAnalyzeInterval();
-            RequestAnalysis(false, "自动分析中...");
+            RequestAnalysis(false, "自动分析中...", true);
         }
 
         private void OnGUI()
@@ -324,14 +329,14 @@ namespace BazaarStateExporter
 
             if (current.keyCode == manualAnalysisKey)
             {
-                RequestAnalysis(false, "正在扫描当前局面...");
+                RequestAnalysis(false, "正在扫描当前局面...", false);
                 current.Use();
                 return;
             }
 
             if (current.keyCode == aiAnalysisKey)
             {
-                RequestAnalysis(true, "正在请求智能阵容分析...");
+                RequestAnalysis(true, "正在请求智能阵容分析...", false);
                 current.Use();
             }
         }
@@ -433,11 +438,11 @@ namespace BazaarStateExporter
             GUI.enabled = !requestInFlight;
             if (GUILayout.Button("扫描分析 (" + manualAnalysisKey + ")", GUILayout.MinHeight(28f)))
             {
-                RequestAnalysis(false, "正在扫描当前局面...");
+                RequestAnalysis(false, "正在扫描当前局面...", false);
             }
             if (GUILayout.Button("智能分析 (" + aiAnalysisKey + ")", GUILayout.MinHeight(28f)))
             {
-                RequestAnalysis(true, "正在请求智能阵容分析...");
+                RequestAnalysis(true, "正在请求智能阵容分析...", false);
             }
             GUI.enabled = true;
             GUILayout.EndHorizontal();
@@ -445,6 +450,8 @@ namespace BazaarStateExporter
             {
                 ToggleAutoAnalyze();
             }
+
+            DrawUpdatePanel();
 
             if (!string.IsNullOrEmpty(latest.ShopAction))
             {
@@ -561,7 +568,7 @@ namespace BazaarStateExporter
                     if (GUILayout.Button(label, GUILayout.ExpandWidth(true), GUILayout.MinHeight(30f)))
                     {
                         selectedBuildOverride = option.Id;
-                        RequestAnalysis(false, "正在切换阵容并扫描...");
+                        RequestAnalysis(false, "正在切换阵容并扫描...", false);
                     }
                     GUI.enabled = true;
                 }
@@ -599,6 +606,63 @@ namespace BazaarStateExporter
                     MarkLayoutDirty();
                 }
             }
+        }
+
+        private void DrawUpdatePanel()
+        {
+            OverlayUpdateState state = updateState;
+            if (state == null || !state.UpdateAvailable || state.Dismissed)
+            {
+                return;
+            }
+
+            GUILayout.BeginVertical(itemStyle);
+            GUILayout.Label("发现新版本 " + state.Version, titleStyle);
+            DrawInlineList("更新内容", state.Changelog, false);
+            if (!string.IsNullOrEmpty(state.Message))
+            {
+                GUILayout.Label(state.Message, mutedStyle);
+            }
+            if (!string.IsNullOrEmpty(state.PackageVersion))
+            {
+                GUILayout.Label("已识别新版更新包 " + state.PackageVersion, reasonStyle);
+                GUILayout.Label("安装更新时程序将自动关闭，更新完成后会重新启动。", mutedStyle);
+                GUILayout.Label("请先关闭 The Bazaar，避免游戏占用插件 DLL 导致覆盖失败。", mutedStyle);
+                GUILayout.BeginHorizontal();
+                GUI.enabled = !updateRequestInFlight;
+                if (GUILayout.Button("立即安装", GUILayout.MinHeight(28f)))
+                {
+                    RequestInstallUpdate();
+                }
+                if (GUILayout.Button("取消", GUILayout.MinHeight(28f)))
+                {
+                    state.PackagePath = "";
+                    state.PackageVersion = "";
+                    state.Message = "";
+                }
+                GUI.enabled = true;
+                GUILayout.EndHorizontal();
+            }
+            else
+            {
+                GUILayout.BeginHorizontal();
+                GUI.enabled = !updateRequestInFlight;
+                if (GUILayout.Button("前往夸克下载", GUILayout.MinHeight(28f)))
+                {
+                    RequestOpenUpdateDownload();
+                }
+                if (GUILayout.Button("选择更新包", GUILayout.MinHeight(28f)))
+                {
+                    RequestSelectUpdatePackage();
+                }
+                GUI.enabled = true;
+                GUILayout.EndHorizontal();
+                if (GUILayout.Button("暂不更新", GUILayout.MinHeight(24f)))
+                {
+                    RequestDismissUpdate();
+                }
+            }
+            GUILayout.EndVertical();
         }
 
         private void DrawBuildMatchSection()
@@ -724,7 +788,196 @@ namespace BazaarStateExporter
             }
         }
 
+        private void RequestUpdateStatus(bool refresh)
+        {
+            updateRequestInFlight = true;
+            ThreadPool.QueueUserWorkItem(_ =>
+            {
+                try
+                {
+                    EnsureHelperServiceStarted();
+                    string url = GetHelperBaseUrl().TrimEnd('/') + "/api/update/status";
+                    if (refresh)
+                    {
+                        url += "?refresh=1";
+                    }
+                    using (TimeoutWebClient client = new TimeoutWebClient(4000))
+                    {
+                        client.Encoding = Encoding.UTF8;
+                        string json = client.DownloadString(url);
+                        OverlayUpdateState parsed = OverlayAnalysisParser.ParseUpdateStatus(json);
+                        lock (this)
+                        {
+                            if (!string.IsNullOrEmpty(updateState.PackagePath)
+                                && string.Equals(updateState.Version, parsed.Version, StringComparison.Ordinal))
+                            {
+                                parsed.PackagePath = updateState.PackagePath;
+                                parsed.PackageVersion = updateState.PackageVersion;
+                                parsed.Message = updateState.Message;
+                            }
+                            updateState = parsed;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogUpdateFailure(ex);
+                }
+                finally
+                {
+                    updateRequestInFlight = false;
+                }
+            });
+        }
+
+        private void RequestOpenUpdateDownload()
+        {
+            PostUpdateCommand("/api/update/open-download", "已打开夸克下载页。");
+        }
+
+        private void RequestDismissUpdate()
+        {
+            PostUpdateCommand("/api/update/dismiss", "");
+        }
+
+        private void RequestSelectUpdatePackage()
+        {
+            updateRequestInFlight = true;
+            updateState.Message = "正在等待选择更新包...";
+            ThreadPool.QueueUserWorkItem(_ =>
+            {
+                try
+                {
+                    EnsureHelperServiceStarted();
+                    using (TimeoutWebClient client = new TimeoutWebClient(600000))
+                    {
+                        client.Encoding = Encoding.UTF8;
+                        client.Headers[HttpRequestHeader.ContentType] = "application/json; charset=utf-8";
+                        string json = client.UploadString(
+                            GetHelperBaseUrl().TrimEnd('/') + "/api/update/select-package",
+                            "POST",
+                            "{}");
+                        OverlayUpdatePackage package = OverlayAnalysisParser.ParseUpdatePackage(json);
+                        lock (this)
+                        {
+                            updateState.PackagePath = package.Path;
+                            updateState.PackageVersion = package.Version;
+                            updateState.Message = string.IsNullOrEmpty(package.Version)
+                                ? "已识别新版更新包。"
+                                : "已识别新版更新包 " + package.Version + "。";
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    lock (this)
+                    {
+                        updateState.Message = "更新包识别失败：" + ex.Message;
+                    }
+                    LogUpdateFailure(ex);
+                }
+                finally
+                {
+                    updateRequestInFlight = false;
+                }
+            });
+        }
+
+        private void RequestInstallUpdate()
+        {
+            string path = updateState == null ? "" : updateState.PackagePath;
+            if (string.IsNullOrEmpty(path))
+            {
+                return;
+            }
+
+            updateRequestInFlight = true;
+            updateState.Message = "正在启动更新器...";
+            ThreadPool.QueueUserWorkItem(_ =>
+            {
+                try
+                {
+                    EnsureHelperServiceStarted();
+                    using (TimeoutWebClient client = new TimeoutWebClient(10000))
+                    {
+                        client.Encoding = Encoding.UTF8;
+                        client.Headers[HttpRequestHeader.ContentType] = "application/json; charset=utf-8";
+                        client.UploadString(
+                            GetHelperBaseUrl().TrimEnd('/') + "/api/update/install",
+                            "POST",
+                            "{\"path\":\"" + EscapeJson(path) + "\"}");
+                    }
+                    lock (this)
+                    {
+                        updateState.Message = "更新器已启动，助手会关闭并安装新版。";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    lock (this)
+                    {
+                        updateState.Message = "启动更新失败：" + ex.Message;
+                    }
+                    LogUpdateFailure(ex);
+                }
+                finally
+                {
+                    updateRequestInFlight = false;
+                }
+            });
+        }
+
+        private void PostUpdateCommand(string endpoint, string successMessage)
+        {
+            updateRequestInFlight = true;
+            ThreadPool.QueueUserWorkItem(_ =>
+            {
+                try
+                {
+                    EnsureHelperServiceStarted();
+                    using (TimeoutWebClient client = new TimeoutWebClient(10000))
+                    {
+                        client.Encoding = Encoding.UTF8;
+                        client.Headers[HttpRequestHeader.ContentType] = "application/json; charset=utf-8";
+                        string json = client.UploadString(
+                            GetHelperBaseUrl().TrimEnd('/') + endpoint,
+                            "POST",
+                            "{}");
+                        OverlayUpdateState parsed = OverlayAnalysisParser.ParseUpdateStatus(json);
+                        lock (this)
+                        {
+                            if (!string.IsNullOrEmpty(parsed.Version) || parsed.Dismissed)
+                            {
+                                updateState = parsed;
+                            }
+                            if (!string.IsNullOrEmpty(successMessage))
+                            {
+                                updateState.Message = successMessage;
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    lock (this)
+                    {
+                        updateState.Message = "更新操作失败：" + ex.Message;
+                    }
+                    LogUpdateFailure(ex);
+                }
+                finally
+                {
+                    updateRequestInFlight = false;
+                }
+            });
+        }
+
         private void RequestAnalysis(bool includeAiForNextRequest, string status)
+        {
+            RequestAnalysis(includeAiForNextRequest, status, false);
+        }
+
+        private void RequestAnalysis(bool includeAiForNextRequest, string status, bool automatic)
         {
             if (requestInFlight)
             {
@@ -732,10 +985,28 @@ namespace BazaarStateExporter
                 return;
             }
 
-            nextRequestIncludeAi = includeAiForNextRequest;
             latest.Status = status;
-            Plugin.RequestManualExport();
-            StartAnalysisRequest();
+            bool includeAiForRequest = includeAiForNextRequest || (includeAi != null && includeAi.Value);
+            ManualExportResult exportResult = automatic
+                ? Plugin.RequestAutomaticExport()
+                : Plugin.RequestManualExport();
+            string analysisKey = BuildAnalysisRequestKey(
+                exportResult == null ? "" : exportResult.StateSignature,
+                includeAiForRequest);
+            if (automatic
+                && exportResult != null
+                && exportResult.SnapshotAvailable
+                && !exportResult.StateChanged
+                && !string.IsNullOrEmpty(analysisKey)
+                && string.Equals(analysisKey, lastSuccessfulAnalysisKey, StringComparison.Ordinal))
+            {
+                latest.Status = "";
+                logger?.LogDebug("Skipped in-game overlay analysis because state signature did not change.");
+                return;
+            }
+
+            nextRequestIncludeAi = includeAiForRequest;
+            StartAnalysisRequest(analysisKey);
         }
 
         private bool AutoAnalyzeEnabled()
@@ -768,10 +1039,10 @@ namespace BazaarStateExporter
             latest.Status = ModeStatusText();
         }
 
-        private void StartAnalysisRequest()
+        private void StartAnalysisRequest(string analysisKey)
         {
             requestInFlight = true;
-            bool includeAiForRequest = nextRequestIncludeAi || (includeAi != null && includeAi.Value);
+            bool includeAiForRequest = nextRequestIncludeAi;
             nextRequestIncludeAi = false;
             string url = BuildAnalysisUrl(includeAiForRequest);
             ThreadPool.QueueUserWorkItem(_ =>
@@ -797,6 +1068,7 @@ namespace BazaarStateExporter
                             }
                             latest = parsed;
                             lastSuccessfulAnalysisUtc = DateTime.UtcNow;
+                            lastSuccessfulAnalysisKey = analysisKey ?? "";
                         }
                         logger?.LogDebug(
                             "In-game overlay refreshed recommendations="
@@ -833,6 +1105,23 @@ namespace BazaarStateExporter
                 url += "&build=" + Uri.EscapeDataString(selectedBuildOverride);
             }
             return url;
+        }
+
+        private string BuildAnalysisRequestKey(string stateSignature, bool includeAiForRequest)
+        {
+            if (string.IsNullOrEmpty(stateSignature))
+            {
+                return "";
+            }
+
+            int top = Math.Max(1, topRecommendations == null ? 3 : topRecommendations.Value);
+            return stateSignature
+                + "|build="
+                + (selectedBuildOverride ?? "")
+                + "|top="
+                + top
+                + "|ai="
+                + (includeAiForRequest ? "1" : "0");
         }
 
         private void FillBuildOptions(OverlayAnalysis parsed, WebClient client)
@@ -975,6 +1264,29 @@ namespace BazaarStateExporter
             {
                 logger?.LogDebug("In-game overlay analysis request failed: " + ex.Message);
             }
+        }
+
+        private void LogUpdateFailure(Exception ex)
+        {
+            DateTime now = DateTime.UtcNow;
+            if ((now - lastUpdateFailureLogUtc).TotalSeconds >= 60)
+            {
+                lastUpdateFailureLogUtc = now;
+                logger?.LogInfo("In-game overlay update request failed: " + ex.Message);
+            }
+            else
+            {
+                logger?.LogDebug("In-game overlay update request failed: " + ex.Message);
+            }
+        }
+
+        private static string EscapeJson(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return "";
+            }
+            return value.Replace("\\", "\\\\").Replace("\"", "\\\"");
         }
 
         private static string FirstNonEmpty(string first, string second)
@@ -1125,6 +1437,27 @@ namespace BazaarStateExporter
         {
             return new OverlayAnalysis { Status = status };
         }
+    }
+
+    internal sealed class OverlayUpdateState
+    {
+        public bool UpdateAvailable;
+        public bool Dismissed;
+        public string Status;
+        public string Version;
+        public string CurrentVersion;
+        public string DownloadUrl;
+        public string Error;
+        public string Message;
+        public string PackagePath;
+        public string PackageVersion;
+        public readonly List<string> Changelog = new List<string>();
+    }
+
+    internal sealed class OverlayUpdatePackage
+    {
+        public string Path;
+        public string Version;
     }
 
     internal sealed class OverlayRecommendation
@@ -1297,6 +1630,36 @@ namespace BazaarStateExporter
                     Id = id,
                     Name = FirstNonEmpty(FindStringProperty(optionObject, "name"), id),
                 });
+            }
+            return result;
+        }
+
+        public static OverlayUpdateState ParseUpdateStatus(string json)
+        {
+            OverlayUpdateState result = new OverlayUpdateState();
+            result.Status = FindStringProperty(json, "status");
+            result.CurrentVersion = FindStringProperty(json, "current_version");
+            result.UpdateAvailable = FindBoolProperty(json, "update_available");
+            result.Dismissed = FindBoolProperty(json, "dismissed");
+            result.Error = FindStringProperty(json, "error");
+            string update = FindObjectProperty(json, "update");
+            if (!string.IsNullOrEmpty(update))
+            {
+                result.Version = FindStringProperty(update, "version");
+                result.DownloadUrl = FindStringProperty(update, "download_url");
+                result.Changelog.AddRange(FindStringArrayProperty(update, "changelog"));
+            }
+            return result;
+        }
+
+        public static OverlayUpdatePackage ParseUpdatePackage(string json)
+        {
+            OverlayUpdatePackage result = new OverlayUpdatePackage();
+            string package = FindObjectProperty(json, "package");
+            if (!string.IsNullOrEmpty(package))
+            {
+                result.Path = FindStringProperty(package, "path");
+                result.Version = FindStringProperty(package, "version");
             }
             return result;
         }

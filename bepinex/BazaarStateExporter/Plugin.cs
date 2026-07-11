@@ -52,7 +52,14 @@ namespace BazaarStateExporter
         private bool runtimeCardExportAttempted;
         private InGameAdvisorOverlay overlay;
         private int manualExportCount;
+        private string lastManualStateSignature;
+        private float lastManualWriteAt;
+        private float lastVisibleCardScanAt = -999f;
+        private float lastUiResourceScanAt = -999f;
         private static Plugin instance;
+        private const float AutoVisibleCardFullScanIntervalSeconds = 6.0f;
+        private const float AutoUiResourceScanIntervalSeconds = 1.5f;
+        private const float AutoUnchangedHeartbeatSeconds = 10.0f;
 
         private void Awake()
         {
@@ -355,28 +362,50 @@ namespace BazaarStateExporter
             EventDrivenExporter.MarkDirty(reason);
         }
 
-        public static void RequestManualExport()
+        public static ManualExportResult RequestManualExport()
         {
             Plugin current = instance;
             if (current == null)
             {
-                return;
+                return ManualExportResult.NotAvailable("plugin_not_loaded");
             }
-            current.ExportCurrentStateOnce("manual_overlay");
+            return current.ExportCurrentStateOnce("manual_overlay", false);
         }
 
-        private void ExportCurrentStateOnce(string reason)
+        public static ManualExportResult RequestAutomaticExport()
+        {
+            Plugin current = instance;
+            if (current == null)
+            {
+                return ManualExportResult.NotAvailable("plugin_not_loaded");
+            }
+            return current.ExportCurrentStateOnce("auto_overlay", true);
+        }
+
+        private ManualExportResult ExportCurrentStateOnce(string reason, bool automatic)
         {
             try
             {
-                if (enableVisibleCardScanning.Value)
+                float now = Time.unscaledTime;
+                bool scanVisibleCards = enableVisibleCardScanning.Value
+                    && (!automatic
+                        || now - lastVisibleCardScanAt >= AutoVisibleCardFullScanIntervalSeconds);
+                if (scanVisibleCards)
                 {
                     probe.ScanVisibleUiCards();
+                    lastVisibleCardScanAt = now;
                 }
-                if (enableHudResourceScanning.Value || enableUnsafeUiScanning.Value)
+
+                bool scanUiResources =
+                    (enableHudResourceScanning.Value || enableUnsafeUiScanning.Value)
+                    && (!automatic
+                        || now - lastUiResourceScanAt >= AutoUiResourceScanIntervalSeconds);
+                if (scanUiResources)
                 {
                     probe.ScanUiResources();
+                    lastUiResourceScanAt = now;
                 }
+
                 GameStateSnapshot snapshot = probe.TryReadCurrentState();
                 if (snapshot == null && writePlaceholderWhenEmpty.Value)
                 {
@@ -388,19 +417,65 @@ namespace BazaarStateExporter
                     WriteStatusSnapshot(
                         "waiting_for_game_state",
                         "Plugin is loaded, but no NetMessageGameStateSync has been captured yet.");
-                    return;
+                    return ManualExportResult.NotAvailable("waiting_for_game_state");
                 }
 
-                WriteSnapshot(snapshot, reason);
-                Logger.LogInfo("Manual Bazaar state export completed.");
+                PrepareSnapshotForExport(snapshot, reason, manualExportCount + 1);
+                bool stateChanged = !string.Equals(
+                    snapshot.state_signature,
+                    lastManualStateSignature,
+                    StringComparison.Ordinal);
+                bool heartbeatDue =
+                    now - lastManualWriteAt >= AutoUnchangedHeartbeatSeconds;
+                bool shouldWrite = !automatic || stateChanged || heartbeatDue;
+                if (shouldWrite)
+                {
+                    manualExportCount++;
+                    SnapshotExportMetadata.Apply(snapshot, reason, manualExportCount);
+                    JsonStateWriter.WriteAtomic(outputPath.Value, snapshot);
+                    lastManualStateSignature = snapshot.state_signature;
+                    lastManualWriteAt = now;
+                    Logger.LogInfo(
+                        (automatic ? "Automatic" : "Manual")
+                        + " Bazaar state export completed. changed="
+                        + stateChanged);
+                }
+                else
+                {
+                    Logger.LogDebug(
+                        "Skipped automatic overlay export because state signature did not change.");
+                }
+
+                return new ManualExportResult
+                {
+                    SnapshotAvailable = true,
+                    StateChanged = stateChanged,
+                    WroteSnapshot = shouldWrite,
+                    StateSignature = snapshot.state_signature,
+                    Message = stateChanged ? "changed" : "unchanged",
+                };
             }
             catch (Exception ex)
             {
                 Logger.LogWarning("Manual Bazaar state export failed: " + ex);
+                return ManualExportResult.NotAvailable("export_failed");
             }
         }
 
         private void WriteSnapshot(GameStateSnapshot snapshot, string reason)
+        {
+            PrepareSnapshotForExport(snapshot, reason, manualExportCount + 1);
+            manualExportCount++;
+            SnapshotExportMetadata.Apply(snapshot, reason, manualExportCount);
+            JsonStateWriter.WriteAtomic(outputPath.Value, snapshot);
+            lastManualStateSignature = snapshot.state_signature;
+            lastManualWriteAt = Time.unscaledTime;
+        }
+
+        private void PrepareSnapshotForExport(
+            GameStateSnapshot snapshot,
+            string reason,
+            int exportCount)
         {
             if (string.IsNullOrEmpty(snapshot.source))
             {
@@ -409,9 +484,7 @@ namespace BazaarStateExporter
             snapshot.status = null;
             snapshot.message = null;
             snapshot.updated_at_utc = DateTime.UtcNow.ToString("o");
-            manualExportCount++;
-            SnapshotExportMetadata.Apply(snapshot, reason, manualExportCount);
-            JsonStateWriter.WriteAtomic(outputPath.Value, snapshot);
+            SnapshotExportMetadata.Apply(snapshot, reason, exportCount);
         }
 
         private void WriteStatusSnapshot(string status, string message)
@@ -428,6 +501,27 @@ namespace BazaarStateExporter
             {
                 Logger.LogWarning("Failed to write exporter status snapshot: " + ex);
             }
+        }
+    }
+
+    public sealed class ManualExportResult
+    {
+        public bool SnapshotAvailable;
+        public bool StateChanged;
+        public bool WroteSnapshot;
+        public string StateSignature;
+        public string Message;
+
+        public static ManualExportResult NotAvailable(string message)
+        {
+            return new ManualExportResult
+            {
+                SnapshotAvailable = false,
+                StateChanged = false,
+                WroteSnapshot = false,
+                StateSignature = "",
+                Message = message,
+            };
         }
     }
 

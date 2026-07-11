@@ -8,47 +8,167 @@ $ErrorActionPreference = "Stop"
 $ProjectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ReleaseRoot = Join-Path $ProjectRoot "release\BazaarHelper"
 $DistRoot = Join-Path $ProjectRoot "dist\BazaarHelper"
-$VenvSitePackages = Join-Path $ProjectRoot ".venv\Lib\site-packages"
+$VenvPython = Join-Path $ProjectRoot ".venv\Scripts\python.exe"
 $BundledPython = Join-Path $env:USERPROFILE ".cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe"
+$BuildPythonPathFile = Join-Path $ProjectRoot "build_python_path.txt"
 $InternalTestKey = Join-Path $ProjectRoot "runtime\deepseek_api_key.txt"
 $VersionFile = Join-Path $ProjectRoot "VERSION"
 $RuntimeGameDirFile = Join-Path $env:LOCALAPPDATA "BazaarHelper\runtime\game_dir.txt"
 
 Set-Location $ProjectRoot
 
-if (-not (Test-Path $BundledPython)) {
-    throw "Python not found: $BundledPython"
+function Test-BuildPython {
+    param(
+        [string]$PythonExe,
+        [string[]]$PythonArgs = @()
+    )
+
+    if (-not $PythonExe) {
+        return $false
+    }
+
+    try {
+        $previousNativeErrorPreference = $PSNativeCommandUseErrorActionPreference
+        $PSNativeCommandUseErrorActionPreference = $false
+        & $PythonExe @PythonArgs -c "import socket, pytest, PyInstaller" *> $null
+        return $LASTEXITCODE -eq 0
+    } catch {
+        return $false
+    } finally {
+        if (Get-Variable -Name previousNativeErrorPreference -ErrorAction SilentlyContinue) {
+            $PSNativeCommandUseErrorActionPreference = $previousNativeErrorPreference
+        }
+    }
 }
+
+function Resolve-BuildPython {
+    $candidates = New-Object System.Collections.Generic.List[object]
+    if (Test-Path $BuildPythonPathFile) {
+        $configuredPython = (Get-Content -LiteralPath $BuildPythonPathFile -Raw -Encoding UTF8).Trim()
+        if ($configuredPython) {
+            $candidates.Add([pscustomobject]@{
+                Exe = $configuredPython
+                Args = @()
+                Label = "$configuredPython (build_python_path.txt)"
+            })
+        }
+    }
+    if ($env:BAZAAR_HELPER_BUILD_PYTHON) {
+        $candidates.Add([pscustomobject]@{
+            Exe = $env:BAZAAR_HELPER_BUILD_PYTHON
+            Args = @()
+            Label = $env:BAZAAR_HELPER_BUILD_PYTHON
+        })
+    }
+    $candidates.Add([pscustomobject]@{
+        Exe = $VenvPython
+        Args = @()
+        Label = $VenvPython
+    })
+    $systemPython = Get-Command python -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($systemPython -and $systemPython.Source) {
+        $candidates.Add([pscustomobject]@{
+            Exe = $systemPython.Source
+            Args = @()
+            Label = $systemPython.Source
+        })
+    }
+    $pyLauncher = Get-Command py -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($pyLauncher -and $pyLauncher.Source) {
+        $candidates.Add([pscustomobject]@{
+            Exe = $pyLauncher.Source
+            Args = @("-3")
+            Label = "$($pyLauncher.Source) -3"
+        })
+    }
+    $candidates.Add([pscustomobject]@{
+        Exe = $BundledPython
+        Args = @()
+        Label = $BundledPython
+    })
+
+    foreach ($candidate in $candidates) {
+        if (Test-BuildPython $candidate.Exe $candidate.Args) {
+            return $candidate
+        }
+    }
+
+    throw @"
+No usable packaging Python was found.
+Need a Python that can import: socket, pytest, PyInstaller.
+
+Recommended setup:
+  py -3.11 -m venv .venv
+  .\.venv\Scripts\python.exe -m pip install pytest pyinstaller openpyxl et_xmlfile
+
+Or set:
+  `$env:BAZAAR_HELPER_BUILD_PYTHON='C:\Path\To\python.exe'
+"@
+}
+
+$BuildPython = Resolve-BuildPython
+$BuildPythonExe = $BuildPython.Exe
+$BuildPythonArgs = [string[]]$BuildPython.Args
+Write-Host "Using packaging Python: $($BuildPython.Label)"
+if (-not (Test-Path $BuildPythonPathFile) -and $BuildPythonArgs.Count -eq 0) {
+    try {
+        Set-Content -LiteralPath $BuildPythonPathFile -Value $BuildPythonExe -Encoding UTF8
+        Write-Host "Saved packaging Python path to: $BuildPythonPathFile"
+    } catch {
+        Write-Host "Unable to save packaging Python path: $($_.Exception.Message)" -ForegroundColor Yellow
+    }
+}
+
 if (-not (Test-Path $VersionFile)) {
     throw "Version file not found: $VersionFile"
 }
 $ReleaseVersion = (Get-Content -LiteralPath $VersionFile -Raw -Encoding UTF8).Trim()
 
-$env:PYTHONPATH = $VenvSitePackages
+Write-Host "[1/6] Rebuilding generated event data..."
+& $BuildPythonExe @BuildPythonArgs .\scripts\build_events_from_encounters.py `
+    --encounters .\data\encounters_generated.json `
+    --output .\data\events.json
+if ($LASTEXITCODE -ne 0) {
+    throw "Event data build failed."
+}
+if (-not (Test-Path (Join-Path $ProjectRoot "data\events.json"))) {
+    throw "Generated event data missing: data\events.json"
+}
 
-Write-Host "[1/5] Running release tests..."
+Write-Host "[2/6] Running release tests..."
 $PytestTemp = Join-Path $ProjectRoot ".tmp\pytest-release"
+if (Test-Path $PytestTemp) {
+    $resolvedPytestTemp = [System.IO.Path]::GetFullPath($PytestTemp)
+    $expectedPytestTemp = [System.IO.Path]::GetFullPath((Join-Path $ProjectRoot ".tmp\pytest-release"))
+    if ($resolvedPytestTemp -ne $expectedPytestTemp) {
+        throw "Unexpected pytest temp path: $resolvedPytestTemp"
+    }
+    Remove-Item -LiteralPath $resolvedPytestTemp -Recurse -Force
+}
 New-Item -ItemType Directory -Path $PytestTemp -Force | Out-Null
-& $BundledPython -m pytest -q tests\test_app_paths.py tests\test_web_app.py `
+& $BuildPythonExe @BuildPythonArgs -m pytest -q tests\test_app_paths.py tests\test_web_app.py `
+    tests\test_update_manager.py `
+    tests\test_build_simulation_evaluator.py `
+    tests\test_combat_simulator.py `
     -p no:cacheprovider --basetemp $PytestTemp
 if ($LASTEXITCODE -ne 0) {
     throw "Tests failed."
 }
 
-Write-Host "[2/5] Building BepInEx plugin..."
+Write-Host "[3/6] Building BepInEx plugin..."
 dotnet build .\bepinex\BazaarStateExporter\BazaarStateExporter.csproj -c Release
 if ($LASTEXITCODE -ne 0) {
     throw "BepInEx plugin build failed."
 }
 
-Write-Host "[3/5] Building BazaarHelper.exe..."
-& $BundledPython -m PyInstaller --noconfirm .\BazaarHelper.spec
+Write-Host "[4/6] Building BazaarHelper.exe..."
+& $BuildPythonExe @BuildPythonArgs -m PyInstaller --noconfirm .\BazaarHelper.spec
 if ($LASTEXITCODE -ne 0) {
     throw "PyInstaller build failed."
 }
 
-Write-Host "[4/5] Assembling complete release folder..."
-& $BundledPython .\scripts\build_user_guide.py
+Write-Host "[5/6] Assembling complete release folder..."
+& $BuildPythonExe @BuildPythonArgs .\scripts\build_user_guide.py
 if ($LASTEXITCODE -ne 0) {
     throw "User guide build failed."
 }
@@ -70,6 +190,7 @@ Copy-Item -LiteralPath (Join-Path $ProjectRoot "data") -Destination $ReleaseRoot
 Copy-Item -LiteralPath (Join-Path $ProjectRoot "examples") -Destination $ReleaseRoot -Recurse
 Copy-Item -LiteralPath (Join-Path $ProjectRoot "start.bat") -Destination $ReleaseRoot
 Copy-Item -LiteralPath (Join-Path $ProjectRoot "update_helper.ps1") -Destination $ReleaseRoot
+Copy-Item -LiteralPath (Join-Path $ProjectRoot "install_update.bat") -Destination $ReleaseRoot
 Copy-Item -LiteralPath $VersionFile -Destination $ReleaseRoot
 Copy-Item -LiteralPath (Join-Path $ProjectRoot "install_plugin.bat") -Destination $ReleaseRoot
 Copy-Item -LiteralPath (Join-Path $ProjectRoot "set_ai_key.bat") -Destination $ReleaseRoot
@@ -90,14 +211,18 @@ $versionInfo = [ordered]@{
 }
 $versionInfo | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $ReleaseRoot "version.json") -Encoding UTF8
 
-Write-Host "[5/5] Verifying release files..."
+Write-Host "[6/6] Verifying release files..."
 $requiredPaths = @(
     "BazaarHelper.exe",
     "_internal",
     "data",
+    "data\events.json",
+    "data\cards_generated.json",
+    "data\encounters_generated.json",
     "examples",
     "start.bat",
     "update_helper.ps1",
+    "install_update.bat",
     "VERSION",
     "version.json",
     "install_plugin.bat",

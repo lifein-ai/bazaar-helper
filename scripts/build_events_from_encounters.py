@@ -225,6 +225,33 @@ def build_shop(event_name: str, event: dict[str, Any]) -> dict[str, Any]:
     if hero_filter:
         reward_tags = []
 
+    merchant_profile = (
+        dict(event.get("merchant_profile"))
+        if isinstance(event.get("merchant_profile"), dict)
+        else {}
+    )
+    if not merchant_profile:
+        shop_tier = rarity_word_from_description(
+            " ".join(
+                str(value)
+                for value in [
+                    event.get("rarity"),
+                    event.get("min_rarity"),
+                    event.get("name"),
+                    description,
+                ]
+                if value
+            )
+        )
+        if shop_tier:
+            merchant_profile = {
+                "name": event.get("name") or event_name,
+                "source_id": event.get("source_id") or event.get("id"),
+                "template_id": event.get("template_id") or event.get("id"),
+                "shop_tier": shop_tier,
+                "shop_tier_source": "merchant_card_rarity",
+            }
+
     shop_pool: dict[str, Any] = {
         "reward_tags": reward_tags,
         "match_mode": "any",
@@ -247,7 +274,7 @@ def build_shop(event_name: str, event: dict[str, Any]) -> dict[str, Any]:
         shop_pool["rarity_filter"] = {"min": "bronze", "max": "legendary"}
         shop_pool["rarity_rule"] = None
 
-    return {
+    result = {
         "name": event_name,
         "source_id": event.get("id"),
         "source_ids": [event.get("id")] if event.get("id") else [],
@@ -257,6 +284,9 @@ def build_shop(event_name: str, event: dict[str, Any]) -> dict[str, Any]:
         "shop_pool": shop_pool,
         "notes": description,
     }
+    if merchant_profile:
+        result["merchant_profile"] = merchant_profile
+    return result
 
 
 def infer_shop_type(
