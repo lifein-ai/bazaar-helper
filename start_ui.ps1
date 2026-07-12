@@ -1,6 +1,7 @@
 $ErrorActionPreference = "Stop"
 
 $ProjectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+$BuildPythonPathFile = Join-Path $ProjectRoot "build_python_path.txt"
 $BundledPython = Join-Path $env:USERPROFILE ".cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe"
 $RuntimeDir = Join-Path $env:LOCALAPPDATA "BazaarHelper\runtime"
 $KeyFile = Join-Path $RuntimeDir "deepseek_api_key.txt"
@@ -17,8 +18,17 @@ if (-not (Test-Path $KeyFile)) {
     New-Item -ItemType File -Path $KeyFile | Out-Null
 }
 
-$Python = $BundledPython
-if (-not (Test-Path $Python)) {
+$Python = ""
+if (Test-Path $BuildPythonPathFile) {
+    $ConfiguredPython = (Get-Content -LiteralPath $BuildPythonPathFile -Raw -Encoding UTF8).Trim()
+    if ($ConfiguredPython -and (Test-Path $ConfiguredPython)) {
+        $Python = $ConfiguredPython
+    }
+}
+if (-not $Python -and (Test-Path $BundledPython)) {
+    $Python = $BundledPython
+}
+if (-not $Python) {
     $Python = "python"
 }
 

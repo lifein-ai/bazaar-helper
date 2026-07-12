@@ -106,6 +106,18 @@ class WebAppResilienceTests(unittest.TestCase):
         self.assertEqual(body["analysis_endpoint"], "/api/analysis")
         self.assertEqual(body["state_signature_endpoint"], "/api/state-signature")
 
+    def test_display_name_list_uses_chinese_translation_table(self) -> None:
+        data = {
+            "translations": {
+                "by_name": {
+                    "A": "甲",
+                    "B": "乙",
+                },
+            },
+        }
+
+        self.assertEqual(web_app.display_name_list(data, ["A", "B", "C"]), ["甲", "乙", "C"])
+
     def test_shop_does_not_record_observed_child_options(self) -> None:
         data = {
             "events": {
@@ -341,6 +353,94 @@ class WebAppResilienceTests(unittest.TestCase):
             [item["name"] for item in response["state"]["skills_display"]],
             ["Test Skill"],
         )
+
+    def test_analysis_does_not_run_combat_simulation_automatically(self) -> None:
+        data = {
+            "events": {},
+            "translations": {},
+            "cards": {},
+            "builds": {"VanessaTest": {"hero": "Vanessa"}},
+            "rarity_rules": {},
+        }
+        payload = {
+            "hero": "Vanessa",
+            "build": "VanessaTest",
+            "day": 5,
+            "event_options": [],
+            "owned_cards": [],
+            "visible_cards": [],
+        }
+
+        response = web_app.analyze_payload(data, payload)
+
+        self.assertNotIn("self_ttk", response)
+
+    def test_current_combat_simulation_is_explicit(self) -> None:
+        weapon = {
+            "id": "tpl_weapon",
+            "template_id": "tpl_weapon",
+            "name": "Weapon",
+            "type": "Item",
+            "size": "Small",
+            "tags": [],
+            "hidden_tags": [],
+            "tiers": ["Bronze"],
+            "rarity": "Bronze",
+            "raw_effects": {
+                "abilities": {
+                    "0": {
+                        "$type": "BazaarGameShared.Domain.Effect.TCardAbility",
+                        "Trigger": {
+                            "$type": "BazaarGameShared.Domain.Effect.Trigger.TTriggerOnCardFired"
+                        },
+                        "Action": {
+                            "$type": "BazaarGameShared.Domain.Effect.Actions.TActionPlayerDamage",
+                            "Target": {
+                                "$type": "BazaarGameShared.Domain.Targeting.TTargetPlayerRelative",
+                                "TargetMode": "Opponent",
+                            },
+                        },
+                    }
+                },
+                "auras": {},
+                "tiers_raw": {
+                    "Bronze": {
+                        "Attributes": {"DamageAmount": 25, "CooldownMax": 5000},
+                        "AbilityIds": ["0"],
+                        "AuraIds": [],
+                    }
+                },
+            },
+        }
+        data = {
+            "events": {},
+            "translations": {},
+            "cards": {"Weapon": weapon},
+            "builds": {"VanessaTest": {"hero": "Vanessa"}},
+            "rarity_rules": {},
+        }
+        payload = {
+            "hero": "Vanessa",
+            "build": "VanessaTest",
+            "day": 5,
+            "combat_health": 50,
+            "board_items": [
+                {
+                    "id": "itm_weapon",
+                    "template_id": "tpl_weapon",
+                    "name": "Weapon",
+                    "rarity": "Bronze",
+                    "section": "Hand",
+                }
+            ],
+        }
+
+        response = web_app.simulate_current_combat_payload(data, payload, horizon_sec=10)
+
+        self.assertTrue(response["ok"])
+        self.assertEqual(response["combat"]["total_damage"], 50)
+        self.assertEqual(response["combat"]["damage_per_second"], 5)
+        self.assertEqual(response["combat"]["kill_time_sec"], 10)
 
     def test_priority_cards_exclude_other_build_cores_and_have_no_limit(self) -> None:
         cards = web_app.priority_cards(

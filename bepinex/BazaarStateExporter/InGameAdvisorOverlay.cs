@@ -49,6 +49,7 @@ namespace BazaarStateExporter
         private bool layoutLocked = true;
         private bool nextRequestIncludeAi;
         private volatile bool requestInFlight;
+        private volatile bool simulationRequestInFlight;
         private volatile bool updateRequestInFlight;
         private float nextAutoAnalyzeAt;
         private DateTime lastSuccessfulAnalysisUtc = DateTime.MinValue;
@@ -67,6 +68,7 @@ namespace BazaarStateExporter
         private Vector2 scrollPosition;
         private Vector2 buildScrollPosition;
         private OverlayAnalysis latest = OverlayAnalysis.Waiting("正在等待 BazaarHelper...");
+        private OverlayCombatSimulation latestCombat = OverlayCombatSimulation.Waiting("");
         private OverlayUpdateState updateState = new OverlayUpdateState();
         private string selectedBuildOverride = "";
         private GUIStyle windowStyle;
@@ -550,7 +552,16 @@ namespace BazaarStateExporter
             string buildName = FirstNonEmpty(latest.CurrentBuildName, latest.CurrentBuildId);
             GUILayout.Label(string.IsNullOrEmpty(buildName) ? "当前阵容" : buildName, titleStyle);
 
+            GUI.enabled = !simulationRequestInFlight;
+            if (GUILayout.Button(simulationRequestInFlight ? "正在模拟..." : "模拟当前阵容", GUILayout.MinHeight(28f)))
+            {
+                RequestCombatSimulation();
+            }
+            GUI.enabled = true;
+
             buildScrollPosition = GUILayout.BeginScrollView(buildScrollPosition, false, true);
+            DrawCombatSimulationSection();
+            GUILayout.Space(6f);
             if (latest.BuildOptions.Count > 0)
             {
                 GUILayout.Label("选择阵容", mutedStyle);
@@ -660,6 +671,34 @@ namespace BazaarStateExporter
                 if (GUILayout.Button("暂不更新", GUILayout.MinHeight(24f)))
                 {
                     RequestDismissUpdate();
+                }
+            }
+            GUILayout.EndVertical();
+        }
+
+        private void DrawCombatSimulationSection()
+        {
+            OverlayCombatSimulation combat = latestCombat;
+            if (combat == null || (string.IsNullOrEmpty(combat.Status) && !combat.HasResult))
+            {
+                return;
+            }
+
+            GUILayout.BeginVertical(itemStyle);
+            GUILayout.Label("当前阵容战斗模拟", titleStyle);
+            if (!string.IsNullOrEmpty(combat.Status))
+            {
+                GUILayout.Label(combat.Status, combat.HasResult ? mutedStyle : reasonStyle);
+            }
+            if (combat.HasResult)
+            {
+                GUILayout.Label("总伤害：" + combat.TotalDamage + "  DPS：" + combat.DamagePerSecond, reasonStyle);
+                GUILayout.Label("直接伤害：" + combat.DirectDamage + "  护盾：" + combat.TotalShield, mutedStyle);
+                GUILayout.Label("燃烧跳伤：" + combat.BurnTickDamage + "  毒跳伤：" + combat.PoisonTickDamage, mutedStyle);
+                GUILayout.Label("击杀时间：" + combat.KillTime + "  模拟卡数：" + combat.SimulatedCardCount, mutedStyle);
+                if (combat.SkippedCardCount > 0)
+                {
+                    GUILayout.Label("有 " + combat.SkippedCardCount + " 张卡暂未参与模拟。", mutedStyle);
                 }
             }
             GUILayout.EndVertical();
@@ -975,6 +1014,56 @@ namespace BazaarStateExporter
         private void RequestAnalysis(bool includeAiForNextRequest, string status)
         {
             RequestAnalysis(includeAiForNextRequest, status, false);
+        }
+
+        private void RequestCombatSimulation()
+        {
+            if (simulationRequestInFlight)
+            {
+                latestCombat = OverlayCombatSimulation.Waiting("正在模拟，请稍候...");
+                return;
+            }
+
+            simulationRequestInFlight = true;
+            latestCombat = OverlayCombatSimulation.Waiting("正在导出当前阵容并估算伤害...");
+            ManualExportResult exportResult = Plugin.RequestManualExport();
+            if (exportResult == null || !exportResult.SnapshotAvailable)
+            {
+                latestCombat = OverlayCombatSimulation.Waiting("暂时没有可模拟的实时阵容。");
+                simulationRequestInFlight = false;
+                return;
+            }
+
+            ThreadPool.QueueUserWorkItem(_ =>
+            {
+                try
+                {
+                    EnsureHelperServiceStarted();
+                    string url = GetHelperBaseUrl().TrimEnd('/') + "/api/combat-simulation?duration=60&trials=1";
+                    using (TimeoutWebClient client = new TimeoutWebClient(8000))
+                    {
+                        client.Encoding = Encoding.UTF8;
+                        string json = client.DownloadString(url);
+                        OverlayCombatSimulation parsed = OverlayAnalysisParser.ParseCombatSimulation(json);
+                        lock (this)
+                        {
+                            latestCombat = parsed;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    lock (this)
+                    {
+                        latestCombat = OverlayCombatSimulation.Waiting("模拟失败：" + ex.Message);
+                    }
+                    LogAnalysisFailure(ex);
+                }
+                finally
+                {
+                    simulationRequestInFlight = false;
+                }
+            });
         }
 
         private void RequestAnalysis(bool includeAiForNextRequest, string status, bool automatic)
@@ -1454,6 +1543,26 @@ namespace BazaarStateExporter
         public readonly List<string> Changelog = new List<string>();
     }
 
+    internal sealed class OverlayCombatSimulation
+    {
+        public bool HasResult;
+        public string Status;
+        public string TotalDamage;
+        public string DamagePerSecond;
+        public string DirectDamage;
+        public string TotalShield;
+        public string BurnTickDamage;
+        public string PoisonTickDamage;
+        public string KillTime;
+        public int SimulatedCardCount;
+        public int SkippedCardCount;
+
+        public static OverlayCombatSimulation Waiting(string status)
+        {
+            return new OverlayCombatSimulation { Status = status };
+        }
+    }
+
     internal sealed class OverlayUpdatePackage
     {
         public string Path;
@@ -1511,6 +1620,36 @@ namespace BazaarStateExporter
 
     internal static class OverlayAnalysisParser
     {
+        public static OverlayCombatSimulation ParseCombatSimulation(string json)
+        {
+            string error = FindStringProperty(json, "error");
+            if (!string.IsNullOrEmpty(error))
+            {
+                return OverlayCombatSimulation.Waiting(error);
+            }
+
+            string combatObject = FindObjectProperty(json, "combat");
+            if (string.IsNullOrEmpty(combatObject))
+            {
+                return OverlayCombatSimulation.Waiting("当前没有可模拟的阵容。");
+            }
+
+            OverlayCombatSimulation result = new OverlayCombatSimulation();
+            result.HasResult = true;
+            result.Status = "估算完成。结果只覆盖当前已支持的伤害、燃烧、毒和触发规则。";
+            result.TotalDamage = FormatNumber(FindNumberProperty(combatObject, "total_damage"));
+            result.DamagePerSecond = FormatNumber(FindNumberProperty(combatObject, "damage_per_second"));
+            result.DirectDamage = FormatNumber(FindNumberProperty(combatObject, "direct_damage"));
+            result.TotalShield = FormatNumber(FindNumberProperty(combatObject, "total_shield"));
+            result.BurnTickDamage = FormatNumber(FindNumberProperty(combatObject, "total_burn_tick_damage"));
+            result.PoisonTickDamage = FormatNumber(FindNumberProperty(combatObject, "total_poison_tick_damage"));
+            string killTime = FindNumberProperty(combatObject, "kill_time_sec");
+            result.KillTime = string.IsNullOrEmpty(killTime) ? "未击杀" : FormatNumber(killTime) + " 秒";
+            result.SimulatedCardCount = ParseInt(FindNumberProperty(combatObject, "simulated_card_count"));
+            result.SkippedCardCount = CountJsonObjects(FindArrayProperty(combatObject, "skipped_cards"));
+            return result;
+        }
+
         public static OverlayAnalysis Parse(string json)
         {
             OverlayAnalysis result = new OverlayAnalysis();
@@ -1667,6 +1806,11 @@ namespace BazaarStateExporter
         private static string FirstNonEmpty(string first, string second)
         {
             return string.IsNullOrEmpty(first) ? second : first;
+        }
+
+        private static List<string> FirstNonEmptyList(List<string> first, List<string> second)
+        {
+            return first != null && first.Count > 0 ? first : second;
         }
 
         private static string FindObjectProperty(string json, string name)
@@ -1849,7 +1993,9 @@ namespace BazaarStateExporter
             string array = FindArrayProperty(json, "build_hits");
             foreach (string itemObject in SplitTopLevelObjects(array))
             {
-                string buildName = FindStringProperty(itemObject, "build_name");
+                string buildName = FirstNonEmpty(
+                    FindStringProperty(itemObject, "build_display_name"),
+                    FindStringProperty(itemObject, "build_name"));
                 if (string.IsNullOrEmpty(buildName))
                 {
                     continue;
@@ -2000,9 +2146,15 @@ namespace BazaarStateExporter
                 match.MatchBand = FindStringProperty(itemObject, "match_band");
                 match.Importance = FindStringProperty(itemObject, "importance");
                 match.Relation = FindStringProperty(itemObject, "relation");
-                match.OwnedCore.AddRange(FindStringArrayProperty(itemObject, "owned_core"));
-                match.MissingCore.AddRange(FindStringArrayProperty(itemObject, "missing_core"));
-                match.OwnedOptional.AddRange(FindStringArrayProperty(itemObject, "owned_optional"));
+                match.OwnedCore.AddRange(FirstNonEmptyList(
+                    FindStringArrayProperty(itemObject, "owned_core_display"),
+                    FindStringArrayProperty(itemObject, "owned_core")));
+                match.MissingCore.AddRange(FirstNonEmptyList(
+                    FindStringArrayProperty(itemObject, "missing_core_display"),
+                    FindStringArrayProperty(itemObject, "missing_core")));
+                match.OwnedOptional.AddRange(FirstNonEmptyList(
+                    FindStringArrayProperty(itemObject, "owned_optional_display"),
+                    FindStringArrayProperty(itemObject, "owned_optional")));
                 if (!string.IsNullOrEmpty(match.BuildId) || !string.IsNullOrEmpty(match.Name))
                 {
                     values.Add(match);
@@ -2146,6 +2298,32 @@ namespace BazaarStateExporter
         {
             int parsed;
             return int.TryParse(value, out parsed) ? parsed : 0;
+        }
+
+        private static int CountJsonObjects(string array)
+        {
+            int count = 0;
+            foreach (string ignored in SplitTopLevelObjects(array))
+            {
+                count++;
+            }
+            return count;
+        }
+
+        private static string FormatNumber(string value)
+        {
+            double parsed;
+            if (!double.TryParse(
+                value,
+                System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture,
+                out parsed))
+            {
+                return "-";
+            }
+            return Math.Round(parsed, 1).ToString(
+                "0.#",
+                System.Globalization.CultureInfo.InvariantCulture);
         }
 
         private static string FormatProbability(string value)

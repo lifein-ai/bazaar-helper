@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from docx import Document
@@ -18,6 +19,25 @@ DARK = RGBColor(32, 45, 58)
 MUTED = RGBColor(91, 103, 112)
 LIGHT_BLUE = "E8EEF5"
 LIGHT_GOLD = "FFF4D6"
+
+
+def save_document_atomically(doc: Document, output_path: Path) -> None:
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    temp_path = output_path.with_name(
+        f".{output_path.name}.{os.getpid()}.tmp"
+    )
+    try:
+        doc.save(temp_path)
+        temp_path.replace(output_path)
+    except OSError as exc:
+        try:
+            temp_path.unlink(missing_ok=True)
+        except OSError:
+            pass
+        raise RuntimeError(
+            f"Unable to write user guide: {output_path}. "
+            "Close the document if it is open, then rerun packaging."
+        ) from exc
 
 
 def set_font(run, size: float, *, bold: bool = False, color: RGBColor = DARK) -> None:
@@ -263,8 +283,7 @@ def build_document() -> None:
     add_body(doc, "移动目录后能否继续使用：可以，运行数据使用固定用户目录。", bold_prefix="移动目录后能否继续使用：")
     add_body(doc, "更新版本：用新文件夹替换旧版本，退出游戏后重新运行 install_plugin.bat。", bold_prefix="更新版本：")
 
-    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    doc.save(OUTPUT_PATH)
+    save_document_atomically(doc, OUTPUT_PATH)
     print(OUTPUT_PATH)
 
 

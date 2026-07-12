@@ -8,6 +8,7 @@ $ErrorActionPreference = "Stop"
 $ProjectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ReleaseRoot = Join-Path $ProjectRoot "release\BazaarHelper"
 $DistRoot = Join-Path $ProjectRoot "dist\BazaarHelper"
+$GuidesRoot = Join-Path $ProjectRoot "guides"
 $VenvPython = Join-Path $ProjectRoot ".venv\Scripts\python.exe"
 $BundledPython = Join-Path $env:USERPROFILE ".cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe"
 $BuildPythonPathFile = Join-Path $ProjectRoot "build_python_path.txt"
@@ -98,7 +99,11 @@ No usable packaging Python was found.
 Need a Python that can import: socket, pytest, PyInstaller.
 
 Recommended setup:
-  py -3.11 -m venv .venv
+  C:\Path\To\python.exe -m pip install pytest pyinstaller openpyxl et_xmlfile
+  Set-Content build_python_path.txt 'C:\Path\To\python.exe' -Encoding UTF8
+
+Or use a virtual environment:
+  py -3.13 -m venv .venv
   .\.venv\Scripts\python.exe -m pip install pytest pyinstaller openpyxl et_xmlfile
 
 Or set:
@@ -147,6 +152,7 @@ if (Test-Path $PytestTemp) {
 }
 New-Item -ItemType Directory -Path $PytestTemp -Force | Out-Null
 & $BuildPythonExe @BuildPythonArgs -m pytest -q tests\test_app_paths.py tests\test_web_app.py `
+    tests\test_guide_retriever.py `
     tests\test_update_manager.py `
     tests\test_build_simulation_evaluator.py `
     tests\test_combat_simulator.py `
@@ -187,6 +193,11 @@ New-Item -ItemType Directory -Path (Join-Path $ReleaseRoot "bepinex_plugin") | O
 Copy-Item -LiteralPath (Join-Path $DistRoot "BazaarHelper.exe") -Destination $ReleaseRoot
 Copy-Item -LiteralPath (Join-Path $DistRoot "_internal") -Destination $ReleaseRoot -Recurse
 Copy-Item -LiteralPath (Join-Path $ProjectRoot "data") -Destination $ReleaseRoot -Recurse
+if (Test-Path $GuidesRoot) {
+    Copy-Item -LiteralPath $GuidesRoot -Destination $ReleaseRoot -Recurse
+} else {
+    New-Item -ItemType Directory -Path (Join-Path $ReleaseRoot "guides") | Out-Null
+}
 Copy-Item -LiteralPath (Join-Path $ProjectRoot "examples") -Destination $ReleaseRoot -Recurse
 Copy-Item -LiteralPath (Join-Path $ProjectRoot "start.bat") -Destination $ReleaseRoot
 Copy-Item -LiteralPath (Join-Path $ProjectRoot "update_helper.ps1") -Destination $ReleaseRoot
@@ -212,13 +223,26 @@ $versionInfo = [ordered]@{
 $versionInfo | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $ReleaseRoot "version.json") -Encoding UTF8
 
 Write-Host "[6/6] Verifying release files..."
+$CommonGuidesDir = "guides\" + [string]([char]0x901A) + [string]([char]0x7528)
 $requiredPaths = @(
     "BazaarHelper.exe",
     "_internal",
     "data",
+    "data\cardpacks.json",
     "data\events.json",
     "data\cards_generated.json",
     "data\encounters_generated.json",
+    "data\skills_generated.json",
+    "data\translations_zh_cn.json",
+    "guides",
+    "guides\Dooley",
+    "guides\Jules",
+    "guides\Karnok",
+    "guides\Mak",
+    "guides\Pygmalien",
+    "guides\Stelle",
+    "guides\Vanessa",
+    $CommonGuidesDir,
     "examples",
     "start.bat",
     "update_helper.ps1",

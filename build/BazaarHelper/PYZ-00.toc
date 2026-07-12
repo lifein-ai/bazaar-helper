@@ -171,6 +171,7 @@
   ('glob',
    'C:\\Users\\Weng\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\glob.py',
    'PYMODULE'),
+  ('guide_retriever', 'D:\\bazzarhelp\\src\\guide_retriever.py', 'PYMODULE'),
   ('gzip',
    'C:\\Users\\Weng\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\gzip.py',
    'PYMODULE'),

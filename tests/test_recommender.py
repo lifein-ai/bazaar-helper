@@ -678,14 +678,53 @@ class RecommenderTests(unittest.TestCase):
         serialized_messages = json.dumps(messages, ensure_ascii=False)
 
         self.assertIn("候选阵容", payload)
+        self.assertIn("当前状态", payload)
+        self.assertIn("事件客观信息", payload)
+        self.assertNotIn("候选物品与阵容关系", payload)
+        self.assertEqual(
+            {item["事件原名"] for item in payload["事件客观信息"]},
+            {"Colt", "Kina"},
+        )
         self.assertEqual(payload["候选阵容"][0]["已拥有核心卡数量"], 1)
         self.assertEqual(payload["候选阵容"][0]["已拥有可选卡数量"], 1)
         self.assertNotIn("possible_cards", serialized_payload)
         self.assertNotIn('"raw"', serialized_payload)
         self.assertNotIn('"trap"', serialized_payload)
         self.assertNotIn("过渡卡", serialized_payload)
+        self.assertNotIn("判断规则", serialized_payload)
         self.assertIn("编造", serialized_messages)
-        self.assertIn("当前推荐", serialized_messages)
+        self.assertNotIn("固定为五行", serialized_messages)
+        self.assertIn("2 到 4 个短段落", serialized_messages)
+        self.assertIn("参考倾向", serialized_messages)
+        self.assertIn("比较所有当前选项", serialized_messages)
+
+    def test_ai_payload_uses_all_event_options_when_ui_top_is_limited(self) -> None:
+        web_app.ANALYSIS_CACHE.clear()
+        web_app.AI_PAYLOAD_CACHE.clear()
+        web_app.AI_ANALYSIS_CACHE.clear()
+        data = load_all_data(DATA_DIR)
+        payload = {
+            "source": "bepinex",
+            "hero": "Vanessa",
+            "day": 6,
+            "event_options": ["Colt", "Kina"],
+            "owned_cards": [{"name": "Ballista", "rarity": "gold"}],
+        }
+        captured_payloads: list[dict] = []
+
+        def capture_ai_payload(ai_payload: dict) -> str:
+            captured_payloads.append(ai_payload)
+            return "ok"
+
+        with patch.object(web_app, "analyze_with_ai", side_effect=capture_ai_payload):
+            response = analyze_payload(data, payload, top=1, include_ai=True)
+
+        self.assertEqual(response["ai_analysis"], "ok")
+        self.assertEqual(len(response["recommendations"]), 1)
+        self.assertEqual(
+            {item["事件原名"] for item in captured_payloads[0]["事件客观信息"]},
+            {"Colt", "Kina"},
+        )
 
     def test_web_payload_can_auto_select_build_for_minimal_plugin_state(self) -> None:
         data = load_all_data(DATA_DIR)
@@ -1038,7 +1077,7 @@ class RecommenderTests(unittest.TestCase):
         self.assertEqual(result["recommendation"], "Medium Value")
         self.assertTrue(result["followup_options"])
         self.assertNotIn("选项", payload)
-        self.assertIn("候选阵容", payload)
+        self.assertNotIn("候选阵容", payload)
 
     def test_followup_options_promote_parent_pool_stats_from_best_followup(self) -> None:
         data = load_all_data(DATA_DIR)

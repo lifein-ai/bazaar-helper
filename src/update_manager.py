@@ -31,6 +31,7 @@ REQUIRED_PACKAGE_PATHS = (
     "data",
     "data/events.json",
     "data/cards_generated.json",
+    "guides",
     "VERSION",
     "version.json",
     "start.bat",
@@ -441,7 +442,7 @@ def _find_payload_root(names: set[str]) -> str:
 def _package_has_required_paths(names: set[str], prefix: str) -> bool:
     for required in REQUIRED_PACKAGE_PATHS:
         full = prefix + required
-        if required in ("_internal", "data"):
+        if required in ("_internal", "data", "guides"):
             if not any(name == full or name.startswith(full + "/") for name in names):
                 return False
         elif full not in names:

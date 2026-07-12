@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import argparse
 import hashlib
@@ -22,6 +22,7 @@ from build_strategy import applicable_build_names, build_applies_to_day, get_gam
 from combat_simulator import estimate_self_health_ttk
 from data_loader import load_all_data
 from game_state import GameState
+from guide_retriever import guide_cache_marker, retrieve_guides_for_ai
 from app_paths import get_app_root, get_runtime_dir
 from stage_build_matcher import analyze_stage_builds
 from shop_state import merge_effective_shop
@@ -66,9 +67,10 @@ VOLATILE_STATE_KEYS = {
     "frame_count",
     "_runtime_state_age_seconds",
 }
-ANALYSIS_CACHE: dict[tuple[int, str, str, int | None], dict[str, Any]] = {}
-AI_PAYLOAD_CACHE: dict[tuple[int, str, str, int | None], dict[str, Any]] = {}
-AI_ANALYSIS_CACHE: dict[tuple[int, str, str, int | None], dict[str, str]] = {}
+AnalysisCacheKey = tuple[int, str, str, int | None, str]
+ANALYSIS_CACHE: dict[AnalysisCacheKey, dict[str, Any]] = {}
+AI_PAYLOAD_CACHE: dict[AnalysisCacheKey, dict[str, Any]] = {}
+AI_ANALYSIS_CACHE: dict[AnalysisCacheKey, str] = {}
 STAGE_LABELS_ZH = {
     "early": "前期",
     "mid": "中期",
@@ -315,7 +317,7 @@ def state_signature(payload: dict[str, Any]) -> str:
 
 
 def remember_analysis_cache(
-    cache_key: tuple[int, str, str, int | None],
+    cache_key: AnalysisCacheKey,
     response: dict[str, Any],
 ) -> None:
     if len(ANALYSIS_CACHE) >= ANALYSIS_CACHE_MAX_ENTRIES:
@@ -325,7 +327,7 @@ def remember_analysis_cache(
 
 
 def remember_ai_payload_cache(
-    cache_key: tuple[int, str, str, int | None],
+    cache_key: AnalysisCacheKey,
     payload: dict[str, Any],
 ) -> None:
     if len(AI_PAYLOAD_CACHE) >= AI_CACHE_MAX_ENTRIES:
@@ -337,7 +339,7 @@ def remember_ai_payload_cache(
 
 def attach_cached_ai_analysis(
     response: dict[str, Any],
-    cache_key: tuple[int, str, str, int | None],
+    cache_key: AnalysisCacheKey,
 ) -> bool:
     if cache_key in AI_ANALYSIS_CACHE:
         response["ai_analysis"] = AI_ANALYSIS_CACHE[cache_key]
@@ -1221,6 +1223,13 @@ def display_build_card_names(data: dict[str, Any], card_names: Any) -> list[dict
     ]
 
 
+def display_name_list(data: dict[str, Any], card_names: Any) -> list[str]:
+    if not isinstance(card_names, list):
+        return []
+
+    return [zh_name(data, name) for name in card_names if name]
+
+
 def build_detail_for_state(data: dict[str, Any], build_name: str) -> dict[str, Any]:
     build_data = data.get("builds", {}).get(build_name, {})
     if not isinstance(build_data, dict):
@@ -1761,11 +1770,13 @@ def analyze_payload(
     top: int | None = None,
 ) -> dict[str, Any]:
     cache_signature = state_signature(payload)
-    cache_key = (id(data), cache_signature, build_override or "", top)
+    guide_marker = guide_cache_marker() if include_ai else ""
+    analysis_cache_key = (id(data), cache_signature, build_override or "", top, "")
+    cache_key = (id(data), cache_signature, build_override or "", top, guide_marker)
     render_signature = f"{cache_signature}:{build_override or ''}:{top or ''}"
     payload_warnings = runtime_state_age_warnings(payload)
-    if cache_key in ANALYSIS_CACHE:
-        cached = dict(ANALYSIS_CACHE[cache_key])
+    if analysis_cache_key in ANALYSIS_CACHE:
+        cached = dict(ANALYSIS_CACHE[analysis_cache_key])
         cached["cache_hit"] = True
         if include_ai and attach_cached_ai_analysis(cached, cache_key):
             return cached
@@ -1827,7 +1838,7 @@ def analyze_payload(
             "analysis_signature": render_signature,
             "cache_hit": False,
         }
-        remember_analysis_cache(cache_key, response)
+        remember_analysis_cache(analysis_cache_key, response)
         return response
 
     state = GameState.from_dict(normalized)
@@ -1873,15 +1884,38 @@ def analyze_payload(
         inventory_slots_total=state.inventory_slots_total,
         current_shop=state.effective_shop,
     )
+    for match in build_analysis.get("build_matches", []):
+        match["phase_label"] = STAGE_LABELS_ZH.get(
+            match.get("phase"),
+            match.get("phase") or "",
+        )
+        match["importance_label"] = importance_label(match.get("importance"))
+        match["relation_label"] = relation_label(match.get("relation"))
+        match["owned_core_display"] = display_name_list(data, match.get("owned_core"))
+        match["missing_core_display"] = display_name_list(data, match.get("missing_core"))
+        match["owned_optional_display"] = display_name_list(data, match.get("owned_optional"))
+        match["reasons"] = [
+            zh_text(data, reason)
+            for reason in match.get("reasons", [])
+        ]
     for candidate in build_analysis.get("candidate_cards", []):
         candidate["card_display_name"] = zh_name(
             data, candidate.get("card_name")
         )
+        candidate["reasons"] = [
+            zh_text(data, reason)
+            for reason in candidate.get("reasons", [])
+        ]
+        candidate["risks"] = [
+            zh_text(data, risk)
+            for risk in candidate.get("risks", [])
+        ]
         candidate["importance_label"] = importance_label(candidate.get("importance"))
         candidate["recommendation_type_label"] = shop_recommendation_label(
             candidate.get("recommendation_type")
         )
         for hit in candidate.get("build_hits", []):
+            hit["build_display_name"] = hit.get("build_name") or hit.get("build_id") or ""
             hit["build_phase_label"] = STAGE_LABELS_ZH.get(
                 hit.get("build_phase"),
                 hit.get("build_phase") or "",
@@ -1897,12 +1931,23 @@ def analyze_payload(
             zh_name(data, name)
             for name in bundle.get("candidate_core_cards", [])
         ]
+        bundle["owned_core_before_display"] = display_name_list(
+            data,
+            bundle.get("owned_core_before"),
+        )
+        bundle["owned_core_after_if_bought_display"] = display_name_list(
+            data,
+            bundle.get("owned_core_after_if_bought"),
+        )
+        bundle["reasons"] = [
+            zh_text(data, reason)
+            for reason in bundle.get("reasons", [])
+        ]
         bundle["importance_label"] = importance_label(bundle.get("importance"))
         bundle["recommendation_label"] = shop_recommendation_label(
             bundle.get("recommendation")
         )
     owned_items_display, skills_display = displayed_owned_groups(data, state)
-    self_ttk_estimate = estimate_self_health_ttk(data, state)
 
     response: dict[str, Any] = {
         "state": {
@@ -1998,11 +2043,6 @@ def analyze_payload(
             for item in result.recommendations
         ],
         "build_analysis": build_analysis,
-        "self_ttk": (
-            self_ttk_estimate.to_dict()
-            if self_ttk_estimate is not None
-            else None
-        ),
         "state_signature": cache_signature,
         "analysis_signature": render_signature,
         "cache_hit": False,
@@ -2013,23 +2053,36 @@ def analyze_payload(
         or build_analysis.get("candidate_cards")
     ):
         ai_results: list[dict[str, Any]] = []
+        ai_rule_recommendations = result.recommendations
+        if top:
+            ai_rule_recommendations = analyze_game_state(
+                data,
+                state,
+                top=None,
+            ).recommendations
 
-        for raw_item, display_item in zip(result.recommendations, response["recommendations"]):
+        for raw_item in ai_rule_recommendations:
+            display_item = summarize_recommendation(data, raw_item)
             item = dict(raw_item)
 
-            # AI 必须吃到 UI 展示层修正后的推荐等级。
+            # AI 使用展示层修正后的规则参考，但仍会拿到全部当前选项。
             item["recommendation"] = display_item.get(
                 "recommendation",
                 raw_item.get("recommendation"),
             )
 
-            # AI 也吃展示层修正后的理由，比如“检测到技能收益，最低按可以考虑处理”。
             display_reasons = display_item.get("reasons", [])
             if isinstance(display_reasons, list) and display_reasons:
                 item["reasons"] = display_reasons
 
             ai_results.append(item)
 
+        guide_context = retrieve_guides_for_ai(
+            data=data,
+            state=state,
+            build_analysis=build_analysis,
+            recommendations=ai_results,
+        )
         ai_payload = compact_recommendations(
             data=data,
             hero=state.hero,
@@ -2040,6 +2093,8 @@ def analyze_payload(
             current_gold=state.gold,
             current_shop=state.effective_shop,
             build_analysis=build_analysis,
+            guide_context=guide_context,
+            state_context=response["state"],
         )
         remember_ai_payload_cache(cache_key, ai_payload)
 
@@ -2057,9 +2112,45 @@ def analyze_payload(
         response["warnings"] = [observation_warning, *response["warnings"]]
 
     if not include_ai:
-        remember_analysis_cache(cache_key, response)
+        remember_analysis_cache(analysis_cache_key, response)
 
     return response
+
+
+def simulate_current_combat_payload(
+    data: dict[str, Any],
+    payload: dict[str, Any],
+    *,
+    horizon_sec: float = 60.0,
+    random_trials: int = 1,
+) -> dict[str, Any]:
+    normalized = normalize_payload_for_analysis(data, payload)
+    state = GameState.from_dict(normalized)
+    estimate = estimate_self_health_ttk(
+        data,
+        state,
+        horizon_sec=max(1.0, min(180.0, float(horizon_sec or 60.0))),
+        random_trials=max(1, min(20, int(random_trials or 1))),
+    )
+    combat = estimate.to_dict() if estimate is not None else None
+    if combat is not None:
+        horizon = float(combat.get("horizon_sec") or 0.0)
+        total_damage = float(combat.get("total_damage") or 0.0)
+        combat["damage_per_second"] = total_damage / horizon if horizon > 0 else 0.0
+    return {
+        "ok": estimate is not None,
+        "combat": combat,
+        "state": {
+            "hero": state.hero,
+            "build": state.build,
+            "day": state.day,
+            "health": state.combat_health,
+            "combat_health": state.combat_health,
+            "board_item_count": len(state.board_items or []),
+            "owned_item_count": len(state.owned_items or []),
+        },
+        "state_signature": state_signature(payload),
+    }
 
 
 def record_missing_events(
@@ -2162,6 +2253,17 @@ class BazaarHandler(BaseHTTPRequestHandler):
                 response["state_path"] = str(path)
                 self.send_json(response)
                 return
+            if parsed.path == "/api/combat-simulation":
+                payload, path = load_runtime_payload()
+                response = simulate_current_combat_payload(
+                    self.data,
+                    payload,
+                    horizon_sec=_optional_float(query.get("duration", [None])[0], 60.0),
+                    random_trials=_optional_int(query.get("trials", [None])[0]) or 1,
+                )
+                response["state_path"] = str(path)
+                self.send_json(response)
+                return
 
             self.send_error(HTTPStatus.NOT_FOUND, "未找到")
         except Exception as exc:  # noqa: BLE001 - this is a small local dev server.
@@ -2256,14 +2358,6 @@ class BazaarHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def send_text(self, text: str, content_type: str, status: HTTPStatus = HTTPStatus.OK) -> None:
-        body = text.encode("utf-8")
-        self.send_response(status)
-        self.send_header("Content-Type", content_type)
-        self.send_header("Content-Length", str(len(body)))
-        self.end_headers()
-        self.wfile.write(body)
-
     def log_message(self, format: str, *args: Any) -> None:
         return
 
@@ -2274,734 +2368,15 @@ def _optional_int(value: str | None) -> int | None:
     return int(value)
 
 
-HTML_PAGE = r"""<!doctype html>
-<html lang="zh-CN">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>The Bazaar 智能助手</title>
-  <style>
-    :root {
-      color-scheme: dark;
-      --bg: #101214;
-      --panel: #171b1f;
-      --panel-2: #20262b;
-      --line: #343c43;
-      --text: #eef2f3;
-      --muted: #9aa6ad;
-      --accent: #78d6b5;
-      --warn: #e4b860;
-      --bad: #e07777;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font: 14px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 18px 24px;
-      border-bottom: 1px solid var(--line);
-      background: #13171a;
-    }
-    h1 { margin: 0; font-size: 20px; font-weight: 650; }
-    button, select {
-      border: 1px solid var(--line);
-      background: var(--panel-2);
-      color: var(--text);
-      border-radius: 6px;
-      padding: 8px 11px;
-      font: inherit;
-    }
-    button { cursor: pointer; }
-    button.primary { border-color: #4aa789; background: #1f4c40; }
-    main {
-      display: grid;
-      grid-template-columns: minmax(300px, 360px) 1fr;
-      min-height: calc(100vh - 70px);
-    }
-    aside {
-      border-right: 1px solid var(--line);
-      padding: 18px;
-      background: var(--panel);
-    }
-    section { padding: 18px 22px; }
-    .toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-    .state-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-      margin: 14px 0;
-    }
-    .metric {
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      padding: 10px;
-      background: var(--panel-2);
-      min-height: 68px;
-    }
-    .metric span {
-      display: block;
-      color: var(--muted);
-      font-size: 12px;
-      margin-bottom: 3px;
-    }
-    .metric-button {
-      width: 100%;
-      text-align: left;
-      cursor: pointer;
-    }
-    .metric-button:focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: 2px;
-    }
-    .build-detail {
-      display: none;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      background: #111518;
-      padding: 10px;
-      margin: 10px 0 14px;
-    }
-    .build-detail.open { display: block; }
-    .build-detail h3 {
-      margin: 10px 0 6px;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 650;
-    }
-    .build-detail h3:first-child { margin-top: 0; }
-    .build-detail .list { margin-bottom: 8px; }
-    .tag-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-    .tag {
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      color: var(--muted);
-      padding: 2px 7px;
-      font-size: 12px;
-    }
-    .panel-title {
-      margin: 18px 0 8px;
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 650;
-    }
-    .list {
-      display: grid;
-      gap: 8px;
-      margin-bottom: 14px;
-    }
-    .list-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      background: #111518;
-      padding: 9px 10px;
-      min-height: 40px;
-    }
-    .list-item small {
-      color: var(--muted);
-      white-space: nowrap;
-    }
-    .list-item span {
-      min-width: 0;
-      overflow-wrap: anywhere;
-    }
-    .event-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 12px;
-    }
-    .event {
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      background: var(--panel);
-      padding: 14px;
-    }
-    .event h2 {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      margin: 0 0 8px;
-      font-size: 17px;
-    }
-    .badge {
-      white-space: nowrap;
-      color: #08110e;
-      background: var(--accent);
-      border-radius: 999px;
-      padding: 2px 8px;
-      font-size: 12px;
-      font-weight: 650;
-    }
-    .badge.medium { background: var(--warn); }
-    .badge.low { background: var(--bad); color: #170808; }
-    .muted { color: var(--muted); }
-    ul { padding-left: 18px; margin: 8px 0; }
-    .ai {
-      border-left: 3px solid var(--accent);
-      background: #111b18;
-      padding: 12px;
-      margin-bottom: 14px;
-      white-space: pre-wrap;
-    }
-    .error {
-      border-left: 3px solid var(--bad);
-      background: #211414;
-      padding: 12px;
-      margin-bottom: 14px;
-      color: #ffdede;
-    }
-    @media (max-width: 860px) {
-      main { grid-template-columns: 1fr; }
-      aside { border-right: 0; border-bottom: 1px solid var(--line); }
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>The Bazaar 智能助手</h1>
-    <div class="toolbar">
-      <select id="buildSelect"></select>
-      <button id="refreshBtn" title="快捷键：F8">扫描分析</button>
-      <button id="autoBtn">自动分析：关</button>
-      <button id="aiBtn" class="primary">智能分析</button>
-    </div>
-  </header>
-  <main>
-    <aside>
-      <div class="state-grid">
-        <div class="metric"><span>英雄</span><strong id="hero">-</strong></div>
-        <div class="metric"><span>天数</span><strong id="day">-</strong></div>
-        <div class="metric"><span>金币</span><strong id="gold">-</strong></div>
-        <div class="metric"><span>生命</span><strong id="health">-</strong></div>
-        <div class="metric"><span>声望</span><strong id="prestige">-</strong></div>
-        <div class="metric"><span>收入</span><strong id="income">-</strong></div>
-        <div class="metric"><span>自测击杀</span><strong id="selfTtk">-</strong></div>
-      </div>
-      <div class="metric metric-button" id="buildMetric" role="button" tabindex="0" aria-expanded="false">
-        <span>阵容目标</span><strong id="build">-</strong><div class="muted" id="stage">-</div>
-      </div>
-      <div class="build-detail" id="buildDetail"></div>
-      <h2 class="panel-title">当前事件</h2>
-      <div class="list" id="currentEvents"></div>
-      <h2 class="panel-title">已拥有物品</h2>
-      <div class="list" id="ownedItems"></div>
-      <h2 class="panel-title">已拥有技能</h2>
-      <div class="list" id="ownedSkills"></div>
-      <h2 class="panel-title">当前可见卡</h2>
-      <div class="list" id="visibleCards"></div>
-    </aside>
-    <section>
-      <div id="message"></div>
-      <div id="aiBox"></div>
-      <div class="event-list" id="events"></div>
-    </section>
-  </main>
-  <script>
-    const eventsEl = document.querySelector("#events");
-    const messageEl = document.querySelector("#message");
-    const aiBox = document.querySelector("#aiBox");
-    const buildSelect = document.querySelector("#buildSelect");
-    const buildMetric = document.querySelector("#buildMetric");
-    const buildDetail = document.querySelector("#buildDetail");
-    let aiRequestInFlight = false;
-    let currentBuildIds = [];
-    let currentOptionsHero = null;
-    let buildDetailOpen = false;
-    let analysisRequestInFlight = false;
-    let lastRenderedSignature = null;
-    let lastSeenStateSignature = null;
-    let analyzeDebounceTimer = null;
-    let autoAnalyzeTimer = null;
-    let autoAnalyzeEnabled = localStorage.getItem("bazaar_auto_analyze") === "1";
-    const ANALYZE_DEBOUNCE_MS = 400;
+def _optional_float(value: str | None, fallback: float) -> float:
+    if value in (None, ""):
+        return fallback
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return fallback
 
-    function pct(value) {
-      return `${Math.round((value || 0) * 100)}%`;
-    }
 
-    function badgeClass(label) {
-      if (label === "Medium Value") return "badge medium";
-      if (label === "Low Value") return "badge low";
-      return "badge";
-    }
-
-    function enumLabel(value, labels) {
-      return labels[String(value || "")] || value || "";
-    }
-
-    function stageLabel(value) {
-      return enumLabel(value, { early: "前期", mid: "中期", late: "后期" });
-    }
-
-    function roleLabel(value) {
-      return enumLabel(value, {
-        core: "核心",
-        transition: "过渡",
-        optional: "可选",
-        unrelated: "无关",
-      });
-    }
-
-    function relationLabel(value) {
-      return enumLabel(value, {
-        current_build: "当前阶段",
-        future_build: "后续阶段",
-        late_build: "后期方向",
-        past_build: "已过期",
-      });
-    }
-
-    function importanceLabel(value) {
-      return enumLabel(value, {
-        critical: "关键",
-        high: "高",
-        medium: "中",
-        low: "低",
-        ignored: "忽略",
-        unknown: "未知",
-      });
-    }
-
-    function shopRecommendationLabel(value) {
-      return enumLabel(value, {
-        buy_now: "建议购买",
-        tempo_upgrade: "节奏补强",
-        stash_future: "留作后期",
-        observe: "观察",
-        skip: "跳过",
-        consider_buying_together: "可成组购买",
-        prioritize_best_core: "优先最强核心",
-        unknown: "待判断",
-      });
-    }
-
-    function shopActionLabel(value) {
-      return enumLabel(value, {
-        buy_visible: "购买可见目标",
-        consider_bundle: "考虑组合购买",
-        skip: "跳过刷新",
-        unknown: "暂不强推",
-      });
-    }
-
-    async function loadOptions(hero = null, preferredBuild = null) {
-      const url = hero ? `/api/options?hero=${encodeURIComponent(hero)}` : "/api/options";
-      const previousBuild = preferredBuild ?? buildSelect.value;
-      const res = await fetch(url, { cache: "no-store" });
-      const data = await res.json();
-      currentBuildIds = data.builds || [];
-      currentOptionsHero = hero || null;
-      buildSelect.innerHTML = [
-        `<option value="">自动匹配已有卡牌</option>`,
-        ...(data.build_options || data.builds.map((id) => ({ id, name: id })))
-          .map((build) => `<option value="${build.id}">${build.name}</option>`),
-      ].join("");
-      const savedBuild = localStorage.getItem("bazaar_selected_build");
-      if (previousBuild && currentBuildIds.includes(previousBuild)) {
-        buildSelect.value = previousBuild;
-      } else if (savedBuild === "") {
-        buildSelect.value = "";
-      } else if (savedBuild && currentBuildIds.includes(savedBuild)) {
-        buildSelect.value = savedBuild;
-      } else {
-        buildSelect.value = "";
-      }
-    }
-
-    async function loadState() {
-      const res = await fetch("/api/state", { cache: "no-store" });
-      const data = await res.json();
-      return data.payload;
-    }
-
-    async function loadStateSignature() {
-      const res = await fetch("/api/state-signature", { cache: "no-store" });
-      return await res.json();
-    }
-
-    function scheduleAnalyze(includeAi = false) {
-      if (analyzeDebounceTimer) clearTimeout(analyzeDebounceTimer);
-      analyzeDebounceTimer = setTimeout(() => {
-        analyzeDebounceTimer = null;
-        analyze(includeAi);
-      }, ANALYZE_DEBOUNCE_MS);
-    }
-
-    async function analyze(includeAi = false) {
-      if (!includeAi && document.hidden) return;
-      if (!includeAi && analysisRequestInFlight) return;
-      if (includeAi && aiRequestInFlight) return;
-      messageEl.innerHTML = "";
-      if (includeAi) {
-        aiRequestInFlight = true;
-        aiBox.innerHTML = `<div class="ai">智能分析中...</div>`;
-      } else {
-        analysisRequestInFlight = true;
-      }
-
-      const selectedBuild = buildSelect.value || "";
-      const build = encodeURIComponent(selectedBuild);
-      let data;
-      try {
-        const res = await fetch(
-          `/api/analysis?top=3&build=${build}&ai=${includeAi ? "1" : "0"}`,
-          { cache: "no-store" }
-        );
-        data = await res.json();
-      } catch (error) {
-        if (includeAi) {
-          aiBox.innerHTML = `<div class="error">智能分析请求失败：${error.message}</div>`;
-          aiRequestInFlight = false;
-        } else {
-          messageEl.innerHTML = `<div class="error">刷新失败：${error.message}</div>`;
-          analysisRequestInFlight = false;
-        }
-        return;
-      }
-
-      if (data.error) {
-        messageEl.innerHTML = `<div class="error">${data.error}</div>`;
-        if (includeAi) aiRequestInFlight = false;
-        if (!includeAi) analysisRequestInFlight = false;
-        return;
-      }
-
-      const responseSignature = data.analysis_signature || null;
-      if (!includeAi && responseSignature && responseSignature === lastRenderedSignature) {
-        analysisRequestInFlight = false;
-        return;
-      }
-      if (responseSignature) lastRenderedSignature = responseSignature;
-
-      const state = data.state || {};
-      if (state.hero && currentOptionsHero !== state.hero) {
-        await loadOptions(state.hero, selectedBuild);
-      } else if (selectedBuild && !currentBuildIds.includes(selectedBuild)) {
-        buildSelect.value = "";
-        localStorage.setItem("bazaar_selected_build", "");
-      }
-      document.querySelector("#hero").textContent = state.hero || "-";
-      document.querySelector("#day").textContent = state.day || "-";
-      document.querySelector("#gold").textContent = state.gold ?? "-";
-      document.querySelector("#health").textContent = state.health ?? "-";
-      document.querySelector("#selfTtk").textContent = formatSelfTtk(data.self_ttk || null);
-      document.querySelector("#prestige").textContent = formatPrestige(state);
-      document.querySelector("#income").textContent = state.income ?? "-";
-      document.querySelector("#build").textContent = state.build_display_name || state.build || "-";
-      document.querySelector("#stage").textContent = state.game_stage_display || state.game_stage || "-";
-      if (selectedBuild && state.build && currentBuildIds.includes(state.build)) {
-        buildSelect.value = state.build;
-      }
-      renderBuildDetail(state.build_detail || null);
-      renderStateLists(state);
-
-      if (data.warnings && data.warnings.length) {
-        messageEl.innerHTML = `<div class="error">${data.warnings.join("<br>")}</div>`;
-      }
-
-      if (data.ai_analysis) {
-        aiBox.innerHTML = `<div class="ai">${data.ai_analysis}</div>`;
-      } else if (data.ai_error) {
-        aiBox.innerHTML = `<div class="error">${data.ai_error}</div>`;
-      }
-      if (includeAi) {
-        aiRequestInFlight = false;
-      } else {
-        analysisRequestInFlight = false;
-      }
-
-      const eventCards = (data.recommendations || []).map((item) => {
-        const stats = item.pool_stats || {};
-        const cards = (item.priority_cards || []).map((card) =>
-          `<li>${card.display_name || card.name} <span class="muted">${card.tier || ""} ${card.role_label_zh || card.role || ""}</span></li>`
-        ).join("");
-        const ownedHits = (item.owned_target_hits || []).map((card) =>
-          `<li>${card.display_name || card.name} <span class="muted">${card.tier || ""} ${card.role_label_zh || card.role || ""}${card.can_upgrade ? " · 可升级" : ""}${card.enchantments && card.enchantments.length ? " · " + card.enchantments.join(", ") : ""}</span></li>`
-        ).join("");
-        const childOptions = (item.child_options || []).map((child) => {
-        const reward = child.reward_text ? ` <span class="muted">${child.reward_text}</span>` : "";
-        const desc = child.description && !child.reward_text ? ` <span class="muted">${child.description}</span>` : "";
-        const unresolved = child.unresolved ? ` <span class="muted">未完全解析</span>` : "";
-        return `<li>${child.name || "未知子选项"}${reward}${desc}${unresolved}</li>`;
-        }).join("");
-        const reasons = (item.reasons || []).map((reason) => `<li>${reason}</li>`).join("");
-        const altCoreHits = (item.alt_core_build_hits || []).map((hit) => {
-          const buildNames = (hit.builds || []).map((build) =>
-            build.display_name || build.build_name
-          ).filter(Boolean).join("、");
-          return `<li>${hit.card_display_name || hit.card_name}：${buildNames || "其他阵容"}核心卡</li>`;
-        }).join("");
-        const sellGold = Number(stats.expected_sell_gold || 0);
-        const sellText = sellGold > 0 ? ` · 卖价 +${sellGold.toFixed(1)} 金币` : "";
-        return `
-          <article class="event">
-            <h2>${item.event_display_name || item.event_name}<span class="${badgeClass(item.recommendation)}">${item.recommendation_label || item.recommendation}</span></h2>
-            <div class="muted">${item.notes || ""}</div>
-            <p>命中率 ${pct(stats.prob_relevant_in_shop)} · 核心 ${pct(stats.prob_core_in_shop)} · 期望 ${stats.expected_relevant_in_shop}${sellText}</p>
-            <strong>关键卡</strong>
-            <ul>${cards || "<li>暂无</li>"}</ul>
-            <strong>已拥有命中</strong>
-            <ul>${ownedHits || "<li>暂无</li>"}</ul>
-            ${childOptions ? `<strong>可能后续</strong><ul>${childOptions}</ul>` : ""}
-            <strong>原因</strong>
-            <ul>${reasons || "<li>暂无</li>"}</ul>
-            ${item.alt_core_card_count ? `
-              <strong>转型/备选阵容</strong>
-              <p class="muted">其他阵容核心命中 ${item.alt_core_card_count} 张，可作为转型或备选阵容参考。</p>
-              <ul>${altCoreHits}</ul>
-            ` : ""}
-          </article>
-        `;
-      }).join("");
-
-      const buildAnalysis = data.build_analysis || {};
-      const shopCandidates = (buildAnalysis.candidate_cards || []).map((card) => {
-        const hits = (card.build_hits || []).map((hit) =>
-          `<li>${hit.build_name} · ${hit.build_phase_label || stageLabel(hit.build_phase)} · ${hit.role_label || roleLabel(hit.role)} · ${hit.relation_label || relationLabel(hit.relation)}</li>`
-        ).join("");
-        const reasons = (card.reasons || []).map((reason) => `<li>${reason}</li>`).join("");
-        const risks = (card.risks || []).map((risk) => `<li>${risk}</li>`).join("");
-        return `
-          <article class="event">
-            <h2>${card.card_display_name || card.card_name}<span class="badge ${card.importance === "medium" ? "medium" : card.importance === "low" || card.importance === "ignored" ? "low" : ""}">${card.importance_label || importanceLabel(card.importance)}</span></h2>
-            <p><strong>${card.recommendation_type_label || shopRecommendationLabel(card.recommendation_type)}</strong>${card.price != null ? ` · ${card.price} 金币` : " · 价格未知"}${card.affordable === true ? " · 买得起" : card.affordable === false ? " · 金币不足" : ""}</p>
-            <strong>阵容命中</strong>
-            <ul>${hits || "<li>未命中已维护阵容，不代表废卡</li>"}</ul>
-            <strong>原因</strong>
-            <ul>${reasons || "<li>暂无</li>"}</ul>
-            ${risks ? `<strong>风险与不确定性</strong><ul>${risks}</ul>` : ""}
-          </article>
-        `;
-      }).join("");
-      const shopSummary = buildAnalysis.shop_action ? `
-        <article class="event">
-          <h2>商店操作<span class="badge">${buildAnalysis.shop_action_label || shopActionLabel(buildAnalysis.shop_action)}</span></h2>
-          <p>${buildAnalysis.refresh_reason || ""}</p>
-        </article>
-      ` : "";
-      eventsEl.innerHTML = shopSummary + shopCandidates + eventCards;
-    }
-
-    function renderStateLists(state) {
-      renderList(
-        "#currentEvents",
-        state.event_options_display || [],
-        (item) => item.display_name || item.name,
-        (item) => item.known === false ? "待补充" : ""
-      );
-      const fallbackOwnedCards = state.owned_cards_display || [];
-      const fallbackOwnedItems = fallbackOwnedCards.filter(
-        (item) => String(item.card_type || "").toLowerCase() !== "skill"
-      );
-      const fallbackOwnedSkills = fallbackOwnedCards.filter(
-        (item) => String(item.card_type || "").toLowerCase() === "skill"
-      );
-      renderList(
-        "#ownedItems",
-        state.owned_items_display || fallbackOwnedItems,
-        (item) => item.display_name || item.name,
-        ownedMeta
-      );
-      renderList(
-        "#ownedSkills",
-        state.skills_display || fallbackOwnedSkills,
-        (item) => item.display_name || item.name,
-        ownedMeta
-      );
-      const shopVisible = state.current_shop && Array.isArray(state.current_shop.visible_items)
-        ? state.current_shop.visible_items
-        : [];
-      renderList(
-        "#visibleCards",
-        shopVisible.length ? shopVisible : (state.visible_cards_display || []),
-        (item) => item.display_name || item.name || item.template_id
-      );
-    }
-
-    function formatSelfTtk(ttk) {
-      if (!ttk || !ttk.target_health) return "-";
-      if (ttk.kill_time_sec == null) {
-        return `>${Math.round(ttk.horizon_sec || 60)}s`;
-      }
-      const seconds = Number(ttk.kill_time_sec);
-      if (!Number.isFinite(seconds)) return "-";
-      return `${seconds.toFixed(seconds < 10 ? 1 : 0)}s`;
-    }
-
-    function renderBuildDetail(detail) {
-      if (!detail) {
-        buildDetail.innerHTML = `<div class="muted">暂无</div>`;
-        return;
-      }
-
-      const sections = [
-        ["核心卡", detail.core_cards || []],
-        ["可选卡", detail.optional_cards || []],
-      ].map(([title, cards]) => `
-        <h3>${title}</h3>
-        <div class="list">
-          ${cards.length ? cards.map((card) => `
-            <div class="list-item"><span>${card.display_name || card.name}</span></div>
-          `).join("") : `<div class="muted">暂无</div>`}
-        </div>
-      `).join("");
-
-      const tags = detail.wanted_tags || [];
-      const tagSection = tags.length ? `
-        <h3>需求标签</h3>
-        <div class="tag-row">${tags.map((tag) => `<span class="tag">${tag}</span>`).join("")}</div>
-      ` : "";
-
-      buildDetail.innerHTML = sections + tagSection;
-      buildDetail.classList.toggle("open", buildDetailOpen);
-      buildMetric.setAttribute("aria-expanded", buildDetailOpen ? "true" : "false");
-    }
-
-    function toggleBuildDetail() {
-      buildDetailOpen = !buildDetailOpen;
-      buildDetail.classList.toggle("open", buildDetailOpen);
-      buildMetric.setAttribute("aria-expanded", buildDetailOpen ? "true" : "false");
-    }
-
-    function formatPrestige(state) {
-      if (state.prestige == null) return "-";
-      if (state.max_prestige == null) return state.prestige;
-      return `${state.prestige}/${state.max_prestige}`;
-    }
-
-    function ownedMeta(item) {
-      const parts = [];
-      if (item.rarity) parts.push(item.rarity);
-      if (item.section) parts.push(sectionLabel(item.section));
-      return parts.filter(Boolean).join(" · ");
-    }
-
-    function sectionLabel(section) {
-      const labels = {
-        board: "场上",
-        hand: "手牌",
-        stash: "仓库",
-      };
-      return labels[String(section || "").toLowerCase()] || section;
-    }
-
-    function renderList(selector, items, titleFn, metaFn = null) {
-      const el = document.querySelector(selector);
-      if (!items.length) {
-        el.innerHTML = `<div class="muted">暂无</div>`;
-        return;
-      }
-      el.innerHTML = items.map((item) => {
-        const title = titleFn(item) || "-";
-        const meta = metaFn ? metaFn(item) : "";
-        return `<div class="list-item"><span>${title}</span>${meta ? `<small>${meta}</small>` : ""}</div>`;
-      }).join("");
-    }
-
-    document.querySelector("#refreshBtn").addEventListener("click", () => scheduleAnalyze(false));
-    document.querySelector("#autoBtn").addEventListener("click", toggleAutoAnalyze);
-    document.querySelector("#aiBtn").addEventListener("click", () => scheduleAnalyze(true));
-    buildSelect.addEventListener("change", () => {
-      localStorage.setItem("bazaar_selected_build", buildSelect.value);
-      aiBox.innerHTML = "";
-      lastRenderedSignature = null;
-      if (autoAnalyzeEnabled) {
-        scheduleAnalyze(false);
-      } else {
-        messageEl.innerHTML = `<div class="ai">阵容目标已切换，点击“扫描分析”或按 F8 更新结果。</div>`;
-      }
-    });
-    buildMetric.addEventListener("click", toggleBuildDetail);
-    buildMetric.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        toggleBuildDetail();
-      }
-    });
-
-    loadState()
-      .catch(() => null)
-      .then((state) => loadOptions(state && state.hero ? state.hero : null))
-      .then(() => {
-        updateAutoButton();
-        startOrStopAutoAnalyze();
-        messageEl.innerHTML = `<div class="ai">${autoAnalyzeEnabled ? "已切换为自动模式：局面变化时会自动分析。" : "已切换为手动模式：点击“扫描分析”或按 F8 读取当前局面。"}</div>`;
-      })
-      .catch((error) => {
-        messageEl.innerHTML = `<div class="error">初始化失败：${error.message}</div>`;
-      });
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "F8") {
-        event.preventDefault();
-        scheduleAnalyze(false);
-      }
-    });
-
-    function updateAutoButton() {
-      document.querySelector("#autoBtn").textContent = autoAnalyzeEnabled ? "自动分析：开" : "自动分析：关";
-    }
-
-    function toggleAutoAnalyze() {
-      autoAnalyzeEnabled = !autoAnalyzeEnabled;
-      localStorage.setItem("bazaar_auto_analyze", autoAnalyzeEnabled ? "1" : "0");
-      updateAutoButton();
-      startOrStopAutoAnalyze();
-      messageEl.innerHTML = `<div class="ai">${autoAnalyzeEnabled ? "自动分析已开启，局面变化时会自动更新。" : "自动分析已关闭，点击“扫描分析”或按 F8 手动更新。"}</div>`;
-      if (autoAnalyzeEnabled) {
-        pollStateSignature(true);
-      }
-    }
-
-    function startOrStopAutoAnalyze() {
-      if (autoAnalyzeTimer) {
-        clearInterval(autoAnalyzeTimer);
-        autoAnalyzeTimer = null;
-      }
-      if (autoAnalyzeEnabled) {
-        autoAnalyzeTimer = setInterval(() => pollStateSignature(false), 1000);
-      }
-    }
-
-    async function pollStateSignature(force = false) {
-      if (!autoAnalyzeEnabled || document.hidden) return;
-      try {
-        const data = await loadStateSignature();
-        if (data.error) {
-          messageEl.innerHTML = `<div class="error">${data.error}</div>`;
-          return;
-        }
-        const signature = data.state_signature || null;
-        if (!force && signature && signature === lastSeenStateSignature) return;
-        if (signature) lastSeenStateSignature = signature;
-        scheduleAnalyze(false);
-      } catch (error) {
-        messageEl.innerHTML = `<div class="error">状态检查失败：${error.message}</div>`;
-      }
-    }
-  </script>
-</body>
-</html>
-"""
 
 
 def parse_args() -> argparse.Namespace:
