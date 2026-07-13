@@ -35,6 +35,7 @@ REQUIRED_PACKAGE_PATHS = (
     "VERSION",
     "version.json",
     "start.bat",
+    UPDATE_URL_FILE,
     UPDATE_HELPER_NAME,
     "install_update.bat",
 )

@@ -26,11 +26,16 @@ namespace BazaarStateExporter
         private string pendingNewRunHero;
         private int pendingNewRunDay = 1;
         private string lastLoggedAttributeKeys;
+        private static Dictionary<string, object> staticCardTemplatesById;
+        private static bool staticDataUnavailableLogged;
+        private static bool branchSummaryDiagnosticLogged;
+        private static ManualLogSource sharedLogger;
         private string lastLoggedSnapshotSummary;
 
         public StateProbe(ManualLogSource logger)
         {
             this.logger = logger;
+            sharedLogger = logger;
         }
 
         public GameStateSnapshot TryReadCurrentState()
@@ -495,7 +500,7 @@ namespace BazaarStateExporter
                 hero = hero,
                 day = day,
                 max_prestige = 20,
-                inventory_slots_total = 10,
+                inventory_slots_total = 20,
                 event_option_ids = StringList(GetField(currentState, "SelectionSet")),
             };
 
@@ -728,8 +733,18 @@ namespace BazaarStateExporter
                 lastLoggedAttributeKeys = attributeKeys;
                 logger.LogInfo("Player attribute keys: " + attributeKeys);
             }
-            snapshot.gold = FindAttribute(attributes, "Gold");
-            snapshot.health = FindAttribute(attributes, "Health");
+            snapshot.gold = FindAttributeExact(
+                attributes,
+                "Gold",
+                "CurrentGold",
+                "Current Gold",
+                "Coins",
+                "Coin");
+            snapshot.health = FindAttributeExact(
+                attributes,
+                "Health",
+                "CurrentHealth",
+                "Current Health");
             snapshot.combat_health = snapshot.health;
             snapshot.income = FindAttributeExact(attributes, "Income");
             snapshot.level = FindAttributeExact(attributes, "Level");
@@ -1124,6 +1139,7 @@ namespace BazaarStateExporter
             if (lower.Contains("tooltip")
                 || lower.Contains("monster")
                 || lower.Contains("reward")
+                || lower.Contains("income")
                 || lower.Contains("enemy")
                 || lower.Contains("opponent"))
             {
@@ -1576,7 +1592,7 @@ namespace BazaarStateExporter
                 return;
             }
 
-            snapshot.event_options_detailed.Add(new EventOptionSnapshot
+            EventOptionSnapshot option = new EventOptionSnapshot
             {
                 id = card.id,
                 template_id = card.template_id,
@@ -1585,7 +1601,652 @@ namespace BazaarStateExporter
                 card_type = card.card_type,
                 section = card.section,
                 source = string.IsNullOrEmpty(card.source) ? "unknown" : card.source,
+            };
+
+            AddTemplateBranchSummaries(option);
+            snapshot.event_options_detailed.Add(option);
+        }
+
+        private static void AddTemplateBranchSummaries(EventOptionSnapshot option)
+        {
+            if (option == null || string.IsNullOrEmpty(option.template_id))
+            {
+                return;
+            }
+
+            object template = TryResolveStaticCardTemplate(option.template_id);
+            if (template == null)
+            {
+                return;
+            }
+
+            HashSet<string> branchTemplateIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            int nextEncounterBranchCount = 0;
+
+            foreach (object branch in EnumerateValues(ReadFirstMember(
+                template,
+                "NextEncounterOnSelection",
+                "<NextEncounterOnSelection>k__BackingField")))
+            {
+                string branchTemplateId = StringValue(ReadMember(branch, "Id"));
+                if (string.IsNullOrEmpty(branchTemplateId))
+                {
+                    branchTemplateId = StringValue(ReadMember(branch, "TemplateId"));
+                }
+                if (!string.IsNullOrEmpty(branchTemplateId))
+                {
+                    nextEncounterBranchCount++;
+                }
+                AddBranchSummary(
+                    option,
+                    branchTemplateIds,
+                    branchTemplateId,
+                    "next_encounter_on_selection");
+            }
+
+            object selectionContext = ReadFirstMember(
+                template,
+                "SelectionContext",
+                "<SelectionContext>k__BackingField");
+            object spawnContext = ReadFirstMember(
+                selectionContext,
+                "SpawnContext",
+                "<SpawnContext>k__BackingField");
+            List<string> selectionSpawnIds = CollectExplicitSpawnContextTemplateIds(spawnContext).ToList();
+            foreach (string branchTemplateId in selectionSpawnIds)
+            {
+                AddBranchSummary(
+                    option,
+                    branchTemplateIds,
+                    branchTemplateId,
+                    "selection_context_spawn");
+            }
+
+            int abilitySpawnIdCount = 0;
+            foreach (object ability in EnumerateValues(ReadFirstMember(
+                template,
+                "Abilities",
+                "<Abilities>k__BackingField")))
+            {
+                object action = ReadFirstMember(ability, "Action", "<Action>k__BackingField");
+                object actionSpawnContext = ReadFirstMember(
+                    action,
+                    "SpawnContext",
+                    "<SpawnContext>k__BackingField");
+                List<string> abilitySpawnIds = CollectExplicitSpawnContextTemplateIds(actionSpawnContext).ToList();
+                abilitySpawnIdCount += abilitySpawnIds.Count;
+                foreach (string branchTemplateId in abilitySpawnIds)
+                {
+                    AddBranchSummary(
+                        option,
+                        branchTemplateIds,
+                        branchTemplateId,
+                        "ability_spawn_context");
+                }
+            }
+
+            if (option.branches.Count == 0 && !branchSummaryDiagnosticLogged)
+            {
+                branchSummaryDiagnosticLogged = true;
+                sharedLogger?.LogInfo(
+                    "Event branch diagnostic template_id="
+                    + option.template_id
+                    + " templateResolved="
+                    + (template != null)
+                    + " staticCacheCount="
+                    + (staticCardTemplatesById == null ? "null" : staticCardTemplatesById.Count.ToString())
+                    + " selectionContext="
+                    + SafeTypeName(selectionContext)
+                    + " spawnContext="
+                    + SafeTypeName(spawnContext)
+                    + " nextEncounterIds="
+                    + nextEncounterBranchCount
+                    + " selectionSpawnIds="
+                    + selectionSpawnIds.Count
+                    + " abilitySpawnIds="
+                    + abilitySpawnIdCount);
+            }
+        }
+
+        private static void AddBranchSummary(
+            EventOptionSnapshot option,
+            HashSet<string> branchTemplateIds,
+            string branchTemplateId,
+            string source)
+        {
+            if (option == null || string.IsNullOrEmpty(branchTemplateId))
+            {
+                return;
+            }
+
+            if (string.Equals(branchTemplateId, option.template_id, StringComparison.OrdinalIgnoreCase)
+                || !branchTemplateIds.Add(branchTemplateId))
+            {
+                return;
+            }
+
+            object branchTemplate = TryResolveStaticCardTemplate(branchTemplateId);
+            option.branches.Add(new EventOptionBranchSnapshot
+            {
+                template_id = branchTemplateId,
+                name = ReadTemplateDisplayName(branchTemplate),
+                card_type = ReadTemplateCardType(branchTemplate),
+                kind = EventKindFromTemplate(branchTemplateId, branchTemplate),
+                source = source,
             });
+        }
+
+        private static IEnumerable<string> CollectExplicitSpawnContextTemplateIds(object spawnContext)
+        {
+            if (spawnContext == null)
+            {
+                yield break;
+            }
+
+            HashSet<string> ids = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            string[] memberNames =
+            {
+                "Id",
+                "Ids",
+                "TemplateId",
+                "TemplateIds",
+                "CardId",
+                "CardIds",
+                "CardTemplateId",
+                "CardTemplateIds",
+                "EncounterId",
+                "EncounterIds",
+                "<Ids>k__BackingField",
+                "<TemplateIds>k__BackingField",
+                "<CardIds>k__BackingField",
+                "<CardTemplateIds>k__BackingField",
+            };
+
+            foreach (string memberName in memberNames)
+            {
+                foreach (object child in EnumerateValues(ReadMember(spawnContext, memberName)))
+                {
+                    string id = StringValue(child);
+                    if (!string.IsNullOrEmpty(id) && ids.Add(id))
+                    {
+                        yield return id;
+                    }
+                }
+            }
+        }
+
+        private static object TryResolveStaticCardTemplate(string templateId)
+        {
+            if (string.IsNullOrEmpty(templateId))
+            {
+                return null;
+            }
+
+            if (staticCardTemplatesById == null)
+            {
+                staticCardTemplatesById = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            }
+
+            object cached;
+            if (staticCardTemplatesById.TryGetValue(templateId, out cached))
+            {
+                return cached;
+            }
+
+            object manager = TryGetStaticGameDataManager();
+            if (manager == null)
+            {
+                return null;
+            }
+
+            Guid guid;
+            object template = null;
+            if (Guid.TryParse(templateId, out guid))
+            {
+                template = InvokeMemberWithArgument(manager, "GetCardById", guid);
+            }
+            if (template == null)
+            {
+                template = InvokeMemberWithArgument(manager, "GetCardById", templateId);
+            }
+
+            template = UnwrapTemplate(template);
+            if (template != null)
+            {
+                staticCardTemplatesById[templateId] = template;
+            }
+            return template;
+        }
+
+        private static object TryGetStaticGameDataManager()
+        {
+            Type dataType = FindLoadedType("TheBazaar.Data");
+            if (dataType == null)
+            {
+                return null;
+            }
+
+            object isManagerCreated = InvokeParameterlessMember(dataType, "IsManagerCreated");
+            if (isManagerCreated is bool && !(bool)isManagerCreated)
+            {
+                if (!staticDataUnavailableLogged)
+                {
+                    staticDataUnavailableLogged = true;
+                    sharedLogger?.LogInfo("TheBazaar.Data static manager is not ready; event branch summaries will wait.");
+                }
+                return null;
+            }
+
+            object manager = InvokeParameterlessMember(dataType, "GetStatic");
+            if (manager == null && !(isManagerCreated is bool))
+            {
+                manager = ReadStaticMember(dataType, "Static")
+                    ?? ReadStaticMember(dataType, "GameData")
+                    ?? ReadStaticMember(dataType, "Manager");
+            }
+
+            if (manager == null && !staticDataUnavailableLogged)
+            {
+                staticDataUnavailableLogged = true;
+                sharedLogger?.LogInfo("TheBazaar.Data static manager was unavailable; event branch summaries skipped for now.");
+            }
+            return manager;
+        }
+
+        private static object InvokeMemberWithArgument(object target, string name, object argument)
+        {
+            if (target == null || string.IsNullOrEmpty(name))
+            {
+                return null;
+            }
+
+            Type type = target as Type ?? target.GetType();
+            object instance = target is Type ? null : target;
+            BindingFlags flags = BindingFlags.Instance
+                | BindingFlags.Static
+                | BindingFlags.Public
+                | BindingFlags.NonPublic;
+            foreach (MethodInfo method in type.GetMethods(flags))
+            {
+                if (!string.Equals(method.Name, name, StringComparison.Ordinal)
+                    || method.GetParameters().Length != 1)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    return method.Invoke(instance, new[] { argument });
+                }
+                catch
+                {
+                    try
+                    {
+                        object converted = Convert.ChangeType(
+                            argument,
+                            method.GetParameters()[0].ParameterType);
+                        return method.Invoke(instance, new[] { converted });
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+            return null;
+        }
+
+        private static object UnwrapTemplate(object value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+
+            object nested = ReadMember(value, "Value");
+            if (nested != null)
+            {
+                value = nested;
+            }
+
+            nested = ReadMember(value, "CardTemplate");
+            if (nested != null)
+            {
+                return nested;
+            }
+
+            nested = ReadMember(value, "Template");
+            return nested ?? value;
+        }
+
+        private static IEnumerable<string> ReadTemplateIds(object template)
+        {
+            object attributes = ReadMember(template, "Attributes") ?? ReadMember(template, "Data");
+            string[] names = { "TemplateId", "TemplateID", "Id", "SourceId", "SourceID" };
+            foreach (string name in names)
+            {
+                string value = StringValue(ReadMember(template, name));
+                if (!string.IsNullOrEmpty(value))
+                {
+                    yield return value;
+                }
+
+                value = StringValue(ReadMember(attributes, name));
+                if (!string.IsNullOrEmpty(value))
+                {
+                    yield return value;
+                }
+            }
+        }
+
+        private static string ReadTemplateDisplayName(object template)
+        {
+            if (template == null)
+            {
+                return null;
+            }
+
+            object attributes = ReadMember(template, "Attributes") ?? ReadMember(template, "Data");
+            string value = ReadLocalizedText(ReadMember(template, "Title"));
+            if (!string.IsNullOrEmpty(value))
+            {
+                return value;
+            }
+
+            value = ReadLocalizedText(ReadMember(attributes, "Title"));
+            if (!string.IsNullOrEmpty(value))
+            {
+                return value;
+            }
+
+            string[] names = { "DisplayName", "Name", "LocalizedName", "InternalName", "CardName" };
+            foreach (string name in names)
+            {
+                value = StringValue(ReadMember(template, name));
+                if (!string.IsNullOrEmpty(value))
+                {
+                    return value;
+                }
+
+                value = StringValue(ReadMember(attributes, name));
+                if (!string.IsNullOrEmpty(value))
+                {
+                    return value;
+                }
+            }
+
+            return null;
+        }
+
+        private static string ReadTemplateCardType(object template)
+        {
+            object attributes = ReadMember(template, "Attributes") ?? ReadMember(template, "Data");
+            string value = FirstStringFromValue(ReadMember(template, "Types"))
+                ?? FirstStringFromValue(ReadMember(attributes, "Types"))
+                ?? StringValue(ReadMember(template, "Type"))
+                ?? StringValue(ReadMember(attributes, "Type"))
+                ?? StringValue(ReadMember(template, "CardType"))
+                ?? StringValue(ReadMember(attributes, "CardType"));
+            return value;
+        }
+
+        private static string EventKindFromTemplate(string templateId, object template)
+        {
+            string cardType = ReadTemplateCardType(template) ?? "";
+            if (cardType.IndexOf("Event", StringComparison.OrdinalIgnoreCase) >= 0
+                || cardType.IndexOf("Encounter", StringComparison.OrdinalIgnoreCase) >= 0
+                || (templateId ?? "").StartsWith("enc_", StringComparison.OrdinalIgnoreCase))
+            {
+                return "encounter";
+            }
+            if ((templateId ?? "").StartsWith("ste_", StringComparison.OrdinalIgnoreCase)
+                || cardType.IndexOf("Step", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return "step";
+            }
+            if ((templateId ?? "").StartsWith("com_", StringComparison.OrdinalIgnoreCase)
+                || cardType.IndexOf("Combat", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return "combat";
+            }
+            if ((templateId ?? "").StartsWith("pvp_", StringComparison.OrdinalIgnoreCase))
+            {
+                return "pvp";
+            }
+            return "unknown";
+        }
+
+        private static string FirstStringFromValue(object value)
+        {
+            foreach (object item in EnumerateValues(value))
+            {
+                string text = StringValue(item);
+                if (!string.IsNullOrEmpty(text))
+                {
+                    return text;
+                }
+            }
+            return null;
+        }
+
+        private static string ReadLocalizedText(object value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+
+            string direct = value as string;
+            if (!string.IsNullOrEmpty(direct))
+            {
+                return direct;
+            }
+
+            string[] names = { "Text", "Value", "English", "En", "LocalizedText" };
+            foreach (string name in names)
+            {
+                string text = StringValue(ReadMember(value, name));
+                if (!string.IsNullOrEmpty(text))
+                {
+                    return text;
+                }
+            }
+
+            return null;
+        }
+
+        private static IEnumerable<object> EnumerateValues(object value)
+        {
+            IEnumerable enumerable = value as IEnumerable;
+            if (enumerable == null || value is string)
+            {
+                if (value != null)
+                {
+                    yield return value;
+                }
+                yield break;
+            }
+
+            foreach (object item in enumerable)
+            {
+                object unwrapped = UnwrapEnumerableItemValue(item);
+                if (unwrapped != null)
+                {
+                    yield return unwrapped;
+                }
+            }
+        }
+
+        private static object UnwrapEnumerableItemValue(object item)
+        {
+            if (item == null)
+            {
+                return null;
+            }
+
+            if (item is DictionaryEntry)
+            {
+                return ((DictionaryEntry)item).Value;
+            }
+
+            Type type = item.GetType();
+            if (type.FullName != null
+                && type.FullName.StartsWith(
+                    "System.Collections.Generic.KeyValuePair",
+                    StringComparison.Ordinal))
+            {
+                object key = ReadMember(item, "Key");
+                object value = ReadMember(item, "Value");
+                return value ?? key ?? item;
+            }
+
+            return item;
+        }
+
+        private static object ReadStaticMember(Type type, string name)
+        {
+            if (type == null || string.IsNullOrEmpty(name))
+            {
+                return null;
+            }
+
+            BindingFlags flags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+            FieldInfo field = type.GetField(name, flags);
+            if (field != null)
+            {
+                try
+                {
+                    return field.GetValue(null);
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+
+            PropertyInfo property = type.GetProperty(name, flags);
+            if (property == null)
+            {
+                return null;
+            }
+
+            try
+            {
+                return property.GetValue(null, null);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static object ReadMember(object target, string name)
+        {
+            if (target == null || string.IsNullOrEmpty(name))
+            {
+                return null;
+            }
+
+            Type type = target.GetType();
+            BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+            FieldInfo field = type.GetField(name, flags);
+            if (field != null)
+            {
+                try
+                {
+                    return field.GetValue(target);
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+
+            PropertyInfo property = type.GetProperty(name, flags);
+            if (property == null)
+            {
+                return null;
+            }
+
+            try
+            {
+                return property.GetValue(target, null);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static object ReadFirstMember(object target, params string[] names)
+        {
+            if (target == null || names == null)
+            {
+                return null;
+            }
+
+            foreach (string name in names)
+            {
+                object value = ReadMember(target, name);
+                if (value != null)
+                {
+                    return value;
+                }
+            }
+
+            return null;
+        }
+
+        private static string SafeTypeName(object value)
+        {
+            if (value == null)
+            {
+                return "null";
+            }
+
+            Type type = value as Type ?? value.GetType();
+            return type.FullName ?? type.Name;
+        }
+
+        private static object InvokeParameterlessMember(object target, string name)
+        {
+            if (target == null || string.IsNullOrEmpty(name))
+            {
+                return null;
+            }
+
+            Type type = target as Type ?? target.GetType();
+            object instance = target is Type ? null : target;
+            MethodInfo method = type.GetMethod(
+                name,
+                BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic,
+                null,
+                Type.EmptyTypes,
+                null);
+            if (method == null)
+            {
+                return null;
+            }
+
+            try
+            {
+                return method.Invoke(instance, null);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static Type FindLoadedType(string fullName)
+        {
+            foreach (Type type in FindLoadedTypes())
+            {
+                if (type != null && string.Equals(type.FullName, fullName, StringComparison.Ordinal))
+                {
+                    return type;
+                }
+            }
+            return null;
         }
 
         private static string EventKindFromCard(CardSnapshot card)

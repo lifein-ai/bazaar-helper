@@ -234,10 +234,18 @@ def test_mid_and_late_do_not_recommend_past_stage_builds() -> None:
 
     mid_card = mid_result["candidate_cards"][0]
     late_card = late_result["candidate_cards"][0]
-    assert mid_card["build_hits"][0]["relation"] == "past_build"
+    assert mid_card["build_hits"] == []
     assert mid_card["recommendation_type"] == "skip"
-    assert late_card["build_hits"][0]["relation"] == "past_build"
+    assert late_card["build_hits"] == []
     assert late_card["recommendation_type"] == "skip"
+    assert all(
+        item["relation"] != "past_build"
+        for item in mid_result["best_matching_builds"]
+    )
+    assert all(
+        item["relation"] != "past_build"
+        for item in late_result["best_matching_builds"]
+    )
 
 
 def test_multi_stage_build_matches_current_stage_until_it_expires() -> None:
@@ -278,5 +286,5 @@ def test_multi_stage_build_matches_current_stage_until_it_expires() -> None:
 
     assert mid_result["candidate_cards"][0]["build_hits"][0]["relation"] == "current_build"
     assert mid_result["candidate_cards"][0]["recommendation_type"] == "buy_now"
-    assert late_result["candidate_cards"][0]["build_hits"][0]["relation"] == "past_build"
+    assert late_result["candidate_cards"][0]["build_hits"] == []
     assert late_result["candidate_cards"][0]["recommendation_type"] == "skip"

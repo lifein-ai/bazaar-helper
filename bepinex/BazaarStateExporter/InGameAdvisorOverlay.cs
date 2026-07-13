@@ -14,6 +14,9 @@ namespace BazaarStateExporter
 {
     public sealed class InGameAdvisorOverlay : MonoBehaviour
     {
+        private const int AnalysisTimeoutMilliseconds = 8000;
+        private const int AiAnalysisTimeoutMilliseconds = 120000;
+
         private ManualLogSource logger;
         private ConfigEntry<bool> enabledConfig;
         private ConfigEntry<string> helperBaseUrl;
@@ -21,8 +24,10 @@ namespace BazaarStateExporter
         private ConfigEntry<string> helperExecutablePath;
         private ConfigEntry<float> pollIntervalSeconds;
         private ConfigEntry<int> topRecommendations;
+        private ConfigEntry<bool> manualAnalyzeConfig;
         private ConfigEntry<bool> includeAi;
         private ConfigEntry<bool> autoAnalyzeConfig;
+        private ConfigEntry<float> fontScaleConfig;
         private ConfigEntry<string> toggleKeyConfig;
         private ConfigEntry<string> lockToggleKeyConfig;
         private ConfigEntry<string> manualAnalysisKeyConfig;
@@ -47,6 +52,7 @@ namespace BazaarStateExporter
         private string parsedAiAnalysisKeyName = "";
         private bool visible = true;
         private bool layoutLocked = true;
+        private bool settingsVisible;
         private bool nextRequestIncludeAi;
         private volatile bool requestInFlight;
         private volatile bool simulationRequestInFlight;
@@ -58,6 +64,7 @@ namespace BazaarStateExporter
         private DateTime lastUpdateFailureLogUtc = DateTime.MinValue;
         private string lastSuccessfulAnalysisKey = "";
         private string cachedBuildOptionsHero = "";
+        private Process helperProcessStartedByOverlay;
         private readonly List<OverlayBuildOption> cachedBuildOptions = new List<OverlayBuildOption>();
         private Rect windowRect = new Rect(16f, 56f, 500f, 620f);
         private Rect buildWindowRect = new Rect(532f, 56f, 400f, 620f);
@@ -87,8 +94,10 @@ namespace BazaarStateExporter
             ConfigEntry<string> executablePath,
             ConfigEntry<float> pollInterval,
             ConfigEntry<int> top,
+            ConfigEntry<bool> manualAnalyze,
             ConfigEntry<bool> requestAi,
             ConfigEntry<bool> autoAnalyze,
+            ConfigEntry<float> fontScale,
             ConfigEntry<string> toggleKey,
             ConfigEntry<string> lockToggleKey,
             ConfigEntry<string> manualKey,
@@ -111,8 +120,10 @@ namespace BazaarStateExporter
             helperExecutablePath = executablePath;
             pollIntervalSeconds = pollInterval;
             topRecommendations = top;
+            manualAnalyzeConfig = manualAnalyze;
             includeAi = requestAi;
             autoAnalyzeConfig = autoAnalyze;
+            fontScaleConfig = fontScale;
             toggleKeyConfig = toggleKey;
             lockToggleKeyConfig = lockToggleKey;
             manualAnalysisKeyConfig = manualKey;
@@ -145,6 +156,16 @@ namespace BazaarStateExporter
             logger?.LogInfo("In-game overlay started.");
             latest = OverlayAnalysis.Waiting(ModeStatusText());
             RequestUpdateStatus(false);
+        }
+
+        private void OnApplicationQuit()
+        {
+            StopHelperStartedByOverlay();
+        }
+
+        private void OnDestroy()
+        {
+            StopHelperStartedByOverlay();
         }
 
         private void Update()
@@ -329,14 +350,14 @@ namespace BazaarStateExporter
                 return;
             }
 
-            if (current.keyCode == manualAnalysisKey)
+            if (current.keyCode == manualAnalysisKey && ManualAnalyzeEnabled())
             {
                 RequestAnalysis(false, "正在扫描当前局面...", false);
                 current.Use();
                 return;
             }
 
-            if (current.keyCode == aiAnalysisKey)
+            if (current.keyCode == aiAnalysisKey && ManualAnalyzeEnabled())
             {
                 RequestAnalysis(true, "正在请求智能阵容分析...", false);
                 current.Use();
@@ -422,10 +443,21 @@ namespace BazaarStateExporter
 
         private static void SetConfig(ConfigEntry<float> entry, float value)
         {
-            if (entry != null && Math.Abs(entry.Value - value) > 0.5f)
+            if (entry != null && Math.Abs(entry.Value - value) > 0.001f)
             {
                 entry.Value = value;
             }
+        }
+
+        private void ResetStyles()
+        {
+            windowStyle = null;
+            titleStyle = null;
+            itemStyle = null;
+            reasonStyle = null;
+            badgeStyle = null;
+            mutedStyle = null;
+            resizeHandleStyle = null;
         }
 
         private void DrawWindow(int windowId)
@@ -438,19 +470,23 @@ namespace BazaarStateExporter
             }
             GUILayout.BeginHorizontal();
             GUI.enabled = !requestInFlight;
-            if (GUILayout.Button("扫描分析 (" + manualAnalysisKey + ")", GUILayout.MinHeight(28f)))
+            if (ManualAnalyzeEnabled() && GUILayout.Button("扫描分析 (" + manualAnalysisKey + ")", GUILayout.MinHeight(28f)))
             {
                 RequestAnalysis(false, "正在扫描当前局面...", false);
             }
-            if (GUILayout.Button("智能分析 (" + aiAnalysisKey + ")", GUILayout.MinHeight(28f)))
+            if (ManualAnalyzeEnabled() && GUILayout.Button("智能分析 (" + aiAnalysisKey + ")", GUILayout.MinHeight(28f)))
             {
                 RequestAnalysis(true, "正在请求智能阵容分析...", false);
             }
             GUI.enabled = true;
-            GUILayout.EndHorizontal();
-            if (GUILayout.Button(AutoAnalyzeEnabled() ? "自动分析：开" : "自动分析：关", GUILayout.MinHeight(26f)))
+            if (GUILayout.Button(settingsVisible ? "收起设置" : "设置", GUILayout.Width(92f), GUILayout.MinHeight(28f)))
             {
-                ToggleAutoAnalyze();
+                settingsVisible = !settingsVisible;
+            }
+            GUILayout.EndHorizontal();
+            if (settingsVisible)
+            {
+                DrawSettingsPanel();
             }
 
             DrawUpdatePanel();
@@ -560,9 +596,11 @@ namespace BazaarStateExporter
             GUI.enabled = true;
 
             buildScrollPosition = GUILayout.BeginScrollView(buildScrollPosition, false, true);
+            DrawAiAnalysisSection();
+            GUILayout.Space(6f);
             DrawCombatSimulationSection();
             GUILayout.Space(6f);
-            if (latest.BuildOptions.Count > 0)
+            if (false && latest.BuildOptions.Count > 0)
             {
                 GUILayout.Label("选择阵容", mutedStyle);
                 for (int i = 0; i < latest.BuildOptions.Count; i++)
@@ -586,14 +624,14 @@ namespace BazaarStateExporter
             }
 
             GUILayout.Space(8f);
-            if (!string.IsNullOrEmpty(latest.AiAnalysis))
+            if (false && !string.IsNullOrEmpty(latest.AiAnalysis))
             {
                 GUILayout.BeginVertical(itemStyle);
                 GUILayout.Label("智能阵容分析", titleStyle);
                 GUILayout.Label(latest.AiAnalysis, reasonStyle);
                 GUILayout.EndVertical();
             }
-            else if (!string.IsNullOrEmpty(latest.AiError))
+            else if (false && !string.IsNullOrEmpty(latest.AiError))
             {
                 GUILayout.BeginVertical(itemStyle);
                 GUILayout.Label("智能阵容分析", titleStyle);
@@ -616,6 +654,115 @@ namespace BazaarStateExporter
                 {
                     MarkLayoutDirty();
                 }
+            }
+        }
+
+        private void DrawAiAnalysisSection()
+        {
+            GUILayout.BeginVertical(itemStyle);
+            GUILayout.Label("智能阵容分析", titleStyle);
+            if (!string.IsNullOrEmpty(latest.AiAnalysis))
+            {
+                GUILayout.Label(latest.AiAnalysis, reasonStyle);
+            }
+            else if (!string.IsNullOrEmpty(latest.AiError))
+            {
+                GUILayout.Label(latest.AiError, mutedStyle);
+            }
+            else
+            {
+                GUILayout.Label("点击智能分析，或在设置中开启自动带 AI。", mutedStyle);
+            }
+            GUILayout.EndVertical();
+        }
+
+        private void DrawSettingsPanel()
+        {
+            GUILayout.BeginVertical(itemStyle);
+            GUILayout.Label("设置", titleStyle);
+            DrawBoolSetting("自动分析", AutoAnalyzeEnabled(), ToggleAutoAnalyze);
+            DrawBoolSetting("显示手动分析按钮", ManualAnalyzeEnabled(), ToggleManualAnalyze);
+
+            GUI.enabled = !updateRequestInFlight;
+            if (GUILayout.Button("检查更新", GUILayout.MinHeight(26f)))
+            {
+                RequestUpdateStatus(true);
+            }
+            GUI.enabled = true;
+            if (updateRequestInFlight)
+            {
+                GUILayout.Label("正在检查更新...", mutedStyle);
+            }
+            else if (updateState != null
+                && !updateState.UpdateAvailable
+                && !string.IsNullOrEmpty(updateState.Message))
+            {
+                GUILayout.Label(updateState.Message, mutedStyle);
+            }
+
+            GUILayout.Space(4f);
+            GUILayout.Label("字号", mutedStyle);
+            GUILayout.BeginHorizontal();
+            DrawFontScaleButton("标准", 1.0f);
+            DrawFontScaleButton("大", 1.15f);
+            DrawFontScaleButton("更大", 1.3f);
+            DrawFontScaleButton("最大", 1.5f);
+            GUILayout.EndHorizontal();
+
+            DrawCompactBuildSelection();
+            GUILayout.EndVertical();
+        }
+
+        private void DrawBoolSetting(string label, bool value, Action toggle)
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(label, reasonStyle);
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button(value ? "开" : "关", GUILayout.Width(64f), GUILayout.MinHeight(26f)))
+            {
+                toggle();
+            }
+            GUILayout.EndHorizontal();
+        }
+
+        private void DrawFontScaleButton(string label, float scale)
+        {
+            bool active = Math.Abs(FontScale() - scale) < 0.01f;
+            GUI.enabled = !active;
+            if (GUILayout.Button(active ? "✓ " + label : label, GUILayout.MinHeight(26f)))
+            {
+                SetConfig(fontScaleConfig, scale);
+                configFile?.Save();
+                ResetStyles();
+            }
+            GUI.enabled = true;
+        }
+
+        private void DrawCompactBuildSelection()
+        {
+            if (latest.BuildOptions.Count == 0)
+            {
+                return;
+            }
+
+            GUILayout.Space(6f);
+            GUILayout.Label("阵容匹配", mutedStyle);
+            for (int i = 0; i < latest.BuildOptions.Count; i++)
+            {
+                OverlayBuildOption option = latest.BuildOptions[i];
+                bool active = string.Equals(
+                    option.Id,
+                    string.IsNullOrEmpty(selectedBuildOverride)
+                        ? latest.CurrentBuildId
+                        : selectedBuildOverride,
+                    StringComparison.Ordinal);
+                GUI.enabled = !active;
+                if (GUILayout.Button(active ? "✓ " + option.Name : option.Name, GUILayout.MinHeight(24f)))
+                {
+                    selectedBuildOverride = option.Id;
+                    RequestAnalysis(false, "正在切换阵容并扫描...", false);
+                }
+                GUI.enabled = true;
             }
         }
 
@@ -829,7 +976,25 @@ namespace BazaarStateExporter
 
         private void RequestUpdateStatus(bool refresh)
         {
+            if (updateRequestInFlight)
+            {
+                return;
+            }
+            OverlayUpdateState existing = updateState;
+            if (!refresh
+                && existing != null
+                && (!string.IsNullOrEmpty(existing.CurrentVersion) || existing.UpdateAvailable))
+            {
+                return;
+            }
             updateRequestInFlight = true;
+            if (refresh)
+            {
+                lock (this)
+                {
+                    updateState.Message = "正在检查更新...";
+                }
+            }
             ThreadPool.QueueUserWorkItem(_ =>
             {
                 try
@@ -838,7 +1003,7 @@ namespace BazaarStateExporter
                     string url = GetHelperBaseUrl().TrimEnd('/') + "/api/update/status";
                     if (refresh)
                     {
-                        url += "?refresh=1";
+                        url += "?force=1";
                     }
                     using (TimeoutWebClient client = new TimeoutWebClient(4000))
                     {
@@ -847,6 +1012,23 @@ namespace BazaarStateExporter
                         OverlayUpdateState parsed = OverlayAnalysisParser.ParseUpdateStatus(json);
                         lock (this)
                         {
+                            if (refresh)
+                            {
+                                if (!string.IsNullOrEmpty(parsed.Error))
+                                {
+                                    parsed.Message = "更新检查失败：" + parsed.Error;
+                                }
+                                else if (parsed.UpdateAvailable)
+                                {
+                                    parsed.Message = "发现新版本 " + parsed.Version;
+                                }
+                                else
+                                {
+                                    parsed.Message = string.IsNullOrEmpty(parsed.CurrentVersion)
+                                        ? "当前已是最新版本。"
+                                        : "当前已是最新版本 " + parsed.CurrentVersion + "。";
+                                }
+                            }
                             if (!string.IsNullOrEmpty(updateState.PackagePath)
                                 && string.Equals(updateState.Version, parsed.Version, StringComparison.Ordinal))
                             {
@@ -860,6 +1042,13 @@ namespace BazaarStateExporter
                 }
                 catch (Exception ex)
                 {
+                    if (refresh)
+                    {
+                        lock (this)
+                        {
+                            updateState.Message = "更新检查失败：" + ex.Message;
+                        }
+                    }
                     LogUpdateFailure(ex);
                 }
                 finally
@@ -1070,12 +1259,18 @@ namespace BazaarStateExporter
         {
             if (requestInFlight)
             {
-                latest.Status = "正在分析，请稍候...";
+                if (!automatic)
+                {
+                    latest.Status = "正在分析，请稍候...";
+                }
                 return;
             }
 
-            latest.Status = status;
-            bool includeAiForRequest = includeAiForNextRequest || (includeAi != null && includeAi.Value);
+            if (!automatic)
+            {
+                latest.Status = status;
+            }
+            bool includeAiForRequest = includeAiForNextRequest;
             ManualExportResult exportResult = automatic
                 ? Plugin.RequestAutomaticExport()
                 : Plugin.RequestManualExport();
@@ -1089,13 +1284,12 @@ namespace BazaarStateExporter
                 && !string.IsNullOrEmpty(analysisKey)
                 && string.Equals(analysisKey, lastSuccessfulAnalysisKey, StringComparison.Ordinal))
             {
-                latest.Status = "";
                 logger?.LogDebug("Skipped in-game overlay analysis because state signature did not change.");
                 return;
             }
 
             nextRequestIncludeAi = includeAiForRequest;
-            StartAnalysisRequest(analysisKey);
+            StartAnalysisRequest(analysisKey, automatic);
         }
 
         private bool AutoAnalyzeEnabled()
@@ -1103,9 +1297,19 @@ namespace BazaarStateExporter
             return autoAnalyzeConfig != null && autoAnalyzeConfig.Value;
         }
 
+        private bool ManualAnalyzeEnabled()
+        {
+            return manualAnalyzeConfig == null || manualAnalyzeConfig.Value;
+        }
+
         private float AutoAnalyzeInterval()
         {
             return Math.Max(0.5f, pollIntervalSeconds == null ? 2.0f : pollIntervalSeconds.Value);
+        }
+
+        private float FontScale()
+        {
+            return Mathf.Clamp(fontScaleConfig == null ? 1.15f : fontScaleConfig.Value, 1.0f, 1.5f);
         }
 
         private string ModeStatusText()
@@ -1128,18 +1332,30 @@ namespace BazaarStateExporter
             latest.Status = ModeStatusText();
         }
 
-        private void StartAnalysisRequest(string analysisKey)
+        private void ToggleManualAnalyze()
+        {
+            if (manualAnalyzeConfig == null)
+            {
+                return;
+            }
+
+            manualAnalyzeConfig.Value = !manualAnalyzeConfig.Value;
+            configFile?.Save();
+        }
+
+        private void StartAnalysisRequest(string analysisKey, bool silentStatus)
         {
             requestInFlight = true;
             bool includeAiForRequest = nextRequestIncludeAi;
             nextRequestIncludeAi = false;
             string url = BuildAnalysisUrl(includeAiForRequest);
+            int timeoutMs = includeAiForRequest ? AiAnalysisTimeoutMilliseconds : AnalysisTimeoutMilliseconds;
             ThreadPool.QueueUserWorkItem(_ =>
             {
                 try
                 {
                     EnsureHelperServiceStarted();
-                    using (TimeoutWebClient client = new TimeoutWebClient(4000))
+                    using (TimeoutWebClient client = new TimeoutWebClient(timeoutMs))
                     {
                         client.Encoding = Encoding.UTF8;
                         string json = client.DownloadString(url);
@@ -1150,10 +1366,15 @@ namespace BazaarStateExporter
                         }
                         lock (this)
                         {
+                            string previousStatus = latest.Status;
                             if (!includeAiForRequest)
                             {
                                 parsed.AiAnalysis = latest.AiAnalysis;
                                 parsed.AiError = latest.AiError;
+                            }
+                            if (silentStatus)
+                            {
+                                parsed.Status = previousStatus;
                             }
                             latest = parsed;
                             lastSuccessfulAnalysisUtc = DateTime.UtcNow;
@@ -1172,7 +1393,10 @@ namespace BazaarStateExporter
                 {
                     lock (this)
                     {
-                        latest = OverlayAnalysis.Waiting("未连接到 BazaarHelper，请先启动助手。");
+                        if (!silentStatus)
+                        {
+                            latest.Status = AnalysisFailureStatus(ex, includeAiForRequest);
+                        }
                     }
                     LogAnalysisFailure(ex);
                 }
@@ -1181,6 +1405,30 @@ namespace BazaarStateExporter
                     requestInFlight = false;
                 }
             });
+        }
+
+        private string AnalysisFailureStatus(Exception ex, bool includeAiForRequest)
+        {
+            WebException webException = ex as WebException;
+            if (webException != null)
+            {
+                if (webException.Status == WebExceptionStatus.Timeout)
+                {
+                    return includeAiForRequest
+                        ? "智能分析超时，请稍后再试；扫描分析仍可继续。"
+                        : "扫描分析超时，请稍后再试。";
+                }
+                if (webException.Status == WebExceptionStatus.ConnectFailure
+                    || webException.Status == WebExceptionStatus.NameResolutionFailure
+                    || webException.Status == WebExceptionStatus.ProxyNameResolutionFailure)
+                {
+                    return "未连接到 BazaarHelper，请先启动助手。";
+                }
+            }
+
+            return includeAiForRequest
+                ? "智能分析失败：" + ex.Message
+                : "扫描分析失败：" + ex.Message;
         }
 
         private string BuildAnalysisUrl(bool includeAiForRequest)
@@ -1284,13 +1532,49 @@ namespace BazaarStateExporter
                     UseShellExecute = false,
                     CreateNoWindow = true
                 };
-                Process.Start(startInfo);
+                helperProcessStartedByOverlay = Process.Start(startInfo);
                 logger?.LogInfo("In-game overlay auto-started BazaarHelper: " + executablePath);
                 Thread.Sleep(500);
             }
             catch (Exception ex)
             {
                 logger?.LogInfo("In-game overlay failed to auto-start BazaarHelper: " + ex.Message);
+            }
+        }
+
+        private void StopHelperStartedByOverlay()
+        {
+            Process process = helperProcessStartedByOverlay;
+            helperProcessStartedByOverlay = null;
+            if (process == null)
+            {
+                return;
+            }
+
+            try
+            {
+                if (process.HasExited)
+                {
+                    process.Dispose();
+                    return;
+                }
+
+                process.Kill();
+                process.WaitForExit(2000);
+                process.Dispose();
+                logger?.LogInfo("In-game overlay stopped BazaarHelper process it auto-started.");
+            }
+            catch (Exception ex)
+            {
+                logger?.LogInfo("In-game overlay could not stop auto-started BazaarHelper: " + ex.Message);
+                try
+                {
+                    process.Dispose();
+                }
+                catch
+                {
+                    // Ignore cleanup failures during game shutdown.
+                }
             }
         }
 
@@ -1454,7 +1738,7 @@ namespace BazaarStateExporter
                 return;
             }
 
-            float uiScale = Mathf.Clamp(Screen.height / 1080f, 1f, 1.35f);
+            float uiScale = Mathf.Clamp(Screen.height / 1080f, 1f, 1.35f) * FontScale();
             int bodyFontSize = Mathf.RoundToInt(13f * uiScale);
             int titleFontSize = Mathf.RoundToInt(16f * uiScale);
             int mutedFontSize = Mathf.RoundToInt(12f * uiScale);

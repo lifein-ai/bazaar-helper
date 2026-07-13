@@ -27,9 +27,16 @@ if not exist "BazaarHelper.exe" (
     exit /b 1
 )
 
-for /f "tokens=5" %%P in ('netstat -ano ^| findstr /R /C:"127.0.0.1:8765 .*LISTENING"') do (
-    taskkill /PID %%P /F >nul 2>&1
+powershell -NoProfile -ExecutionPolicy Bypass -Command "try { $r = Invoke-RestMethod -UseBasicParsing -Uri 'http://127.0.0.1:8765/' -TimeoutSec 1; if ($r.ok -eq $true -and $r.mode -eq 'api-only' -and $r.analysis_endpoint -eq '/api/analysis') { exit 0 } else { exit 1 } } catch { exit 1 }" >nul 2>&1
+if %ERRORLEVEL% EQU 0 (
+    echo BazaarHelper local API service is already running:
+    echo http://127.0.0.1:8765/api/analysis
+    echo No restart was needed.
+    echo.
+    endlocal
+    exit /b 0
 )
+
 taskkill /IM BazaarHelper.exe /F >nul 2>&1
 start "BazaarHelper" "%~dp0BazaarHelper.exe" --port 8765 --api-only
 

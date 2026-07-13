@@ -12,9 +12,9 @@ from build_strategy import get_game_stage_for_day
 DEFAULT_GUIDES_DIR = get_app_root() / "guides"
 COMMON_GUIDE_DIR_NAMES = {"Common", "common", "通用"}
 METADATA_SECTION_TITLES = {"文档信息", "攻略范围"}
-MAX_GUIDE_CONTEXT_CHARS = 6500
+MAX_GUIDE_CONTEXT_CHARS = 9000
 MAX_SECTION_BODY_CHARS = 2200
-MIN_SECTION_SCORE = 5.0
+MIN_SECTION_SCORE = 4.0
 
 HERO_DIR_ALIASES = {
     "Jules": {"Jules", "朱尔斯", "厨师"},
@@ -129,7 +129,7 @@ def retrieve_guides_for_ai(
     build_analysis: dict[str, Any] | None,
     recommendations: list[dict[str, Any]] | None,
     guides_dir: Path | None = None,
-    limit: int = 3,
+    limit: int = 5,
 ) -> list[dict[str, Any]]:
     guides_dir = guides_dir or DEFAULT_GUIDES_DIR
     try:
@@ -205,6 +205,14 @@ def build_guide_query(
 
     for recommendation in recommendations or []:
         add(recommendation.get("event_name"), "event")
+        add(recommendation.get("best_followup"), "event")
+        add(recommendation.get("best_followup_display"), "event")
+        for child in recommendation.get("child_options", []) or []:
+            if isinstance(child, dict):
+                add(child.get("name"), "event")
+                add(child.get("display_name"), "event")
+                add(child.get("source_name"), "event")
+                add(child.get("description"), "event")
         for card in recommendation.get("possible_cards", [])[:8]:
             if isinstance(card, dict) and card.get("role") in {
                 "core",

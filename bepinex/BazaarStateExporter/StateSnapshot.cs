@@ -104,6 +104,16 @@ namespace BazaarStateExporter
         public string card_type;
         public string section;
         public string source;
+        public List<EventOptionBranchSnapshot> branches = new List<EventOptionBranchSnapshot>();
+    }
+
+    public sealed class EventOptionBranchSnapshot
+    {
+        public string template_id;
+        public string name;
+        public string kind;
+        public string card_type;
+        public string source;
     }
 
     public sealed class CardSnapshot

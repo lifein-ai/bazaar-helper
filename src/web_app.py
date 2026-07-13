@@ -8,7 +8,9 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
+from urllib.error import URLError
 from urllib.parse import parse_qs, urlparse
+from urllib.request import urlopen
 import re
 
 from recommender import (
@@ -37,6 +39,12 @@ from update_manager import (
     start_background_update_check,
     expected_update_info,
 )
+
+
+class BazaarHTTPServer(ThreadingHTTPServer):
+    # Windows SO_REUSEADDR can allow multiple helper processes to bind 8765,
+    # which makes localhost requests land on stale instances unpredictably.
+    allow_reuse_address = False
 
 
 BASE_DIR = get_app_root()
@@ -71,6 +79,7 @@ AnalysisCacheKey = tuple[int, str, str, int | None, str]
 ANALYSIS_CACHE: dict[AnalysisCacheKey, dict[str, Any]] = {}
 AI_PAYLOAD_CACHE: dict[AnalysisCacheKey, dict[str, Any]] = {}
 AI_ANALYSIS_CACHE: dict[AnalysisCacheKey, str] = {}
+DEFAULT_ITEM_SPACE_TOTAL = 20
 STAGE_LABELS_ZH = {
     "early": "前期",
     "mid": "中期",
@@ -230,6 +239,7 @@ def signature_option_identity(item: Any) -> Any:
         "name": item.get("name"),
         "kind": item.get("kind"),
         "card_type": item.get("card_type"),
+        "branches": stable_cache_value(item.get("branches", [])),
     }
 
 
@@ -568,10 +578,16 @@ def normalize_payload_for_analysis(
         normalized[field_name] = normalize_card_entries(
             data, normalized.get(field_name)
         )
-    if normalized.get("inventory_slots_used") is None:
+    computed_slots_used = inventory_slots_used(data, normalized)
+    if computed_slots_used is not None:
+        normalized["inventory_slots_used"] = computed_slots_used
+    elif normalized.get("inventory_slots_used") is None:
         normalized["inventory_slots_used"] = inventory_slots_used(
             data, normalized.get("board_items")
         )
+    normalized["inventory_slots_total"] = inventory_slots_total(
+        normalized.get("inventory_slots_total")
+    )
     current_shop = normalized.get("current_shop")
     if isinstance(current_shop, dict):
         current_shop = dict(current_shop)
@@ -644,23 +660,71 @@ def attach_effective_shop_price_estimate(
         return
 
 
-def inventory_slots_used(data: dict[str, Any], board_items: Any) -> int | None:
-    if not isinstance(board_items, list):
+def inventory_slots_total(value: Any = None) -> int:
+    try:
+        configured = int(value)
+    except (TypeError, ValueError):
+        configured = 0
+    return max(DEFAULT_ITEM_SPACE_TOTAL, configured)
+
+
+def inventory_slots_used(data: dict[str, Any], payload_or_items: Any) -> int | None:
+    if isinstance(payload_or_items, dict):
+        items = payload_or_items.get("owned_items")
+        if not isinstance(items, list) or not items:
+            items = [
+                *(
+                    payload_or_items.get("board_items")
+                    if isinstance(payload_or_items.get("board_items"), list)
+                    else []
+                ),
+                *(
+                    payload_or_items.get("stash_items")
+                    if isinstance(payload_or_items.get("stash_items"), list)
+                    else []
+                ),
+            ]
+    else:
+        items = payload_or_items
+
+    if not isinstance(items, list):
         return None
 
-    size_slots = {"small": 1, "medium": 2, "large": 3}
     total = 0
-    for item in board_items:
+    for item in items:
         if not isinstance(item, dict) or not item.get("name"):
             return None
-        card_data = data.get("cards", {}).get(str(item["name"]))
-        if not isinstance(card_data, dict):
-            return None
-        slots = size_slots.get(str(card_data.get("size", "")).lower())
+        slots = item_size_slots(data, item)
         if slots is None:
             return None
         total += slots
     return total
+
+
+def item_size_slots(data: dict[str, Any], item: dict[str, Any]) -> int | None:
+    size_slots = {"small": 1, "medium": 2, "large": 3}
+    runtime_values = item.get("runtime_values")
+    if isinstance(runtime_values, dict):
+        for key in ("Size", "size"):
+            slots = size_slots.get(normalize_size_label(runtime_values.get(key)))
+            if slots is not None:
+                return slots
+    for key in ("size", "Size"):
+        slots = size_slots.get(normalize_size_label(item.get(key)))
+        if slots is not None:
+            return slots
+
+    card_data = data.get("cards", {}).get(str(item["name"]))
+    if isinstance(card_data, dict):
+        return size_slots.get(normalize_size_label(card_data.get("size")))
+    return None
+
+
+def normalize_size_label(value: Any) -> str:
+    text = str(value or "").strip().lower()
+    if "." in text:
+        text = text.rsplit(".", 1)[-1]
+    return text
 
 
 def normalize_event_options(data: dict[str, Any], payload: dict[str, Any]) -> list[str]:
@@ -917,15 +981,96 @@ def official_card_description(card: dict[str, Any]) -> str:
     description = localization.get("Description", {}) if isinstance(localization, dict) else {}
 
     if isinstance(description, dict) and description.get("Text"):
-        return str(description["Text"])
+        return render_card_text(card, str(description["Text"]))
 
-    return str(card.get("InternalDescription") or "")
+    return render_card_text(card, str(card.get("InternalDescription") or ""))
+
+
+def card_abilities(card: dict[str, Any]) -> dict[str, Any]:
+    for key in ("Abilities", "abilities"):
+        abilities = card.get(key)
+        if isinstance(abilities, dict):
+            return abilities
+
+    raw_effects = card.get("raw_effects")
+    if isinstance(raw_effects, dict):
+        for key in ("Abilities", "abilities"):
+            abilities = raw_effects.get(key)
+            if isinstance(abilities, dict):
+                return abilities
+
+    return {}
+
+
+def value_number(value_obj: Any) -> Any:
+    if not isinstance(value_obj, dict):
+        return None
+
+    for key in ("Value", "DefaultValue"):
+        value = value_obj.get(key)
+        if value is not None:
+            return value
+
+    modifier = value_obj.get("Modifier")
+    if isinstance(modifier, dict):
+        modifier_value = value_number(modifier.get("Value"))
+        if modifier_value is not None:
+            return modifier_value
+
+    return None
+
+
+def action_value(action: dict[str, Any]) -> Any:
+    return value_number(action.get("Value"))
+
+
+def format_ability_value(value: Any, suffix: str | None = None) -> str:
+    if isinstance(value, float):
+        if suffix == "mod" and 0 < abs(value) < 1:
+            percent = value * 100
+            return f"{percent:g}%"
+        return f"{value:g}"
+    return str(value)
+
+
+def render_card_text(card: dict[str, Any], text: str) -> str:
+    if not text or "{ability." not in text:
+        return text
+
+    values: dict[str, Any] = {}
+    for index, ability in enumerate(card_abilities(card).values()):
+        if not isinstance(ability, dict):
+            continue
+
+        action = ability.get("Action", {})
+        if not isinstance(action, dict):
+            continue
+
+        value = action_value(action)
+        if value is None:
+            continue
+
+        ability_id = str(ability.get("Id") or index)
+        values.setdefault(str(index), value)
+        values[ability_id] = value
+
+    def replace(match: re.Match[str]) -> str:
+        ability_id = match.group(1)
+        suffix = match.group(2)
+        value = values.get(ability_id)
+        if value is None:
+            return match.group(0)
+        if suffix and suffix not in {"mod", "value"}:
+            return match.group(0)
+        return format_ability_value(value, suffix)
+
+    return re.sub(r"\{ability\.(\d+)(?:\.([A-Za-z_]+))?\}", replace, text)
 
 
 def extract_resource_rewards_from_card(card: dict[str, Any]) -> dict[str, Any]:
     rewards: dict[str, Any] = {}
 
-    abilities = card.get("Abilities", {})
+    abilities = card_abilities(card)
     if not isinstance(abilities, dict):
         return rewards
 
@@ -937,13 +1082,13 @@ def extract_resource_rewards_from_card(card: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(action, dict):
             continue
 
-        if action.get("$type") != "TActionPlayerModifyAttribute":
+        action_type = str(action.get("$type") or "")
+        if not action_type.endswith("TActionPlayerModifyAttribute"):
             continue
 
         attribute = str(action.get("AttributeType") or "").lower()
 
-        value_obj = action.get("Value", {})
-        value = value_obj.get("Value") if isinstance(value_obj, dict) else None
+        value = action_value(action)
 
         if value is None:
             continue
@@ -1067,6 +1212,22 @@ def auto_observe_event_graph(data: dict[str, Any], payload: dict[str, Any]) -> N
     ]
 
     # 只在“一个父事件 + 至少一个子选项”的界面记录
+    if len(parents) == 1:
+        branch_children: list[dict[str, Any]] = []
+        for branch in parents[0].get("branches") or []:
+            if not isinstance(branch, dict):
+                continue
+
+            branch_item = dict(branch)
+            source_id = str(branch_item.get("template_id") or "")
+            if source_id and not branch_item.get("event_name"):
+                branch_item["event_name"] = event_name_from_source_id(data, source_id)
+            if not branch_item.get("source"):
+                branch_item["source"] = "next_encounter_on_selection"
+            branch_children.append(branch_item)
+        if branch_children:
+            children = branch_children
+
     if len(parents) != 1 or not children:
         return
 
@@ -1111,12 +1272,14 @@ def auto_observe_event_graph(data: dict[str, Any], payload: dict[str, Any]) -> N
         child_item = existing_children.get(source_id)
 
         if not child_item:
+            inferred = child.get("source") == "next_encounter_on_selection"
             child_item = {
                 "name": child.get("event_name") or child.get("name") or "",
                 "source_id": source_id,
                 "kind": child.get("kind"),
                 "card_type": child.get("card_type"),
-                "seen": True,
+                "seen": not inferred,
+                "source": child.get("source") or "visible_event_option",
             }
 
             parent_record["children"].append(child_item)
@@ -1356,6 +1519,17 @@ def relation_label(label: str | None) -> str:
     }.get(label or "", label or "")
 
 
+def stages_label(stages: Any) -> str:
+    if not isinstance(stages, list):
+        return ""
+    labels = [
+        STAGE_LABELS_ZH.get(str(stage).lower(), str(stage))
+        for stage in stages
+        if str(stage).lower() in STAGE_LABELS_ZH
+    ]
+    return "/".join(labels)
+
+
 def shop_action_label(label: str | None) -> str:
     return {
         "buy_visible": "购买可见目标",
@@ -1429,10 +1603,12 @@ def summarize_parent_child_options(parent_graph: dict[str, Any] | None) -> list[
         if not name:
             source_id = str(child.get("source_id") or "")
             name = f"未知子选项 {source_id[:8]}" if source_id else "未知子选项"
+        display_name = child.get("display_name") or name
 
         result.append(
             {
                 "name": name,
+                "display_name": display_name,
                 "source_id": child.get("source_id", ""),
                 "kind": child.get("kind", ""),
                 "card_type": child.get("card_type", ""),
@@ -1447,6 +1623,140 @@ def summarize_parent_child_options(parent_graph: dict[str, Any] | None) -> list[
     return result
 
 
+def static_child_options_for_event(data: dict[str, Any], event_name: str | None) -> list[dict[str, Any]]:
+    if not event_name:
+        return []
+
+    event_data = data.get("events", {}).get(event_name)
+    if not isinstance(event_data, dict):
+        return []
+
+    if event_data.get("event_category") in {"shops", "skill_shops"}:
+        return []
+
+    source_ids = [str(value).lower() for value in event_data.get("source_ids", []) if value]
+    if not source_ids:
+        return []
+
+    encounters = data.get("encounters", {})
+    if not isinstance(encounters, dict):
+        return []
+
+    encounter_by_source_id: dict[str, dict[str, Any]] = {}
+    for encounter in encounters.values():
+        if not isinstance(encounter, dict):
+            continue
+        for key in ("source_id", "template_id", "id"):
+            source_id = str(encounter.get(key) or "").lower()
+            if source_id:
+                encounter_by_source_id[source_id] = encounter
+        for source_id in encounter.get("source_ids", []) or []:
+            source_id_text = str(source_id or "").lower()
+            if source_id_text:
+                encounter_by_source_id[source_id_text] = encounter
+
+    children: list[dict[str, Any]] = []
+    seen_child_ids: set[str] = set()
+    seen_child_labels: set[str] = set()
+
+    for source_id in source_ids:
+        parent = encounter_by_source_id.get(source_id)
+        if not parent:
+            continue
+
+        for child_id in extract_spawn_context_ids(parent.get("raw_effects", {})):
+            child_id_lower = child_id.lower()
+            if child_id_lower == source_id or child_id_lower in seen_child_ids:
+                continue
+            seen_child_ids.add(child_id_lower)
+
+            child = encounter_by_source_id.get(child_id_lower)
+            child_name = event_name_from_source_id(data, child_id) or (
+                str(child.get("name") or child.get("internal_name") or "")
+                if isinstance(child, dict)
+                else ""
+            )
+            child_source_name = child_name or child_id
+            child_display_name = zh_name(data, child_source_name, child_id)
+            child_label_key = child_display_name.strip().lower()
+            if child_label_key and child_label_key in seen_child_labels:
+                continue
+            if child_label_key:
+                seen_child_labels.add(child_label_key)
+            child_description = (
+                render_card_text(child, str(child.get("description") or ""))
+                if isinstance(child, dict)
+                else ""
+            )
+            child_type = str(child.get("type") or child.get("card_type") or "") if isinstance(child, dict) else ""
+
+            child_item = {
+                "name": child_display_name,
+                "source_name": child_source_name,
+                "display_name": child_display_name,
+                "source_id": child_id,
+                "kind": static_child_kind(child_type),
+                "card_type": child_type,
+                "description": zh_text(data, child_description) if child_description else "",
+                "resource_rewards": (
+                    extract_resource_rewards_from_card(child)
+                    if isinstance(child, dict)
+                    else {}
+                ),
+                "source": "static_encounters_generated",
+                "seen": False,
+            }
+            children.append(child_item)
+
+    return children
+
+
+def extract_spawn_context_ids(value: Any) -> list[str]:
+    result: list[str] = []
+    seen: set[str] = set()
+
+    def add_id(raw: Any) -> None:
+        text = str(raw or "").strip()
+        if not text or text.lower() in seen:
+            return
+        seen.add(text.lower())
+        result.append(text)
+
+    def walk(node: Any) -> None:
+        if isinstance(node, dict):
+            node_type = str(node.get("$type") or "")
+            if node_type.endswith("TSpawnFilterIdList"):
+                ids = node.get("Ids")
+                if isinstance(ids, list):
+                    for item in ids:
+                        add_id(item)
+                elif ids:
+                    add_id(ids)
+                return
+
+            for child in node.values():
+                walk(child)
+        elif isinstance(node, list):
+            for child in node:
+                walk(child)
+
+    walk(value)
+    return result
+
+
+def static_child_kind(card_type: str) -> str:
+    lower = card_type.lower()
+    if "encounterstep" in lower:
+        return "step"
+    if "combat" in lower:
+        return "combat"
+    if "pvp" in lower:
+        return "pvp"
+    if "eventencounter" in lower:
+        return "encounter"
+    return "unknown"
+
+
 def parent_event_reason_text(child_options: list[dict[str, Any]]) -> str:
     if not child_options:
         return "这是一个父事件，但当前还没有观察到可分析的子选项收益。"
@@ -1454,7 +1764,7 @@ def parent_event_reason_text(child_options: list[dict[str, Any]]) -> str:
     parts: list[str] = []
 
     for child in child_options[:5]:
-        name = child.get("name") or "未知子选项"
+        name = child.get("display_name") or child.get("name") or "未知子选项"
         reward_text = child.get("reward_text") or ""
         description = child.get("description") or ""
 
@@ -1552,13 +1862,45 @@ def child_option_has_skill_reward(child: dict[str, Any]) -> bool:
 def child_options_have_skill_reward(child_options: list[dict[str, Any]]) -> bool:
     return any(child_option_has_skill_reward(child) for child in child_options)
 
+
+def event_description_text(event_data: dict[str, Any] | None) -> str:
+    if not isinstance(event_data, dict):
+        return ""
+
+    for key in ("description", "notes", "summary", "effect_text"):
+        value = str(event_data.get(key) or "").strip()
+        if value:
+            return value
+
+    qualitative_rewards = event_data.get("qualitative_rewards", [])
+    if isinstance(qualitative_rewards, list):
+        values = [str(value).strip() for value in qualitative_rewards if str(value or "").strip()]
+        if values:
+            return "；".join(values[:3])
+
+    return ""
+
+
 def event_has_value_rule(event_data: dict[str, Any] | None) -> bool:
     """判断一个已识别事件是否有可计算收益规则。"""
     if not event_data:
         return False
+
+    event_category = str(event_data.get("event_category") or "").strip().lower()
+    effect = str(event_data.get("effect") or "").strip().lower()
     
     if event_has_skill_reward(event_data):
         return True
+
+    if event_category in {"item_events", "enchant_events"}:
+        if effect:
+            return True
+        if event_data.get("target_tags"):
+            return True
+        if event_data.get("enchantment_tags"):
+            return True
+        if event_data.get("rarity_filter") or event_data.get("rarity_rule"):
+            return True
     
     if event_data.get("shop_pool"):
         return True
@@ -1588,6 +1930,8 @@ def summarize_recommendation(data: dict[str, Any], result: dict[str, Any]) -> di
     if event_data and event_data.get("event_category") in {"shops", "skill_shops"}:
         parent_graph = None
     child_options = summarize_parent_child_options(parent_graph)
+    if not child_options:
+        child_options = static_child_options_for_event(data, event_name)
     is_parent_event = bool(child_options)
     has_skill_child_reward = child_options_have_skill_reward(child_options)
 
@@ -1643,10 +1987,19 @@ def summarize_recommendation(data: dict[str, Any], result: dict[str, Any]) -> di
     elif not has_value_rule:
         event_rule_status = "known_without_value_rule"
         recommendation = "Low Value"
-        recommendation_label_zh = "已识别，暂无收益规则"
+        description_text = event_description_text(event_data)
+        if description_text:
+            recommendation_label_zh = "已识别"
+            reason_text = f"描述：{description_text}"
+        elif event_data and event_data.get("event_category") in {"utility_events", "unknown_events"}:
+            recommendation_label_zh = "已识别，数据不足"
+            reason_text = "事件已识别，但当前数据源尚未包含描述、可计算奖励或后续选项。"
+        else:
+            recommendation_label_zh = "已识别，暂无收益规则"
+            reason_text = "事件已识别，但当前没有可计算奖励或后续选项。"
         base_reasons.insert(
             0,
-            "事件已识别，但当前缺少可计算收益规则：events.json 中有这个事件，但没有 shop_pool、card_reward、resource_rewards 或 followup_options，所以暂时无法计算实际收益。",
+            reason_text,
         )
     elif has_skill_reward and recommendation == "Low Value":
         event_rule_status = "skill_reward"
@@ -1885,7 +2238,7 @@ def analyze_payload(
         current_shop=state.effective_shop,
     )
     for match in build_analysis.get("build_matches", []):
-        match["phase_label"] = STAGE_LABELS_ZH.get(
+        match["phase_label"] = stages_label(match.get("applicable_stages")) or STAGE_LABELS_ZH.get(
             match.get("phase"),
             match.get("phase") or "",
         )
@@ -1916,7 +2269,7 @@ def analyze_payload(
         )
         for hit in candidate.get("build_hits", []):
             hit["build_display_name"] = hit.get("build_name") or hit.get("build_id") or ""
-            hit["build_phase_label"] = STAGE_LABELS_ZH.get(
+            hit["build_phase_label"] = stages_label(hit.get("applicable_stages")) or STAGE_LABELS_ZH.get(
                 hit.get("build_phase"),
                 hit.get("build_phase") or "",
             )
@@ -2074,6 +2427,15 @@ def analyze_payload(
             display_reasons = display_item.get("reasons", [])
             if isinstance(display_reasons, list) and display_reasons:
                 item["reasons"] = display_reasons
+            for field_name in (
+                "event_rule_status",
+                "child_options",
+                "best_followup_summary",
+                "best_followup_display",
+                "event_display_name",
+            ):
+                if field_name in display_item:
+                    item[field_name] = display_item[field_name]
 
             ai_results.append(item)
 
@@ -2196,7 +2558,7 @@ class BazaarHandler(BaseHTTPRequestHandler):
         query = parse_qs(parsed.query)
 
         try:
-            if parsed.path == "/":
+            if parsed.path in {"/", "/health"}:
                 self.send_json(
                     {
                         "ok": True,
@@ -2265,7 +2627,7 @@ class BazaarHandler(BaseHTTPRequestHandler):
                 self.send_json(response)
                 return
 
-            self.send_error(HTTPStatus.NOT_FOUND, "未找到")
+            self.send_error(HTTPStatus.NOT_FOUND, "Not found")
         except Exception as exc:  # noqa: BLE001 - this is a small local dev server.
             self.send_json({"error": str(exc)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
@@ -2275,7 +2637,7 @@ class BazaarHandler(BaseHTTPRequestHandler):
             self.handle_update_post(parsed.path)
             return
         if parsed.path != "/api/state":
-            self.send_error(HTTPStatus.NOT_FOUND, "未找到")
+            self.send_error(HTTPStatus.NOT_FOUND, "Not found")
             return
         query = parse_qs(parsed.query)
         if query.get("force", ["0"])[0] != "1" and runtime_state_is_plugin_owned():
@@ -2329,7 +2691,7 @@ class BazaarHandler(BaseHTTPRequestHandler):
                 self.send_json({"ok": True, "message": "更新器已启动，程序即将退出并安装新版。"})
                 return
 
-            self.send_error(HTTPStatus.NOT_FOUND, "未找到")
+            self.send_error(HTTPStatus.NOT_FOUND, "Not found")
         except UpdateError as exc:
             self.send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
         except Exception as exc:  # noqa: BLE001 - local update endpoint should report errors.
@@ -2391,12 +2753,104 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def local_bind_candidates(host: str) -> list[str]:
+    requested = (host or "").strip() or "127.0.0.1"
+    candidates: list[str] = []
+
+    def add(candidate: str) -> None:
+        if candidate not in candidates:
+            candidates.append(candidate)
+
+    add(requested)
+    if requested == "127.0.0.1":
+        add("localhost")
+    elif requested == "localhost":
+        add("127.0.0.1")
+    return candidates
+
+
+def local_probe_candidates(host: str) -> list[str]:
+    requested = (host or "").strip() or "127.0.0.1"
+    if requested in {"0.0.0.0", "::"}:
+        return ["127.0.0.1", "localhost"]
+    return local_bind_candidates(requested)
+
+
+def existing_helper_is_healthy(host: str, port: int, timeout_seconds: float = 0.5) -> bool:
+    for candidate in local_probe_candidates(host):
+        try:
+            with urlopen(f"http://{candidate}:{port}/", timeout=timeout_seconds) as response:
+                if response.status != HTTPStatus.OK:
+                    continue
+                payload = json.loads(response.read().decode("utf-8"))
+        except (OSError, URLError, TimeoutError, ValueError, json.JSONDecodeError):
+            continue
+
+        if (
+            isinstance(payload, dict)
+            and payload.get("ok") is True
+            and payload.get("mode") == "api-only"
+            and payload.get("analysis_endpoint") == "/api/analysis"
+        ):
+            return True
+    return False
+
+
+def create_http_server(
+    host: str,
+    port: int,
+    server_class: type[ThreadingHTTPServer] = BazaarHTTPServer,
+    health_check: Any = existing_helper_is_healthy,
+) -> tuple[ThreadingHTTPServer, str]:
+    permission_errors: list[tuple[str, PermissionError]] = []
+    address_errors: list[tuple[str, OSError]] = []
+    for candidate in local_bind_candidates(host):
+        try:
+            return server_class((candidate, port), BazaarHandler), candidate
+        except PermissionError as exc:
+            if health_check(candidate, port):
+                raise SystemExit(
+                    f"BazaarHelper is already running at http://{candidate}:{port}"
+                ) from exc
+            permission_errors.append((candidate, exc))
+        except OSError as exc:
+            if getattr(exc, "winerror", None) == 10048 or getattr(exc, "errno", None) in {48, 98}:
+                if health_check(candidate, port):
+                    raise SystemExit(
+                        f"BazaarHelper is already running at http://{candidate}:{port}"
+                    ) from exc
+            address_errors.append((candidate, exc))
+
+    if permission_errors:
+        tried_hosts = ", ".join(candidate for candidate, _ in permission_errors)
+        message = (
+            f"Unable to start BazaarHelper on {tried_hosts}:{port} because Windows denied the bind.\n"
+            "This is usually caused by a reserved/excluded TCP port or security software blocking local servers.\n"
+            f"Please check whether port {port} is reserved or blocked, then start BazaarHelper again."
+        )
+        raise SystemExit(message) from permission_errors[0][1]
+
+    if address_errors:
+        tried_hosts = ", ".join(candidate for candidate, _ in address_errors)
+        message = (
+            f"Unable to start BazaarHelper on {tried_hosts}:{port} because the address is already in use.\n"
+            "If the game overlay is already working, BazaarHelper is probably already running.\n"
+            f"Otherwise, close the program using port {port} and start BazaarHelper again."
+        )
+        raise SystemExit(message) from address_errors[0][1]
+
+    raise RuntimeError("No bind candidates were available.")
+
+
 def main() -> None:
     args = parse_args()
     RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
+    if existing_helper_is_healthy(args.host, args.port):
+        print(f"BazaarHelper is already running at http://{args.host}:{args.port}")
+        return
     start_background_update_check()
-    server = ThreadingHTTPServer((args.host, args.port), BazaarHandler)
-    print(f"The Bazaar AI helper API service: http://{args.host}:{args.port}")
+    server, bound_host = create_http_server(args.host, args.port)
+    print(f"The Bazaar AI helper API service: http://{bound_host}:{args.port}")
     print(f"Runtime state file: {STATE_PATH}")
     server.serve_forever()
 

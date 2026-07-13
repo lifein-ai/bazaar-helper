@@ -698,6 +698,51 @@ class RecommenderTests(unittest.TestCase):
         self.assertIn("参考倾向", serialized_messages)
         self.assertIn("比较所有当前选项", serialized_messages)
 
+    def test_ai_payload_keeps_parent_followup_rewards_and_guide_policy(self) -> None:
+        data = load_all_data(DATA_DIR)
+        payload = compact_recommendations(
+            data=data,
+            hero="Vanessa",
+            build_name="VanessaAquaticAmmo",
+            current_day=5,
+            owned_cards={},
+            results=[
+                {
+                    "event_name": "Tiny Furry Monster",
+                    "event_rule_status": "parent_event",
+                    "recommendation": "Low Value",
+                    "child_options": [
+                        {
+                            "name": "爱抚",
+                            "source_name": "Pet It",
+                            "description": "Gain 25 Max Health",
+                            "resource_rewards": {"max_health": 25},
+                            "source": "static_encounters_generated",
+                        }
+                    ],
+                    "best_followup_summary": {
+                        "resource_rewards": {"max_health": 25},
+                    },
+                }
+            ],
+            guide_context=[
+                {
+                    "章节标题": "事件选择",
+                    "正文": "攻略认为前期稳定收益可以帮助后续运营。",
+                }
+            ],
+        )
+        messages = build_ai_messages(payload)
+        serialized_payload = json.dumps(payload, ensure_ascii=False)
+        serialized_messages = json.dumps(messages, ensure_ascii=False)
+
+        self.assertIn("parent_followup_options", serialized_payload)
+        self.assertIn("爱抚", serialized_payload)
+        self.assertIn('"max_health": 25', serialized_payload)
+        self.assertIn("strategy_guide_context", serialized_payload)
+        self.assertIn("parent_followup_options", serialized_messages)
+        self.assertIn("不要因为父事件本身没有直接收益", serialized_messages)
+
     def test_ai_payload_uses_all_event_options_when_ui_top_is_limited(self) -> None:
         web_app.ANALYSIS_CACHE.clear()
         web_app.AI_PAYLOAD_CACHE.clear()

@@ -431,6 +431,70 @@ def _compact_followups(data: dict[str, Any], result: dict[str, Any]) -> list[dic
     return compact
 
 
+def _compact_parent_child_options(
+    data: dict[str, Any],
+    result: dict[str, Any],
+) -> list[dict[str, Any]]:
+    child_options = result.get("child_options")
+    if not isinstance(child_options, list):
+        return []
+
+    compact: list[dict[str, Any]] = []
+    for option in child_options[:6]:
+        if not isinstance(option, dict):
+            continue
+        name = (
+            option.get("display_name")
+            or option.get("name")
+            or _zh_name(data, option.get("source_name"))
+        )
+        compact.append(
+            _prune_empty(
+                {
+                    "name": name,
+                    "source_name": option.get("source_name"),
+                    "kind": option.get("kind"),
+                    "card_type": option.get("card_type"),
+                    "description": _zh_text(data, option.get("description")),
+                    "resource_rewards": option.get("resource_rewards") or {},
+                    "reward_text": option.get("reward_text"),
+                    "source": option.get("source"),
+                    "seen": option.get("seen"),
+                }
+            )
+        )
+    return compact
+
+
+def _compact_parent_followup_context(
+    data: dict[str, Any],
+    result: dict[str, Any],
+) -> dict[str, Any]:
+    child_options = _compact_parent_child_options(data, result)
+    if not child_options:
+        return {}
+
+    best_summary = result.get("best_followup_summary")
+    if not isinstance(best_summary, dict):
+        best_summary = result.get("followup_value_summary")
+    if not isinstance(best_summary, dict):
+        best_summary = {}
+
+    return _prune_empty(
+        {
+            "must_consider": (
+                "This is a parent event. Evaluate it by its follow-up options too; "
+                "do not treat the parent as low value only because the parent itself has no direct reward."
+            ),
+            "event_rule_status": result.get("event_rule_status"),
+            "best_followup": result.get("best_followup_display")
+            or _zh_name(data, result.get("best_followup")),
+            "best_followup_summary": best_summary,
+            "child_options": child_options,
+        }
+    )
+
+
 def _compact_event_results(
     data: dict[str, Any],
     results: list[dict[str, Any]],
@@ -471,6 +535,10 @@ def _compact_event_results(
             else None,
             "转型核心命中数量": result.get("alt_core_card_count") or 0,
         }
+        parent_followup_context = _compact_parent_followup_context(data, result)
+        if parent_followup_context:
+            compact_item["parent_followup_options"] = parent_followup_context
+
         if isinstance(shop_decision, dict):
             compact_item["商店刷新事实与旧规则参考"] = {
                 "可刷新": shop_decision.get("refresh_available"),
@@ -659,6 +727,30 @@ def compact_recommendations(
     if guide_context:
         payload["相关攻略"] = guide_context
 
+    payload["AI_priority_rules"] = [
+        (
+            "If an event has parent_followup_options, evaluate the parent event by "
+            "its follow-up options and their rewards; do not ignore those rewards."
+        ),
+        (
+            "Guide context is strategic evidence, not a low-priority appendix. "
+            "When guide context is present, explain whether it fits the current state."
+        ),
+        (
+            "Rules, current state, and guide experience should be synthesized. "
+            "Do not rely only on build matching or current board state."
+        ),
+    ]
+
+    if guide_context:
+        payload["strategy_guide_context"] = {
+            "must_use": (
+                "Use these guide sections as strategic evidence. If a guide point is relevant, "
+                "say how it changes or supports the recommendation."
+            ),
+            "sections": guide_context,
+        }
+
     return _prune_empty(payload)
 
 
@@ -673,6 +765,9 @@ def build_ai_messages(payload: dict[str, Any]) -> list[dict[str, str]]:
         {
             "role": "user",
             "content": (
+                "重要要求：如果某个事件包含 parent_followup_options，必须把这些后续选项的资源、技能、卡池或战斗收益纳入判断；"
+                "不要因为父事件本身没有直接收益就把它当作低价值事件。"
+                "如果存在 strategy_guide_context 或相关攻略，必须把攻略当作策略依据之一，说明它与当前状态是契合、部分契合还是不适用，再综合规则指标。\n"
                 "下面是当前局的实时状态、规则层客观计算、旧规则参考和相关攻略片段。请比较所有当前选项后给出分析：\n"
                 f"{summary_json}"
             ),

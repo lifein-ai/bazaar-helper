@@ -31,8 +31,10 @@ namespace BazaarStateExporter
         private ConfigEntry<string> helperExecutablePath;
         private ConfigEntry<float> overlayPollIntervalSeconds;
         private ConfigEntry<int> overlayTopRecommendations;
+        private ConfigEntry<bool> overlayManualAnalyze;
         private ConfigEntry<bool> overlayIncludeAi;
         private ConfigEntry<bool> overlayAutoAnalyze;
+        private ConfigEntry<float> overlayFontScale;
         private ConfigEntry<string> overlayToggleKey;
         private ConfigEntry<string> overlayLockToggleKey;
         private ConfigEntry<string> overlayManualAnalysisKey;
@@ -147,6 +149,11 @@ namespace BazaarStateExporter
                 "TopRecommendations",
                 3,
                 "How many event recommendations the in-game overlay requests.");
+            overlayManualAnalyze = Config.Bind(
+                "Overlay",
+                "ManualAnalyze",
+                true,
+                "Show manual scan and AI analysis controls in the in-game overlay.");
             overlayIncludeAi = Config.Bind(
                 "Overlay",
                 "IncludeAi",
@@ -157,6 +164,11 @@ namespace BazaarStateExporter
                 "AutoAnalyze",
                 false,
                 "Automatically scan game state and refresh in-game recommendations at Overlay.PollIntervalSeconds. Disabled by default for lower overhead.");
+            overlayFontScale = Config.Bind(
+                "Overlay",
+                "FontScale",
+                1.15f,
+                "Font scale for the in-game overlay. Common values: 1.0, 1.15, 1.3, 1.5.");
             overlayToggleKey = Config.Bind(
                 "Overlay",
                 "ToggleKey",
@@ -241,8 +253,10 @@ namespace BazaarStateExporter
                 helperExecutablePath,
                 overlayPollIntervalSeconds,
                 overlayTopRecommendations,
+                overlayManualAnalyze,
                 overlayIncludeAi,
                 overlayAutoAnalyze,
+                overlayFontScale,
                 overlayToggleKey,
                 overlayLockToggleKey,
                 overlayManualAnalysisKey,
@@ -562,6 +576,7 @@ namespace BazaarStateExporter
             AppendPart(builder, snapshot.health.HasValue ? snapshot.health.Value.ToString() : "");
             AppendStrings(builder, snapshot.event_option_ids);
             AppendStrings(builder, snapshot.event_option_template_ids);
+            AppendEventOptions(builder, snapshot.event_options_detailed);
             AppendCards(builder, snapshot.owned_cards);
             AppendCards(builder, snapshot.visible_cards);
             AppendCards(
@@ -633,6 +648,58 @@ namespace BazaarStateExporter
                     + (card.section ?? "")
                     + ":"
                     + (card.price.HasValue ? card.price.Value.ToString() : ""));
+            }
+        }
+
+        private static void AppendEventOptions(StringBuilder builder, List<EventOptionSnapshot> options)
+        {
+            if (options == null)
+            {
+                AppendPart(builder, "");
+                return;
+            }
+
+            for (int i = 0; i < options.Count; i++)
+            {
+                EventOptionSnapshot option = options[i];
+                if (option == null)
+                {
+                    AppendPart(builder, "");
+                    continue;
+                }
+
+                AppendPart(
+                    builder,
+                    (option.id ?? "")
+                    + ":"
+                    + (option.template_id ?? "")
+                    + ":"
+                    + (option.kind ?? "")
+                    + ":"
+                    + (option.card_type ?? ""));
+
+                if (option.branches == null)
+                {
+                    continue;
+                }
+
+                for (int branchIndex = 0; branchIndex < option.branches.Count; branchIndex++)
+                {
+                    EventOptionBranchSnapshot branch = option.branches[branchIndex];
+                    if (branch == null)
+                    {
+                        AppendPart(builder, "");
+                        continue;
+                    }
+
+                    AppendPart(
+                        builder,
+                        (branch.template_id ?? "")
+                        + ":"
+                        + (branch.kind ?? "")
+                        + ":"
+                        + (branch.card_type ?? ""));
+                }
             }
         }
 

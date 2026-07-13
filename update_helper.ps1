@@ -227,6 +227,8 @@ function Sync-GamePlugin {
 
     Set-PluginConfigValue $configPath "HelperExecutablePath" (Join-Path $AppRoot "BazaarHelper.exe")
     Set-PluginConfigValue $configPath "ManualAnalysisKey" "F8"
+    Set-PluginConfigValue $configPath "ManualAnalyze" "true"
+    Set-PluginConfigValue $configPath "FontScale" "1.15"
     if (Test-Path $configPath) {
         $configText = Get-Content -LiteralPath $configPath -Raw -Encoding UTF8
         if ($configText -notmatch "(?m)^\s*AutoAnalyze\s*=") {

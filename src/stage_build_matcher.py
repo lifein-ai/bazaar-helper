@@ -78,7 +78,11 @@ def analyze_stage_builds(
         gold,
     )
     ranked_matches = sorted(
-        build_matches,
+        [
+            match
+            for match in build_matches
+            if match["relation"] != "past_build"
+        ],
         key=lambda item: (
             -IMPORTANCE_RANK[item["importance"]],
             -match_band_rank(item["match_band"]),
@@ -156,6 +160,7 @@ def match_build(
         "build_id": build["build_id"],
         "name": build["name"],
         "phase": build["phase"],
+        "applicable_stages": build["applicable_stages"],
         "owned_core": owned_core,
         "missing_core": missing_core,
         "owned_optional": owned_optional,
@@ -273,7 +278,7 @@ def evaluate_candidate(
 
     return {
         "card_name": card_name,
-        "build_hits": hits,
+        "build_hits": active_hits,
         "importance": importance,
         "recommendation_type": recommendation,
         "reasons": reasons,

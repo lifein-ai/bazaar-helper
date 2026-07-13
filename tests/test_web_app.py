@@ -354,6 +354,40 @@ class WebAppResilienceTests(unittest.TestCase):
             ["Test Skill"],
         )
 
+    def test_inventory_space_counts_all_items_against_board_plus_stash_capacity(self) -> None:
+        data = {
+            "events": {},
+            "translations": {},
+            "cards": {
+                "Small Item": {"type": "Item", "size": "Small"},
+                "Medium Item": {"type": "Item", "size": "Medium"},
+                "Large Item": {"type": "Item", "size": "Large"},
+            },
+            "builds": {"VanessaTest": {"hero": "Vanessa"}},
+            "rarity_rules": {},
+        }
+        payload = {
+            "hero": "Vanessa",
+            "build": "VanessaTest",
+            "day": 5,
+            "event_options": [],
+            "owned_cards": [],
+            "owned_items": [
+                {"name": "Small Item"},
+                {"name": "Medium Item"},
+                {"name": "Large Item"},
+            ],
+            "board_items": [{"name": "Small Item"}],
+            "stash_items": [{"name": "Medium Item"}, {"name": "Large Item"}],
+            "visible_cards": [],
+            "inventory_slots_total": 10,
+        }
+
+        normalized = web_app.normalize_payload_for_analysis(data, payload)
+
+        self.assertEqual(normalized["inventory_slots_used"], 6)
+        self.assertEqual(normalized["inventory_slots_total"], 20)
+
     def test_analysis_does_not_run_combat_simulation_automatically(self) -> None:
         data = {
             "events": {},
@@ -374,6 +408,96 @@ class WebAppResilienceTests(unittest.TestCase):
         response = web_app.analyze_payload(data, payload)
 
         self.assertNotIn("self_ttk", response)
+
+    def test_http_server_disallows_duplicate_port_reuse(self) -> None:
+        self.assertFalse(web_app.BazaarHTTPServer.allow_reuse_address)
+
+    def test_item_and_enchant_events_count_as_value_rules(self) -> None:
+        self.assertTrue(
+            web_app.event_has_value_rule(
+                {
+                    "event_category": "item_events",
+                    "effect": "upgrade_items",
+                    "target_tags": [],
+                }
+            )
+        )
+        self.assertTrue(
+            web_app.event_has_value_rule(
+                {
+                    "event_category": "enchant_events",
+                    "effect": "enchant_items",
+                    "enchantment_tags": ["burn"],
+                }
+            )
+        )
+        self.assertFalse(
+            web_app.event_has_value_rule(
+                {
+                    "event_category": "utility_events",
+                    "notes": "A cute but mysterious creature",
+                }
+            )
+        )
+
+    def test_known_event_without_value_rule_shows_description(self) -> None:
+        data = {
+            "events": {
+                "Tiny Furry Monster": {
+                    "event_category": "utility_events",
+                    "notes": "A cute but mysterious creature",
+                    "resource_rewards": {},
+                }
+            },
+            "translations": {"by_name": {"Tiny Furry Monster": "茸茸小怪兽"}},
+        }
+        result = {
+            "event_name": "Tiny Furry Monster",
+            "recommendation": "Low Value",
+            "reasons": ["暂未识别到明确的卡牌或资源收益。"],
+        }
+
+        with patch.object(web_app, "load_observed_event_graph", return_value={}):
+            summary = web_app.summarize_recommendation(data, result)
+
+        self.assertEqual(summary["recommendation_label"], "已识别")
+        self.assertEqual(summary["reasons"][0], "描述：A cute but mysterious creature")
+        self.assertFalse(any("当前数据源只提供了描述" in reason for reason in summary["reasons"]))
+
+    def test_state_signature_includes_exported_event_branches(self) -> None:
+        base_payload = {
+            "source": "bepinex",
+            "hero": "Vanessa",
+            "day": 5,
+            "event_options_detailed": [
+                {
+                    "id": "enc_parent",
+                    "template_id": "parent-template",
+                    "kind": "encounter",
+                    "card_type": "EventEncounter",
+                }
+            ],
+        }
+        branched_payload = {
+            **base_payload,
+            "event_options_detailed": [
+                {
+                    **base_payload["event_options_detailed"][0],
+                    "branches": [
+                        {
+                            "template_id": "child-template",
+                            "kind": "step",
+                            "card_type": "EncounterStep",
+                        }
+                    ],
+                }
+            ],
+        }
+
+        self.assertNotEqual(
+            web_app.state_signature(base_payload),
+            web_app.state_signature(branched_payload),
+        )
 
     def test_current_combat_simulation_is_explicit(self) -> None:
         weapon = {
@@ -629,6 +753,162 @@ class WebAppResilienceTests(unittest.TestCase):
         self.assertEqual(graph["Parent Event"]["parent_event"], "Parent Event")
         self.assertEqual(len(graph["Parent Event"]["children"]), 1)
         self.assertTrue(graph["Parent Event"]["children"][0]["unresolved"])
+
+    def test_auto_observe_event_graph_uses_exported_event_branches(self) -> None:
+        data = {
+            "events": {
+                "Parent Event": {
+                    "source_ids": ["parent-template"],
+                },
+                "Child Event": {
+                    "source_ids": ["child-template"],
+                },
+            }
+        }
+        payload = {
+            "event_options_detailed": [
+                {
+                    "id": "enc_parent",
+                    "template_id": "parent-template",
+                    "kind": "encounter",
+                    "card_type": "EventEncounter",
+                    "branches": [
+                        {
+                            "template_id": "child-template",
+                            "kind": "step",
+                            "card_type": "EncounterStep",
+                            "source": "next_encounter_on_selection",
+                        }
+                    ],
+                },
+            ]
+        }
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            graph_path = tmp_path / "observed_event_graph.json"
+
+            with (
+                patch.object(web_app, "OBSERVED_EVENT_GRAPH_PATH", graph_path),
+                patch.object(web_app, "RUNTIME_DIR", tmp_path),
+                patch.object(web_app, "load_official_cards_index", return_value={}),
+            ):
+                web_app.auto_observe_event_graph(data, payload)
+                graph = json.loads(graph_path.read_text(encoding="utf-8"))
+
+        child = graph["Parent Event"]["children"][0]
+        self.assertEqual(child["source_id"], "child-template")
+        self.assertEqual(child["name"], "Child Event")
+        self.assertEqual(child["source"], "next_encounter_on_selection")
+        self.assertFalse(child["seen"])
+
+    def test_summarize_recommendation_uses_static_followup_options(self) -> None:
+        data = load_all_data(DATA_DIR)
+        result = {
+            "event_name": "Tiny Furry Monster",
+            "recommendation": "Low Value",
+            "reasons": ["暂未识别到明确的卡牌或资源收益。"],
+        }
+
+        with patch.object(web_app, "load_observed_event_graph", return_value={}):
+            summary = web_app.summarize_recommendation(data, result)
+
+        names = {item["name"] for item in summary["child_options"]}
+        self.assertIn("爱抚", names)
+        self.assertIn("吓唬", names)
+        self.assertIn("玩捉迷藏", names)
+        self.assertIn("投喂", names)
+        self.assertIn("玩耍", names)
+        pet_it = next(
+            item
+            for item in summary["child_options"]
+            if item.get("source_name") == "Pet It"
+        )
+        self.assertNotIn("{ability.0}", pet_it["description"])
+        self.assertEqual(pet_it["resource_rewards"].get("max_health"), 25)
+        self.assertEqual(summary["event_rule_status"], "parent_event")
+
+
+class WebAppStartupTests(unittest.TestCase):
+    def test_local_bind_candidates_try_localhost_for_loopback(self) -> None:
+        self.assertEqual(web_app.local_bind_candidates("127.0.0.1"), ["127.0.0.1", "localhost"])
+        self.assertEqual(web_app.local_bind_candidates("localhost"), ["localhost", "127.0.0.1"])
+        self.assertEqual(web_app.local_bind_candidates("0.0.0.0"), ["0.0.0.0"])
+
+    def test_create_http_server_falls_back_after_permission_error(self) -> None:
+        attempts: list[tuple[str, int]] = []
+
+        class FakeServer:
+            def __init__(self, address: tuple[str, int], handler: object) -> None:
+                attempts.append(address)
+                if address[0] == "127.0.0.1":
+                    raise PermissionError("blocked")
+                self.address = address
+
+        server, bound_host = web_app.create_http_server(
+            "127.0.0.1",
+            8765,
+            server_class=FakeServer,  # type: ignore[arg-type]
+            health_check=lambda host, port: False,
+        )
+
+        self.assertEqual(attempts, [("127.0.0.1", 8765), ("localhost", 8765)])
+        self.assertEqual(bound_host, "localhost")
+        self.assertEqual(server.address, ("localhost", 8765))  # type: ignore[attr-defined]
+
+    def test_create_http_server_reports_permission_denied(self) -> None:
+        class BlockedServer:
+            def __init__(self, address: tuple[str, int], handler: object) -> None:
+                raise PermissionError("blocked")
+
+        with self.assertRaises(SystemExit) as raised:
+            web_app.create_http_server(
+                "127.0.0.1",
+                8765,
+                server_class=BlockedServer,  # type: ignore[arg-type]
+                health_check=lambda host, port: False,
+            )
+
+        message = str(raised.exception)
+        self.assertIn("Unable to start BazaarHelper", message)
+        self.assertIn("127.0.0.1, localhost:8765", message)
+        self.assertIn("reserved/excluded TCP port", message)
+
+    def test_create_http_server_exits_cleanly_when_helper_is_already_running(self) -> None:
+        class AddressInUseServer:
+            def __init__(self, address: tuple[str, int], handler: object) -> None:
+                exc = OSError("in use")
+                exc.winerror = 10048  # type: ignore[attr-defined]
+                raise exc
+
+        with self.assertRaises(SystemExit) as raised:
+            web_app.create_http_server(
+                "127.0.0.1",
+                8765,
+                server_class=AddressInUseServer,  # type: ignore[arg-type]
+                health_check=lambda host, port: True,
+            )
+
+        self.assertIn("already running", str(raised.exception))
+
+    def test_create_http_server_reports_address_in_use_when_not_helper(self) -> None:
+        class AddressInUseServer:
+            def __init__(self, address: tuple[str, int], handler: object) -> None:
+                exc = OSError("in use")
+                exc.winerror = 10048  # type: ignore[attr-defined]
+                raise exc
+
+        with self.assertRaises(SystemExit) as raised:
+            web_app.create_http_server(
+                "127.0.0.1",
+                8765,
+                server_class=AddressInUseServer,  # type: ignore[arg-type]
+                health_check=lambda host, port: False,
+            )
+
+        message = str(raised.exception)
+        self.assertIn("address is already in use", message)
+        self.assertIn("127.0.0.1, localhost:8765", message)
 
 
 if __name__ == "__main__":

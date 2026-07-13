@@ -200,6 +200,7 @@ if (Test-Path $GuidesRoot) {
 }
 Copy-Item -LiteralPath (Join-Path $ProjectRoot "examples") -Destination $ReleaseRoot -Recurse
 Copy-Item -LiteralPath (Join-Path $ProjectRoot "start.bat") -Destination $ReleaseRoot
+Copy-Item -LiteralPath (Join-Path $ProjectRoot "update_url.txt") -Destination $ReleaseRoot
 Copy-Item -LiteralPath (Join-Path $ProjectRoot "update_helper.ps1") -Destination $ReleaseRoot
 Copy-Item -LiteralPath (Join-Path $ProjectRoot "install_update.bat") -Destination $ReleaseRoot
 Copy-Item -LiteralPath $VersionFile -Destination $ReleaseRoot
@@ -245,6 +246,7 @@ $requiredPaths = @(
     $CommonGuidesDir,
     "examples",
     "start.bat",
+    "update_url.txt",
     "update_helper.ps1",
     "install_update.bat",
     "VERSION",
@@ -305,6 +307,32 @@ if (-not $SkipGamePluginSync) {
                         $insertAt++
                     }
                     $lines.Insert($insertAt, "ManualAnalysisKey = F8")
+                }
+            }
+            foreach ($defaultOverlayLine in @("ManualAnalyze = true", "FontScale = 1.15")) {
+                $defaultName = ($defaultOverlayLine -split "\s*=\s*", 2)[0]
+                $defaultFound = $false
+                for ($i = 0; $i -lt $lines.Count; $i++) {
+                    if ($lines[$i] -match ("^\s*" + [regex]::Escape($defaultName) + "\s*=")) {
+                        $defaultFound = $true
+                        break
+                    }
+                }
+                if (-not $defaultFound) {
+                    $overlayIndex = -1
+                    for ($i = 0; $i -lt $lines.Count; $i++) {
+                        if ($lines[$i] -match "^\s*\[Overlay\]\s*$") {
+                            $overlayIndex = $i
+                            break
+                        }
+                    }
+                    if ($overlayIndex -ge 0) {
+                        $insertAt = $overlayIndex + 1
+                        while ($insertAt -lt $lines.Count -and $lines[$insertAt] -notmatch "^\s*\[") {
+                            $insertAt++
+                        }
+                        $lines.Insert($insertAt, $defaultOverlayLine)
+                    }
                 }
             }
             $autoAnalyzeFound = $false

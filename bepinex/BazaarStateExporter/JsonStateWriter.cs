@@ -327,9 +327,54 @@ namespace BazaarStateExporter
                 WriteOptionalCardProperty("card_type", option.card_type, ref wrote);
                 WriteOptionalCardProperty("section", option.section, ref wrote);
                 WriteOptionalCardProperty("source", option.source, ref wrote);
+                WriteOptionalEventBranchesProperty("branches", option.branches, ref wrote);
 
                 builder.Append('}');
             }
+
+            private void WriteOptionalEventBranchesProperty(
+                string name,
+                List<EventOptionBranchSnapshot> branches,
+                ref bool wrote)
+            {
+                if (branches == null || branches.Count == 0)
+                {
+                    return;
+                }
+
+                if (wrote)
+                {
+                    builder.Append(',');
+                }
+                WritePropertyNameOnly(name);
+                builder.Append('[');
+                for (int i = 0; i < branches.Count; i++)
+                {
+                    if (i > 0)
+                    {
+                        builder.Append(',');
+                    }
+
+                    EventOptionBranchSnapshot branch = branches[i];
+                    if (branch == null)
+                    {
+                        builder.Append("{}");
+                        continue;
+                    }
+
+                    builder.Append('{');
+                    bool wroteBranch = false;
+                    WriteOptionalCardProperty("template_id", branch.template_id, ref wroteBranch);
+                    WriteOptionalCardProperty("name", branch.name, ref wroteBranch);
+                    WriteOptionalCardProperty("kind", branch.kind, ref wroteBranch);
+                    WriteOptionalCardProperty("card_type", branch.card_type, ref wroteBranch);
+                    WriteOptionalCardProperty("source", branch.source, ref wroteBranch);
+                    builder.Append('}');
+                }
+                builder.Append(']');
+                wrote = true;
+            }
+
             private void WriteCard(CardSnapshot card)
             {
                 builder.Append('{');
@@ -557,6 +602,12 @@ namespace BazaarStateExporter
             private void WritePropertyName(string name)
             {
                 BeforeProperty();
+                WriteString(name);
+                builder.Append(':');
+            }
+
+            private void WritePropertyNameOnly(string name)
+            {
                 WriteString(name);
                 builder.Append(':');
             }

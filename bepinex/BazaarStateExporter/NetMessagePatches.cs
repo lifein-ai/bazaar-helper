@@ -577,14 +577,17 @@ namespace BazaarStateExporter
                 return;
             }
 
-            // Attribute dictionaries are the canonical source and are checked before named members.
-            object attributes = SafeGetMember(value, "Attributes");
-            ExtractAttributeCollection(attributes, ref gold, ref health);
+            if (LooksLikeCurrentResourceContainer(value))
+            {
+                // Attribute dictionaries are the canonical source and are checked before named members.
+                object attributes = SafeGetMember(value, "Attributes");
+                ExtractAttributeCollection(attributes, ref gold, ref health);
 
-            ExtractNamedValue(value, "Gold", ref gold);
-            ExtractNamedValue(value, "CurrentGold", ref gold);
-            ExtractNamedValue(value, "Health", ref health);
-            ExtractNamedValue(value, "CurrentHealth", ref health);
+                ExtractNamedValue(value, "Gold", ref gold);
+                ExtractNamedValue(value, "CurrentGold", ref gold);
+                ExtractNamedValue(value, "Health", ref health);
+                ExtractNamedValue(value, "CurrentHealth", ref health);
+            }
 
             if (gold.HasValue && health.HasValue)
             {
@@ -617,12 +620,12 @@ namespace BazaarStateExporter
                     object value = SafeGetMember(item, "Value");
                     string keyText = SafeString(key);
                     int parsed;
-                    if (keyText.IndexOf("Gold", StringComparison.OrdinalIgnoreCase) >= 0
+                    if (IsGoldAttributeKey(keyText)
                         && TryInt(value, out parsed))
                     {
                         gold = parsed;
                     }
-                    if (keyText.IndexOf("Health", StringComparison.OrdinalIgnoreCase) >= 0
+                    if (IsHealthAttributeKey(keyText)
                         && TryInt(value, out parsed))
                     {
                         health = parsed;
@@ -632,6 +635,61 @@ namespace BazaarStateExporter
             catch
             {
             }
+        }
+
+        private static bool LooksLikeCurrentResourceContainer(object value)
+        {
+            if (value == null)
+            {
+                return false;
+            }
+
+            string typeName = value.GetType().FullName ?? value.GetType().Name ?? "";
+            string lower = typeName.ToLowerInvariant();
+            if (lower.Contains("reward")
+                || lower.Contains("income")
+                || lower.Contains("effect")
+                || lower.Contains("ability")
+                || lower.Contains("encounter")
+                || lower.Contains("option")
+                || lower.Contains("shop")
+                || lower.Contains("price")
+                || lower.Contains("cost")
+                || lower.Contains("card")
+                || lower.Contains("item"))
+            {
+                return false;
+            }
+
+            return lower.Contains("player")
+                || lower.Contains("wallet")
+                || lower.Contains("currency")
+                || lower.Contains("resource")
+                || lower.Contains("gamestate")
+                || lower.Contains("game_state")
+                || lower.Contains("runstate")
+                || lower.Contains("state");
+        }
+
+        private static bool IsGoldAttributeKey(string key)
+        {
+            return EqualsKey(key, "Gold")
+                || EqualsKey(key, "CurrentGold")
+                || EqualsKey(key, "Current Gold")
+                || EqualsKey(key, "Coins")
+                || EqualsKey(key, "Coin");
+        }
+
+        private static bool IsHealthAttributeKey(string key)
+        {
+            return EqualsKey(key, "Health")
+                || EqualsKey(key, "CurrentHealth")
+                || EqualsKey(key, "Current Health");
+        }
+
+        private static bool EqualsKey(string left, string right)
+        {
+            return string.Equals(left, right, StringComparison.OrdinalIgnoreCase);
         }
 
         private static void ExtractNamedValue(object target, string name, ref int? destination)

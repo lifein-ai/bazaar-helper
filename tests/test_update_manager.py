@@ -26,6 +26,7 @@ def write_release_zip(path: Path, version: str = "0.2.0") -> None:
         "VERSION": version.encode("utf-8"),
         "version.json": json.dumps(version_info).encode("utf-8"),
         "start.bat": b"start",
+        "update_url.txt": b"https://example.com/latest.json",
         "update_helper.ps1": b"helper",
         "install_update.bat": b"install",
     }
@@ -53,6 +54,14 @@ def test_manifest_accepts_quark_download_url() -> None:
     assert info.version == "2.3.0"
     assert info.download_url.startswith("https://pan.quark.cn/")
     assert info.changelog == ["新增功能", "修复问题"]
+
+
+def test_manifest_url_can_be_configured_by_release_file(tmp_path: Path) -> None:
+    url_file = tmp_path / "update_url.txt"
+    url_file.write_text("https://example.com/latest.json\n", encoding="utf-8")
+
+    with patch.dict("os.environ", {"BAZAAR_HELPER_UPDATE_MANIFEST_URL": ""}):
+        assert update_manager.resolve_manifest_url(tmp_path) == "https://example.com/latest.json"
 
 
 def test_update_package_rejects_path_traversal(tmp_path: Path) -> None:
@@ -101,6 +110,7 @@ def test_update_package_accepts_nested_release_root(tmp_path: Path) -> None:
             "BazaarHelper/VERSION": b"0.2.0",
             "BazaarHelper/version.json": b'{"version":"0.2.0"}',
             "BazaarHelper/start.bat": b"start",
+            "BazaarHelper/update_url.txt": b"https://example.com/latest.json",
             "BazaarHelper/update_helper.ps1": b"helper",
             "BazaarHelper/install_update.bat": b"install",
         }.items():
