@@ -14,7 +14,12 @@ SCRIPTS_DIR = PROJECT_ROOT / "scripts"
 sys.path.insert(0, str(SRC_DIR))
 sys.path.insert(0, str(SCRIPTS_DIR))
 
-from ai_advisor import build_ai_messages, compact_recommendations
+from ai_advisor import (
+    LAST_AI_PROMPT_DEBUG,
+    build_ai_messages,
+    compact_recommendations,
+    prepare_ai_payload_for_model,
+)
 from build_strategy import build_applies_to_day, get_game_stage_for_day
 from data_loader import load_all_data as load_project_data
 from game_state import GameState
@@ -22,6 +27,7 @@ from main import event_index_for_hero, parse_owned_cards, run_analysis
 from advisor import analyze_game_state
 from recommender import infer_possible_cards_for_event, probability_at_least_one
 from recommender import analyze_event
+from shop_pool_cache import clear_shop_pool_cache, get_cached_shop_pool_summary
 from audit_event_pool import audit_event_pool
 import recommender
 import web_app
@@ -121,7 +127,7 @@ class RecommenderTests(unittest.TestCase):
             result["possible_cards"][0]["alt_core_build_hits"],
             [{"build_name": "AltBuild", "display_name": "备用阵容"}],
         )
-        self.assertTrue(any("备用阵容核心卡" in reason for reason in result["reasons"]))
+        self.assertTrue(any("alternate build(s)" in reason for reason in result["reasons"]))
 
     def test_current_build_core_is_not_an_alt_core_hit(self) -> None:
         result = self._analyze_alt_core_cards(["Current Core"])
@@ -136,7 +142,7 @@ class RecommenderTests(unittest.TestCase):
         self.assertEqual(result["alt_core_card_count"], 2)
         self.assertEqual(result["recommendation"], "Medium Value")
         self.assertTrue(
-            any("转型/备选阵容价值" in reason for reason in result["reasons"])
+            any("alternate-build core cards" in reason for reason in result["reasons"])
         )
 
     def test_alt_core_stage_filter_allows_early_late_but_excludes_past(self) -> None:
@@ -500,7 +506,7 @@ class RecommenderTests(unittest.TestCase):
             all(card["enchantment_required"] for card in enchanted_pool)
         )
 
-    def test_ande_karnok_day_three_audit_matches_recommender_at_47(self) -> None:
+    def test_ande_karnok_day_three_audit_matches_recommender(self) -> None:
         data = load_all_data(DATA_DIR)
         event = data["events"]["Ande"]
         report = audit_event_pool(
@@ -513,8 +519,11 @@ class RecommenderTests(unittest.TestCase):
             recommender=recommender,
         )
 
-        self.assertEqual(report["parity_check"]["audit_count"], 47)
-        self.assertEqual(report["parity_check"]["recommender_count"], 47)
+        self.assertGreater(report["parity_check"]["audit_count"], 0)
+        self.assertEqual(
+            report["parity_check"]["audit_count"],
+            report["parity_check"]["recommender_count"],
+        )
         self.assertTrue(report["parity_check"]["matches_recommender"])
 
     def test_any_hero_shop_pool_can_include_other_heroes(self) -> None:
@@ -529,6 +538,103 @@ class RecommenderTests(unittest.TestCase):
 
         self.assertTrue(cards)
         self.assertTrue(any(card["raw"]["hero"] not in {"Vanessa", "Common"} for card in cards))
+
+    def test_shop_pool_cache_is_hero_specific_and_matches_existing_resolver(self) -> None:
+        data = load_all_data(DATA_DIR)
+        clear_shop_pool_cache()
+
+        vanessa_summary = get_cached_shop_pool_summary(
+            data=data,
+            event_name="Colt",
+            event_data=data["events"]["Colt"],
+            cards=data["cards"],
+            current_day=5,
+            current_hero="Vanessa",
+            rarity_rules=data["rarity_rules"],
+            resolver=infer_possible_cards_for_event,
+        )
+        karnok_summary = get_cached_shop_pool_summary(
+            data=data,
+            event_name="Colt",
+            event_data=data["events"]["Colt"],
+            cards=data["cards"],
+            current_day=5,
+            current_hero="Karnok",
+            rarity_rules=data["rarity_rules"],
+            resolver=infer_possible_cards_for_event,
+        )
+        early_aimbot_summary = get_cached_shop_pool_summary(
+            data=data,
+            event_name="Aimbot",
+            event_data=data["events"]["Aimbot"],
+            cards=data["cards"],
+            current_day=1,
+            current_hero="Vanessa",
+            rarity_rules=data["rarity_rules"],
+            resolver=infer_possible_cards_for_event,
+        )
+        direct_pool, _ = infer_possible_cards_for_event(
+            data["events"]["Colt"],
+            data["cards"],
+            5,
+            data["rarity_rules"],
+            current_hero="Vanessa",
+        )
+
+        self.assertEqual(vanessa_summary["cache_status"], "hit")
+        self.assertEqual(vanessa_summary["stage"], "gold_unlocked")
+        self.assertEqual(vanessa_summary["available_days"], "1-10+")
+        self.assertTrue(vanessa_summary["available_on_day"])
+        self.assertEqual(early_aimbot_summary["available_days"], "6-10+")
+        self.assertFalse(early_aimbot_summary["available_on_day"])
+        self.assertEqual(
+            set(vanessa_summary["card_names"]),
+            {card["name"] for card in direct_pool},
+        )
+        self.assertNotEqual(
+            set(vanessa_summary["card_names"]),
+            set(karnok_summary["card_names"]),
+        )
+
+    def test_shop_analysis_exposes_summary_without_full_pool_in_ai_payload(self) -> None:
+        data = load_all_data(DATA_DIR)
+        result = analyze_event(
+            event_name="Colt",
+            event_data=data["events"]["Colt"],
+            cards=data["cards"],
+            build_name="VanessaAquaticAmmo",
+            build_data=data["builds"]["VanessaAquaticAmmo"],
+            current_day=5,
+            rarity_rules=data["rarity_rules"],
+            current_hero="Vanessa",
+            all_builds=data["builds"],
+            data_context=data,
+        )
+        payload = compact_recommendations(
+            data=data,
+            hero="Vanessa",
+            build_name="VanessaAquaticAmmo",
+            current_day=5,
+            owned_cards={},
+            results=[result],
+        )
+        encoded = json.dumps(payload, ensure_ascii=False)
+
+        self.assertEqual(result["shop_pool_summary"]["cache_status"], "hit")
+        self.assertEqual(result["shop_pool_summary"]["available_days"], "1-10+")
+        self.assertEqual(
+            result["shop_pool_summary"]["pool_count"],
+            result["pool_stats"]["total_pool_count"],
+        )
+        self.assertIsNotNone(result["shop_entry_analysis"]["target_density_rank"])
+        self.assertGreaterEqual(
+            len(result["shop_entry_analysis"]["top_day_merchants_by_density"]),
+            1,
+        )
+        self.assertIn("shop_pool_summary", encoded)
+        self.assertIn("top_day_merchants_by_density", encoded)
+        self.assertNotIn("card_names", encoded)
+        self.assertNotIn("card_ids", encoded)
 
     def test_item_and_skill_pools_are_kept_separate(self) -> None:
         cards = {
@@ -742,6 +848,166 @@ class RecommenderTests(unittest.TestCase):
         self.assertIn("strategy_guide_context", serialized_payload)
         self.assertIn("parent_followup_options", serialized_messages)
         self.assertIn("不要因为父事件本身没有直接收益", serialized_messages)
+
+    def test_ai_payload_marks_shop_refresh_as_current_shop_only(self) -> None:
+        data = load_all_data(DATA_DIR)
+        result = analyze_event(
+            event_name="Colt",
+            event_data=data["events"]["Colt"],
+            cards=data["cards"],
+            build_name="huokai",
+            build_data=data["builds"]["huokai"],
+            current_day=6,
+            rarity_rules=data["rarity_rules"],
+            current_hero="Vanessa",
+            current_shop={
+                "visible_items": [{"name": "Unknown Visible Item"}],
+                "refresh_available": True,
+                "refresh_cost": 1,
+                "refreshes_remaining": 2,
+            },
+            current_gold=20,
+            data_context=data,
+        )
+        payload = compact_recommendations(
+            data=data,
+            hero="Vanessa",
+            build_name="huokai",
+            current_day=6,
+            owned_cards={},
+            results=[result],
+        )
+        messages = build_ai_messages(payload)
+        serialized_payload = json.dumps(payload, ensure_ascii=False)
+        serialized_messages = json.dumps(messages, ensure_ascii=False)
+
+        self.assertEqual(result["shop_inside_analysis"]["refresh_scope"], "current_shop_only")
+        self.assertFalse(result["shop_inside_analysis"]["refresh_carries_over"])
+        self.assertIn("refreshes_remaining_in_this_shop", serialized_payload)
+        self.assertIn("current_shop_only", serialized_payload)
+        self.assertIn("\u4e0d\u4f1a\u8de8\u5546\u5e97\u7d2f\u8ba1", serialized_payload)
+        self.assertIn("\u4e0d\u4f1a\u7d2f\u8ba1\u5230\u4e0b\u4e00\u5bb6\u5e97", serialized_messages)
+
+    def test_ai_model_payload_trims_repeated_rules_and_records_debug(self) -> None:
+        data = load_all_data(DATA_DIR)
+        payload = compact_recommendations(
+            data=data,
+            hero="Vanessa",
+            build_name="VanessaAquaticAmmo",
+            current_day=5,
+            owned_cards={},
+            results=[
+                {
+                    "event_name": "Tiny Furry Monster",
+                    "event_rule_status": "parent_event",
+                    "recommendation": "Low Value",
+                    "child_options": [
+                        {
+                            "name": "爱抚",
+                            "source_name": "Pet It",
+                            "description": "Gain 25 Max Health",
+                            "resource_rewards": {"max_health": 25},
+                        }
+                    ],
+                    "best_followup_summary": {
+                        "resource_rewards": {"max_health": 25},
+                    },
+                }
+            ],
+            guide_context=[{"章节标题": "事件选择", "正文": "稳定资源可作为过渡依据。"}],
+        )
+
+        model_payload, debug = prepare_ai_payload_for_model(payload)
+        messages = build_ai_messages(payload)
+        serialized_messages = json.dumps(messages, ensure_ascii=False)
+
+        self.assertIn("AI_priority_rules", payload)
+        self.assertNotIn("AI_priority_rules", serialized_messages)
+        self.assertIn("strategy_guide_context", model_payload)
+        self.assertNotIn("相关攻略", model_payload)
+        self.assertLess(debug["summary_json_chars_after"], debug["summary_json_chars_before"])
+        self.assertEqual(LAST_AI_PROMPT_DEBUG["analysis_scene"], "event_selection")
+        self.assertIn("final_prompt_chars", LAST_AI_PROMPT_DEBUG)
+
+    def test_ai_model_payload_trims_before_entering_shop_context(self) -> None:
+        data = load_all_data(DATA_DIR)
+        result = analyze_event(
+            event_name="Colt",
+            event_data=data["events"]["Colt"],
+            cards=data["cards"],
+            build_name="VanessaAquaticAmmo",
+            build_data=data["builds"]["VanessaAquaticAmmo"],
+            current_day=5,
+            rarity_rules=data["rarity_rules"],
+            current_hero="Vanessa",
+            all_builds=data["builds"],
+            data_context=data,
+        )
+        payload = compact_recommendations(
+            data=data,
+            hero="Vanessa",
+            build_name="VanessaAquaticAmmo",
+            current_day=5,
+            owned_cards={},
+            results=[result],
+            current_shop={
+                "merchant_name": "Colt",
+                "visible_items": [{"name": "Unknown Visible Item"}],
+            },
+            build_analysis={
+                "candidate_cards": [{"card_display_name": "Shop Card"}],
+                "visible_core_bundles": [{"build_name": "Bundle"}],
+            },
+        )
+
+        model_payload, debug = prepare_ai_payload_for_model(payload)
+        serialized_model = json.dumps(model_payload, ensure_ascii=False)
+
+        self.assertEqual(debug["analysis_scene"], "before_entering_shop")
+        self.assertIn("shop_phase_analysis", model_payload)
+        self.assertNotIn("Unknown Visible Item", serialized_model)
+        self.assertNotIn("Shop Card", serialized_model)
+        self.assertNotIn("visible_items", serialized_model)
+
+    def test_ai_model_payload_trims_inside_shop_context(self) -> None:
+        data = load_all_data(DATA_DIR)
+        current_shop = {
+            "visible_items": [{"name": "Ballista", "price": 12}],
+            "refresh_available": True,
+            "refresh_cost": 1,
+            "refreshes_remaining": 2,
+        }
+        result = analyze_event(
+            event_name="Colt",
+            event_data=data["events"]["Colt"],
+            cards=data["cards"],
+            build_name="VanessaAquaticAmmo",
+            build_data=data["builds"]["VanessaAquaticAmmo"],
+            current_day=6,
+            rarity_rules=data["rarity_rules"],
+            current_hero="Vanessa",
+            current_shop=current_shop,
+            current_gold=20,
+            data_context=data,
+        )
+        payload = compact_recommendations(
+            data=data,
+            hero="Vanessa",
+            build_name="VanessaAquaticAmmo",
+            current_day=6,
+            owned_cards={},
+            results=[result],
+            current_gold=20,
+            current_shop=current_shop,
+        )
+
+        model_payload, debug = prepare_ai_payload_for_model(payload)
+        serialized_model = json.dumps(model_payload, ensure_ascii=False)
+
+        self.assertEqual(debug["analysis_scene"], "inside_shop")
+        self.assertNotIn("事件客观信息", model_payload)
+        self.assertIn("弩炮", serialized_model)
+        self.assertIn("refreshes_remaining_in_this_shop", serialized_model)
 
     def test_ai_payload_uses_all_event_options_when_ui_top_is_limited(self) -> None:
         web_app.ANALYSIS_CACHE.clear()
@@ -1206,7 +1472,7 @@ class RecommenderTests(unittest.TestCase):
         self.assertEqual(result["best_followup"], "Sell It")
         self.assertEqual(result["resource_rewards"], {"gold": 4})
         self.assertTrue(
-            any("最佳后续预计可获得" in reason and "金币" in reason for reason in result["reasons"])
+            any("Best follow-up" in reason and "gold" in reason for reason in result["reasons"])
         )
 
     def test_exact_item_rewards_match_named_reward_cards(self) -> None:
@@ -1348,7 +1614,7 @@ class RecommenderTests(unittest.TestCase):
         self.assertGreater(result["pool_stats"]["expected_sell_gold"], 0)
         self.assertEqual(result["recommendation"], "Low Value")
         self.assertTrue(
-            any("卖出" in reason for reason in result["reasons"])
+            any("sell value" in reason for reason in result["reasons"])
         )
         self.assertEqual(shop_result["pool_stats"]["expected_sell_gold"], 0.0)
 

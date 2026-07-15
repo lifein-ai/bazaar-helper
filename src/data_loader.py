@@ -5,7 +5,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
-from shop_state import build_merchant_profiles, merchant_profile_index
+from shop_state import build_merchant_profiles, merchant_profile_index, merge_merchant_meta
 
 
 def load_json(path: str | Path) -> dict[str, Any]:
@@ -202,6 +202,20 @@ def build_index(data: dict[str, Any]) -> dict[int, str]:
     return {index + 1: name for index, name in enumerate(data.keys())}
 
 
+def data_file_version(data_dir: Path, names: list[str]) -> dict[str, dict[str, int]]:
+    version: dict[str, dict[str, int]] = {}
+    for name in names:
+        path = data_dir / name
+        if not path.exists():
+            continue
+        stat = path.stat()
+        version[name] = {
+            "mtime_ns": stat.st_mtime_ns,
+            "size": stat.st_size,
+        }
+    return version
+
+
 def load_all_data(data_dir: str | Path) -> dict[str, Any]:
     data_dir = Path(data_dir)
 
@@ -216,21 +230,40 @@ def load_all_data(data_dir: str | Path) -> dict[str, Any]:
     event_overrides = load_json_if_exists(data_dir / "event_overrides.json")
     events = apply_event_overrides(events, event_overrides)
     merchant_profiles = build_merchant_profiles(encounters, events)
+    merchant_meta = load_json_if_exists(data_dir / "merchant_meta.json")
+    merchant_profiles, merchant_meta_warnings = merge_merchant_meta(
+        merchant_profiles,
+        merchant_meta,
+    )
 
     builds = load_json(data_dir / "community_builds.json")
     rarity_rules = load_json(data_dir / "rarity_rules.json")
     translations_path = data_dir / "translations_zh_cn.json"
     translations = load_json(translations_path) if translations_path.exists() else {}
+    data_version = data_file_version(
+        data_dir,
+        [
+            "cards_generated.json",
+            "card_ratings.json",
+            "events.json",
+            "event_overrides.json",
+            "merchant_meta.json",
+            "rarity_rules.json",
+        ],
+    )
 
     return {
         "cards": cards,
         "events": events,
         "encounters": encounters,
         "merchant_profiles": merchant_profiles,
+        "merchant_meta": merchant_meta,
+        "merchant_meta_warnings": merchant_meta_warnings,
         "merchant_profile_index": merchant_profile_index(merchant_profiles),
         "event_index": build_index(events),
         "builds": builds,
         "build_index": build_index(builds),
         "rarity_rules": rarity_rules,
         "translations": translations,
+        "data_version": data_version,
     }

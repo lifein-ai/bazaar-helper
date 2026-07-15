@@ -18,6 +18,7 @@ from recommender import (
     get_card_role_for_build,
     infer_possible_cards_for_event,
 )
+from shop_pool_cache import get_cached_shop_pool_summary, hydrate_cached_shop_cards
 from advisor import analyze_game_state
 from ai_advisor import analyze_with_ai, compact_recommendations
 from build_strategy import applicable_build_names, build_applies_to_day, get_game_stage_for_day
@@ -565,6 +566,19 @@ def normalize_payload_for_analysis(
     build_override: str | None = None,
 ) -> dict[str, Any]:
     normalized = dict(payload)
+    gold_value = first_optional_int(
+        normalized.get("gold"),
+        normalized.get("current_gold"),
+        normalized.get("coins"),
+        normalized.get("coin"),
+        normalized.get("money"),
+        normalized.get("player_gold"),
+        nested_value(normalized, ("resources", "gold")),
+        nested_value(normalized, ("player", "gold")),
+        nested_value(normalized, ("economy", "gold")),
+    )
+    if gold_value is not None:
+        normalized["gold"] = gold_value
     normalized["event_options"] = normalize_event_options(data, normalized)
     normalized["owned_cards"] = normalize_card_entries(data, normalized.get("owned_cards", []))
     normalized["visible_cards"] = normalize_card_entries(data, normalized.get("visible_cards", []))
@@ -639,13 +653,34 @@ def attach_effective_shop_price_estimate(
             continue
         if event_data.get("event_category") not in {"shops", "skill_shops"}:
             continue
-        merchant_pool, _ = infer_possible_cards_for_event(
-            event_data,
-            data.get("cards", {}),
-            day,
-            data.get("rarity_rules", {}),
-            hero,
+        summary = None
+        try:
+            summary = get_cached_shop_pool_summary(
+                data=data,
+                event_name=event_name,
+                event_data=event_data,
+                cards=data.get("cards", {}),
+                current_day=day,
+                current_hero=hero,
+                rarity_rules=data.get("rarity_rules", {}),
+                resolver=infer_possible_cards_for_event,
+            )
+        except Exception:
+            summary = None
+
+        merchant_pool = (
+            hydrate_cached_shop_cards(summary, data.get("cards", {}))
+            if isinstance(summary, dict) and summary.get("cache_status") == "hit"
+            else []
         )
+        if not merchant_pool:
+            merchant_pool, _ = infer_possible_cards_for_event(
+                event_data,
+                data.get("cards", {}),
+                day,
+                data.get("rarity_rules", {}),
+                hero,
+            )
         estimate = estimated_avg_shop_item_price(
             day,
             merchant_pool,
@@ -655,9 +690,51 @@ def attach_effective_shop_price_estimate(
         if estimate is not None:
             effective_shop["estimated_avg_item_price"] = estimate
             effective_shop["estimated_avg_item_price_source"] = (
-                "shop_item_tier_distribution_by_day"
+                "shop_pool_cache"
+                if isinstance(summary, dict) and summary.get("cache_status") == "hit"
+                else "shop_item_tier_distribution_by_day"
             )
+        if isinstance(summary, dict):
+            effective_shop["shop_pool_summary"] = {
+                key: summary.get(key)
+                for key in (
+                    "cache_status",
+                    "merchant_name",
+                    "current_hero",
+                    "stage",
+                    "stage_label",
+                    "pool_count",
+                    "avg_price",
+                    "median_price",
+                    "pool_focus",
+                    "available_day_range",
+                    "available_days",
+                    "available_on_day",
+                )
+        }
         return
+
+
+def nested_value(payload: dict[str, Any], path: tuple[str, ...]) -> Any:
+    value: Any = payload
+    for key in path:
+        if not isinstance(value, dict):
+            return None
+        value = value.get(key)
+    return value
+
+
+def first_optional_int(*values: Any) -> int | None:
+    for value in values:
+        if value in (None, ""):
+            continue
+        try:
+            result = int(value)
+        except (TypeError, ValueError):
+            continue
+        if result >= 0:
+            return result
+    return None
 
 
 def inventory_slots_total(value: Any = None) -> int:
@@ -1302,11 +1379,19 @@ def normalize_card_entries(data: dict[str, Any], entries: Any) -> Any:
     if not isinstance(entries, list):
         return entries
 
-    card_id_index = {
-        str(card_data.get("id")).lower(): card_name
-        for card_name, card_data in data["cards"].items()
-        if card_data.get("id")
-    }
+    card_id_index: dict[str, str] = {}
+    for card_name, card_data in data["cards"].items():
+        if not isinstance(card_data, dict):
+            continue
+        for key in ("id", "source_id", "template_id"):
+            value = card_data.get(key)
+            if value:
+                card_id_index[str(value).lower()] = card_name
+        source_ids = card_data.get("source_ids")
+        if isinstance(source_ids, list):
+            for value in source_ids:
+                if value:
+                    card_id_index[str(value).lower()] = card_name
     normalized = []
     for entry in entries:
         if not isinstance(entry, dict):
@@ -1315,9 +1400,18 @@ def normalize_card_entries(data: dict[str, Any], entries: Any) -> Any:
 
         item = dict(entry)
         if not item.get("name"):
-            card_id = item.get("template_id") or item.get("id")
-            if card_id:
-                item["name"] = card_id_index.get(str(card_id).lower(), "")
+            for card_id in (
+                item.get("template_id"),
+                item.get("source_id"),
+                item.get("id"),
+            ):
+                if card_id:
+                    name = card_id_index.get(str(card_id).lower())
+                    if name:
+                        item["name"] = name
+                        break
+            else:
+                item["name"] = ""
         normalized.append(item)
     return normalized
 
@@ -1346,6 +1440,114 @@ def zh_text(data: dict[str, Any], text: Any) -> str:
         if translated:
             result = result.replace(source_name, translated)
     return result
+
+
+def zh_id(data: dict[str, Any], source_id: Any) -> str:
+    if not source_id:
+        return ""
+    return str(data.get("translations", {}).get("by_id", {}).get(str(source_id), ""))
+
+
+def translate_common_game_text(data: dict[str, Any], text: Any) -> str:
+    result = zh_text(data, text)
+    if not result:
+        return ""
+
+    replacements = [
+        (r"^Gain (\d+) Max Health$", r"获得 \1 最大生命值"),
+        (r"^Gain (\d+) gold$", r"获得 \1 金币"),
+        (r"^Gain (\d+) XP$", r"获得 \1 经验"),
+        (r"^Heal (\d+)$", r"治疗 \1"),
+        (r"^Deal (\d+) Damage$", r"造成 \1 伤害"),
+        (r"^Get a ([A-Za-z]+)-tier Loot item$", r"获得一件\1级战利品物品"),
+        (r"^\(if you have a ([^)]+)\) Choose a Skill$", r"（如果你拥有\1）选择一个技能"),
+    ]
+    for pattern, replacement in replacements:
+        result = re.sub(pattern, replacement, result, flags=re.IGNORECASE)
+
+    term_replacements = {
+        "Bronze": "青铜",
+        "Silver": "白银",
+        "Gold": "黄金",
+        "Diamond": "钻石",
+        "Food": "食物",
+        "Friend": "朋友",
+        "Toy": "玩具",
+        "Drone": "无人机",
+        "Loot": "战利品",
+        "Skill": "技能",
+    }
+    for source, translated in term_replacements.items():
+        result = result.replace(source, translated)
+
+    return result
+
+
+def gold_support_label(gold: dict[str, Any]) -> str:
+    current_gold = gold.get("current_gold")
+    if current_gold is None and not gold.get("gold_known"):
+        return "\u91d1\u5e01\u672a\u77e5"
+    if gold.get("supports_entry") is False:
+        return "\u91d1\u5e01\u4e0d\u8db3"
+    if gold.get("price_known") is False:
+        return "\u5df2\u8bfb\u53d6\u91d1\u5e01\uff0c\u4f46\u4ef7\u683c\u4f30\u7b97\u4e0d\u8db3"
+    return SHOP_GOLD_STATUS_LABELS.get(str(gold.get("status") or "unknown"), "\u672a\u77e5")
+
+
+def display_reason_text(data: dict[str, Any], reason: Any) -> str:
+    text = str(reason or "").strip()
+    if not text:
+        return ""
+
+    shop_status_labels = {
+        "strong_candidate": "\u5f3a\u5019\u9009",
+        "candidate": "\u53ef\u8003\u8651",
+        "situational": "\u770b\u5c40\u52bf",
+        "weak_candidate": "\u4e0d\u4f18\u5148",
+        "not_actionable": "\u6682\u4e0d\u8fdb\u5e97",
+        "unknown": "\u4fe1\u606f\u4e0d\u8db3",
+    }
+    if text.startswith("shop_entry_status="):
+        status = text.split("=", 1)[1]
+        return f"\u5546\u5e97\u5165\u53e3\u8bc4\u4f30\uff1a{shop_status_labels.get(status, status)}"
+
+    exact = {
+        "visible_target_before_refresh": "\u5f53\u524d\u53ef\u89c1\u5546\u54c1\u5df2\u6709\u76ee\u6807\uff0c\u4f18\u5148\u770b\u8d2d\u4e70\uff0c\u4e0d\u8981\u5148\u5237\u65b0\u3002",
+        "no_visible_target_but_shop_pool_is_actionable": "\u5f53\u524d\u53ef\u89c1\u5546\u54c1\u6ca1\u6709\u76ee\u6807\uff0c\u4f46\u8fd9\u5bb6\u5e97\u7684\u6c60\u8d28\u91cf\u652f\u6301\u8003\u8651\u5237\u65b0\u3002",
+        "current_gold_unknown": "\u91d1\u5e01\u672a\u63a5\u5165\u5230\u8be5\u89c4\u5219\u9879\uff0c\u65e0\u6cd5\u5224\u65ad\u8d2d\u4e70\u529b\u3002",
+        "refresh_cost_unknown": "\u5237\u65b0\u8d39\u7528\u672a\u77e5\uff0c\u4e0d\u5f3a\u63a8\u5237\u65b0\u3002",
+    }
+    if text in exact:
+        return exact[text]
+
+    patterns = [
+        (r"^Can hit high-tier core cards: (.+)\.$", "\u53ef\u80fd\u547d\u4e2d\u9ad8\u8bc4\u7ea7\u6838\u5fc3\u5361\uff1a{names}\u3002"),
+        (r"^Pool contains (\d+) current-build core cards\.$", "\u6c60\u5b50\u5305\u542b {0} \u5f20\u5f53\u524d\u9635\u5bb9\u6838\u5fc3\u5361\u3002"),
+        (r"^Can upgrade owned cards: (.+)\.$", "\u53ef\u5347\u7ea7\u5df2\u62e5\u6709\u5361\uff1a{names}\u3002"),
+        (r"^Affects owned matching items: (.+)\.$", "\u5f71\u54cd\u5df2\u62e5\u6709\u7684\u5339\u914d\u7269\u54c1\uff1a{names}\u3002"),
+        (r"^Pool contains (\d+) transition cards\.$", "\u6c60\u5b50\u5305\u542b {0} \u5f20\u8fc7\u6e21\u5361\u3002"),
+        (r"^Pool contains (\d+) S/A tier cards\.$", "\u6c60\u5b50\u5305\u542b {0} \u5f20 S/A \u8bc4\u7ea7\u5361\u3002"),
+        (r"^Pool contains (\d+) alternate-build core cards\.$", "\u6c60\u5b50\u5305\u542b {0} \u5f20\u8f6c\u578b/\u5907\u9009\u9635\u5bb9\u6838\u5fc3\u5361\u3002"),
+        (r"^Pool has (\d+) cards; (\d+) are build-relevant \((\d+)%\)\.$", "\u6c60\u5b50\u5171 {0} \u5f20\uff1b{1} \u5f20\u548c\u5f53\u524d\u9635\u5bb9\u76f8\u5173\uff08{2}%\uff09\u3002"),
+        (r"^Shop view expects ([\d.]+) relevant cards; chance to see at least one relevant card (\d+)%\.$", "\u8fdb\u5e97\u540e\u9884\u671f\u53ef\u89c1 {0} \u5f20\u76f8\u5173\u5361\uff1b\u81f3\u5c11\u770b\u5230\u4e00\u5f20\u76f8\u5173\u5361\u7684\u6982\u7387\u7ea6 {1}%\u3002"),
+        (r"^Reward gives (\d+) items; expected relevant cards ([\d.]+), useful hit chance (\d+)%\.$", "\u5956\u52b1\u7ed9 {0} \u4e2a\u7269\u54c1\uff1b\u9884\u671f\u76f8\u5173\u5361 {1} \u5f20\uff0c\u6709\u7528\u547d\u4e2d\u7387\u7ea6 {2}%\u3002"),
+        (r"^Chance to hit at least one core card is (\d+)%\.$", "\u81f3\u5c11\u547d\u4e2d\u4e00\u5f20\u6838\u5fc3\u5361\u7684\u6982\u7387\u7ea6 {0}%\u3002"),
+        (r"^Unrelated items still have estimated sell value around ([\d.]+) gold\.$", "\u65e0\u5173\u7269\u54c1\u4ecd\u6709\u7ea6 {0} \u91d1\u5e01\u7684\u8f6c\u5356\u671f\u671b\u3002"),
+    ]
+    for pattern, template in patterns:
+        match = re.match(pattern, text)
+        if not match:
+            continue
+        groups = match.groups()
+        if "{names}" in template:
+            names = display_name_list(
+                data,
+                [part.strip() for part in groups[0].split(",") if part.strip()],
+            )
+            return template.format(names="\u3001".join(names))
+        return template.format(*groups)
+
+    return translate_common_game_text(data, text)
 
 
 def display_card_entry(data: dict[str, Any], card: dict[str, Any]) -> dict[str, Any]:
@@ -1582,7 +1784,133 @@ def format_resource_rewards(resource_rewards: dict[str, Any]) -> str:
     return "，".join(parts)
 
 
-def summarize_parent_child_options(parent_graph: dict[str, Any] | None) -> list[dict[str, Any]]:
+SHOP_ENTRY_STATUS_LABELS = {
+    "strong_candidate": "\u503c\u5f97\u8fdb\u5e97",
+    "candidate": "\u53ef\u4ee5\u8fdb\u5e97",
+    "situational": "\u770b\u5c40\u52bf",
+    "weak_candidate": "\u4e0d\u4f18\u5148",
+    "not_actionable": "\u6682\u4e0d\u8fdb\u5e97",
+    "unknown": "\u4fe1\u606f\u4e0d\u8db3",
+}
+SHOP_DENSITY_LABELS = {"high": "\u9ad8", "medium": "\u4e2d", "low": "\u4f4e", "unknown": "\u672a\u77e5"}
+SHOP_GOLD_STATUS_LABELS = {
+    "refresh_supported": "\u53ef\u4e70\u4e14\u53ef\u5237",
+    "buy_supported": "\u5927\u81f4\u53ef\u4e70",
+    "insufficient": "\u91d1\u5e01\u4e0d\u8db3",
+    "unknown": "\u672a\u77e5",
+}
+SHOP_POOL_STAGE_LABELS = {
+    "bronze_only": "\u9752\u94dc\u9636\u6bb5",
+    "silver_unlocked": "\u767d\u94f6\u9636\u6bb5",
+    "gold_unlocked": "\u9ec4\u91d1\u9636\u6bb5",
+    "diamond_unlocked": "\u94bb\u77f3\u9636\u6bb5",
+}
+SHOP_CACHE_STATUS_LABELS = {
+    "hit": "\u5df2\u547d\u4e2d\u7f13\u5b58",
+    "miss": "\u672a\u547d\u4e2d\u7f13\u5b58",
+    "unavailable": "\u6682\u65e0\u7f13\u5b58",
+}
+SHOP_INSIDE_ACTION_LABELS = {"buy": "\u5148\u4e70\u76ee\u6807", "refresh": "\u53ef\u4ee5\u5237\u65b0", "skip": "\u4e0d\u5efa\u8bae\u5237\u65b0"}
+SHOP_INSIDE_REASON_LABELS = {
+    "visible_target_before_refresh": "\u5f53\u524d\u53ef\u89c1\u5546\u54c1\u5df2\u6709\u9635\u5bb9\u76ee\u6807\uff0c\u5148\u4e70\u76ee\u6807\uff0c\u4e0d\u8981\u5148\u5237\u65b0\u3002",
+    "refresh_not_available": "\u5f53\u524d\u5546\u5e97\u4e0d\u53ef\u5237\u65b0\u3002",
+    "refresh_cost_unknown": "\u5237\u65b0\u8d39\u7528\u672a\u77e5\uff0c\u4e0d\u5f3a\u63a8\u5237\u65b0\u3002",
+    "current_gold_unknown": "\u91d1\u5e01\u672a\u77e5\uff0c\u65e0\u6cd5\u5224\u65ad\u5237\u65b0\u540e\u8d2d\u4e70\u529b\u3002",
+    "not_enough_gold_after_refresh": "\u5237\u65b0\u540e\u6ca1\u6709\u53ef\u9760\u8d2d\u4e70\u9884\u7b97\u3002",
+    "refresh_leaves_insufficient_purchase_budget": "\u91d1\u5e01\u867d\u53ef\u652f\u4ed8\u5237\u65b0\uff0c\u4f46\u5237\u65b0\u540e\u53ef\u80fd\u4e70\u4e0d\u8d77\u76ee\u6807\u3002",
+    "no_visible_target_but_shop_pool_is_actionable": "\u5f53\u524d\u53ef\u89c1\u5546\u54c1\u6ca1\u6709\u76ee\u6807\uff0c\u4f46\u5546\u4eba\u6c60\u8d28\u91cf\u53ef\u652f\u6301\u5237\u65b0\u3002",
+    "no_visible_target_and_pool_quality_low": "\u5f53\u524d\u53ef\u89c1\u5546\u54c1\u65e0\u76ee\u6807\uff0c\u4e14\u5546\u4eba\u6c60\u8d28\u91cf\u4e0d\u652f\u6301\u5f3a\u5237\u3002",
+}
+
+
+def shop_rule_display_from_result(
+    result: dict[str, Any],
+    data: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    inside = result.get("shop_inside_analysis")
+    if isinstance(inside, dict):
+        action = str(inside.get("action") or "skip")
+        reason_code = str(inside.get("reason") or "")
+        visible_targets = int(inside.get("visible_target_count") or 0)
+        refresh_ratio = float(inside.get("refresh_pool_valuable_ratio") or 0.0)
+        reason = SHOP_INSIDE_REASON_LABELS.get(reason_code, reason_code)
+        if action == "refresh" and refresh_ratio:
+            reason = f"{reason} \u5237\u65b0\u6c60\u76f8\u5173\u5360\u6bd4\u7ea6 {refresh_ratio:.0%}\u3002"
+        if action == "buy" and visible_targets:
+            reason = f"{reason} \u53ef\u89c1\u76ee\u6807 {visible_targets} \u4e2a\u3002"
+        if action == "refresh":
+            reason = f"{reason} \u5237\u65b0\u53ea\u5c5e\u4e8e\u5f53\u524d\u8fd9\u5bb6\u5546\u5e97\uff0c\u4e0d\u4f1a\u8de8\u5e97\u7d2f\u8ba1\u3002"
+        return {"phase": "inside", "phase_label": "\u5e97\u5185\u64cd\u4f5c", "action": action, "action_label": SHOP_INSIDE_ACTION_LABELS.get(action, action), "reason": reason}
+
+    entry = result.get("shop_entry_analysis")
+    if not isinstance(entry, dict):
+        return {}
+    status = str(entry.get("status") or "unknown")
+    counts = entry.get("target_counts") if isinstance(entry.get("target_counts"), dict) else {}
+    gold = entry.get("gold_support") if isinstance(entry.get("gold_support"), dict) else {}
+    debug = entry.get("debug") if isinstance(entry.get("debug"), dict) else {}
+    density = SHOP_DENSITY_LABELS.get(str(entry.get("target_density_band") or "unknown"), "\u672a\u77e5")
+    gold_status = gold_support_label(gold)
+    current_gold = gold.get("current_gold")
+    merchant_count = entry.get("day_available_merchant_count") or "\u672a\u77e5"
+    pool_count = entry.get("pool_count") or "\u672a\u77e5"
+    density_rank = entry.get("target_density_rank")
+    core_hits = int(debug.get("current_core_hits") or 0)
+    tempo_hits = int(debug.get("current_tempo_hits") or 0)
+    optional_hits = int(debug.get("current_optional_hits") or 0)
+    future_hits = int(debug.get("future_core_hits") or counts.get("future_core") or 0)
+    reason = (
+        f"\u8fdb\u5e97\u524d\u8bc4\u4f30\uff1a\u5f53\u5929\u53ef\u51fa\u73b0\u5546\u4eba {merchant_count} \u5bb6\uff0c"
+        f"\u8be5\u5e97\u6c60\u5b50 {pool_count} \u5f20\uff0c\u76ee\u6807\u5bc6\u5ea6\u76f8\u5bf9\u5f53\u5929\u4e3a{density}\uff1b"
+        f"\u5f53\u524d\u6838\u5fc3 {core_hits}\u3001\u8fc7\u6e21 {tempo_hits}\u3001\u53ef\u9009 {optional_hits}\u3001\u672a\u6765\u6838\u5fc3 {future_hits}\uff1b"
+        f"\u91d1\u5e01\u72b6\u6001\uff1a{gold_status}"
+    )
+    if current_gold is not None:
+        reason += f"\uff08\u5f53\u524d {current_gold} \u91d1\uff09"
+    reason += "\u3002"
+    if density_rank and isinstance(merchant_count, int):
+        reason += f" \u5bc6\u5ea6\u6392\u540d\uff1a\u7b2c {density_rank}/{merchant_count}\u3002"
+    top_merchants = [
+        zh_name(data or {}, item.get("merchant"))
+        for item in entry.get("top_day_merchants_by_density", [])[:3]
+        if isinstance(item, dict) and item.get("merchant")
+    ]
+    if top_merchants:
+        reason += f" \u5f53\u5929\u76ee\u6807\u5bc6\u5ea6\u6700\u9ad8\u7684\u5e97\uff1a{'、'.join(top_merchants)}\u3002"
+    if entry.get("theoretical_only"):
+        reason += " \u4e3b\u8981\u662f\u7406\u8bba\u6c60\u5b50\u76ee\u6807\uff0c\u5f53\u524d\u76f4\u63a5\u6536\u76ca\u4e0d\u7a33\u3002"
+    if status == "not_actionable":
+        reason += " \u5f53\u524d\u8d2d\u4e70\u529b\u6216\u673a\u4f1a\u6210\u672c\u4e0d\u652f\u6301\u5f3a\u63a8\u3002"
+    elif status == "strong_candidate":
+        reason += " \u89c4\u5219\u5c42\u8ba4\u4e3a\u5ba2\u89c2\u9002\u5408\uff0c\u4f46\u4ecd\u8981\u6bd4\u8f83\u540c\u5c4f\u514d\u8d39\u6536\u76ca\u3002"
+    action = "enter" if status in {"strong_candidate", "candidate"} else "defer"
+    return {"phase": "entry", "phase_label": "\u8fdb\u5e97\u524d\u8bc4\u4f30", "action": action, "action_label": SHOP_ENTRY_STATUS_LABELS.get(status, status), "reason": reason, "status": status}
+
+
+def apply_shop_rule_display_to_build_analysis(
+    build_analysis: dict[str, Any],
+    recommendations: list[dict[str, Any]],
+    data: dict[str, Any] | None = None,
+) -> None:
+    for item in recommendations:
+        if not isinstance(item, dict):
+            continue
+        display = shop_rule_display_from_result(item, data)
+        if not display:
+            continue
+        build_analysis["shop_rule_display"] = display
+        build_analysis["shop_phase"] = display.get("phase")
+        build_analysis["shop_phase_label"] = display.get("phase_label")
+        build_analysis["shop_action"] = display.get("action")
+        build_analysis["shop_action_label"] = display.get("action_label")
+        build_analysis["refresh_reason"] = display.get("reason")
+        return
+
+
+def summarize_parent_child_options(
+    data: dict[str, Any],
+    parent_graph: dict[str, Any] | None,
+) -> list[dict[str, Any]]:
     if not isinstance(parent_graph, dict):
         return []
 
@@ -1598,23 +1926,45 @@ def summarize_parent_child_options(parent_graph: dict[str, Any] | None) -> list[
 
         resource_rewards = child.get("resource_rewards", {})
         reward_text = format_resource_rewards(resource_rewards)
+        source_id = str(child.get("source_id") or "")
+        official_card = load_official_cards_index().get(source_id.lower()) if source_id else None
 
         name = child.get("name") or ""
         if not name:
             source_id = str(child.get("source_id") or "")
             name = f"未知子选项 {source_id[:8]}" if source_id else "未知子选项"
-        display_name = child.get("display_name") or name
+        display_name = (
+            zh_id(data, source_id)
+            or zh_text(data, zh_name(data, child.get("display_name") or name))
+        )
+        description = child.get("description", "")
+        translated_description = (
+            data.get("translations", {}).get("by_name", {}).get(str(description))
+            if description
+            else None
+        )
+        if official_card:
+            official_title = official_card_title(official_card)
+            official_description = official_card_description(official_card)
+            if official_title:
+                display_name = translate_common_game_text(data, official_title)
+            if official_description:
+                description = official_description
+                translated_description = data.get("translations", {}).get("by_name", {}).get(str(description))
+        source_name = child.get("source_name", "")
 
         result.append(
             {
-                "name": name,
+                "name": display_name or zh_text(data, name),
                 "display_name": display_name,
                 "source_id": child.get("source_id", ""),
+                "source_name": source_name,
+                "source_display_name": zh_name(data, source_name),
                 "kind": child.get("kind", ""),
                 "card_type": child.get("card_type", ""),
-                "description": child.get("description", ""),
+                "description": translated_description or translate_common_game_text(data, description),
                 "resource_rewards": resource_rewards,
-                "reward_text": reward_text,
+                "reward_text": translate_common_game_text(data, reward_text),
                 "unresolved": bool(child.get("unresolved", False)),
                 "count": int(child.get("count", 0)),
             }
@@ -1697,7 +2047,7 @@ def static_child_options_for_event(data: dict[str, Any], event_name: str | None)
                 "source_id": child_id,
                 "kind": static_child_kind(child_type),
                 "card_type": child_type,
-                "description": zh_text(data, child_description) if child_description else "",
+                "description": translate_common_game_text(data, child_description) if child_description else "",
                 "resource_rewards": (
                     extract_resource_rewards_from_card(child)
                     if isinstance(child, dict)
@@ -1929,7 +2279,7 @@ def summarize_recommendation(data: dict[str, Any], result: dict[str, Any]) -> di
     parent_graph = observed_event_graph.get(event_name) if event_name else None
     if event_data and event_data.get("event_category") in {"shops", "skill_shops"}:
         parent_graph = None
-    child_options = summarize_parent_child_options(parent_graph)
+    child_options = summarize_parent_child_options(data, parent_graph)
     if not child_options:
         child_options = static_child_options_for_event(data, event_name)
     is_parent_event = bool(child_options)
@@ -1944,7 +2294,7 @@ def summarize_recommendation(data: dict[str, Any], result: dict[str, Any]) -> di
     event_rule_status = "normal"
 
     base_reasons = [
-        zh_text(data, reason)
+        display_reason_text(data, reason)
         for reason in result.get("reasons", [])[:4]
     ]
 
@@ -2030,6 +2380,10 @@ def summarize_recommendation(data: dict[str, Any], result: dict[str, Any]) -> di
         followup_resource_rewards = {}
 
     best_followup = result.get("best_followup") or followup_summary.get("best_followup")
+    shop_pool_summary = result.get("shop_pool_summary")
+    if not isinstance(shop_pool_summary, dict):
+        shop_pool_summary = {}
+    shop_rule_display = shop_rule_display_from_result(result, data)
 
     return {
         "event_name": event_name,
@@ -2111,6 +2465,32 @@ def summarize_recommendation(data: dict[str, Any], result: dict[str, Any]) -> di
             "prob_core_in_shop": round(float(pool_stats.get("prob_core_in_shop", 0.0)), 4),
             "expected_sell_gold": round(float(pool_stats.get("expected_sell_gold", 0.0)), 2),
         },
+        "shop_pool_summary": {
+            "cache_status": shop_pool_summary.get("cache_status"),
+            "cache_status_label": SHOP_CACHE_STATUS_LABELS.get(
+                str(shop_pool_summary.get("cache_status") or ""),
+                shop_pool_summary.get("cache_status"),
+            ),
+            "merchant_name": zh_name(data, shop_pool_summary.get("merchant_name")),
+            "hero": shop_pool_summary.get("hero"),
+            "stage": shop_pool_summary.get("stage"),
+            "stage_label": SHOP_POOL_STAGE_LABELS.get(
+                str(shop_pool_summary.get("stage") or ""),
+                shop_pool_summary.get("stage"),
+            ),
+            "pool_count": int(shop_pool_summary.get("pool_count") or 0),
+            "avg_price": shop_pool_summary.get("avg_price"),
+            "base_refresh_cost": shop_pool_summary.get("base_refresh_cost"),
+            "base_refresh_count": shop_pool_summary.get("base_refresh_count"),
+            "refresh_enabled": shop_pool_summary.get("refresh_enabled"),
+            "appearance_days": shop_pool_summary.get("appearance_days", []),
+            "available_on_day": shop_pool_summary.get("available_on_day"),
+        },
+        "shop_entry_analysis": result.get("shop_entry_analysis"),
+        "shop_inside_analysis": result.get("shop_inside_analysis"),
+        "shop_entry_analysis_display": shop_rule_display if shop_rule_display.get("phase") == "entry" else {},
+        "shop_inside_analysis_display": shop_rule_display if shop_rule_display.get("phase") == "inside" else {},
+        "shop_rule_display": shop_rule_display,
     }
 
 
@@ -2279,6 +2659,11 @@ def analyze_payload(
         build_analysis["shop_action_label"] = shop_action_label(
             build_analysis.get("shop_action")
         )
+    apply_shop_rule_display_to_build_analysis(
+        build_analysis,
+        result.recommendations,
+        data,
+    )
     for bundle in build_analysis.get("visible_core_bundles", []):
         bundle["candidate_core_cards_display"] = [
             zh_name(data, name)

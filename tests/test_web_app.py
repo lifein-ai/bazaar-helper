@@ -388,6 +388,42 @@ class WebAppResilienceTests(unittest.TestCase):
         self.assertEqual(normalized["inventory_slots_used"], 6)
         self.assertEqual(normalized["inventory_slots_total"], 20)
 
+    def test_card_entries_map_template_and_source_ids_to_names(self) -> None:
+        data = {
+            "events": {},
+            "translations": {},
+            "cards": {
+                "Alias Item": {
+                    "id": "canonical-id",
+                    "source_id": "source-id",
+                    "source_ids": ["source-alias"],
+                    "template_id": "template-id",
+                    "type": "Item",
+                    "size": "Small",
+                }
+            },
+            "builds": {"VanessaTest": {"hero": "Vanessa"}},
+            "rarity_rules": {},
+        }
+        payload = {
+            "hero": "Vanessa",
+            "build": "VanessaTest",
+            "day": 5,
+            "event_options": [],
+            "owned_cards": [{"template_id": "template-id"}],
+            "owned_items": [{"source_id": "source-id"}],
+            "board_items": [{"template_id": "source-alias"}],
+            "stash_items": [{"id": "canonical-id"}],
+            "visible_cards": [],
+        }
+
+        normalized = web_app.normalize_payload_for_analysis(data, payload)
+
+        self.assertEqual(normalized["owned_cards"][0]["name"], "Alias Item")
+        self.assertEqual(normalized["owned_items"][0]["name"], "Alias Item")
+        self.assertEqual(normalized["board_items"][0]["name"], "Alias Item")
+        self.assertEqual(normalized["stash_items"][0]["name"], "Alias Item")
+
     def test_analysis_does_not_run_combat_simulation_automatically(self) -> None:
         data = {
             "events": {},
@@ -825,8 +861,74 @@ class WebAppResilienceTests(unittest.TestCase):
             if item.get("source_name") == "Pet It"
         )
         self.assertNotIn("{ability.0}", pet_it["description"])
+        self.assertNotIn("Gain 25 Max Health", pet_it["description"])
+        self.assertIn("\u6700\u5927\u751f\u547d\u503c", pet_it["description"])
         self.assertEqual(pet_it["resource_rewards"].get("max_health"), 25)
         self.assertEqual(summary["event_rule_status"], "parent_event")
+
+    def test_common_child_descriptions_are_localized(self) -> None:
+        data = load_all_data(DATA_DIR)
+
+        self.assertEqual(
+            web_app.translate_common_game_text(data, "Get a Silver-tier Loot item"),
+            "\u83b7\u5f97\u4e00\u4ef6\u767d\u94f6\u7ea7\u6218\u5229\u54c1\u7269\u54c1",
+        )
+        self.assertEqual(
+            web_app.translate_common_game_text(data, "(if you have a Friend) Choose a Skill"),
+            "\uff08\u5982\u679c\u4f60\u62e5\u6709\u670b\u53cb\uff09\u9009\u62e9\u4e00\u4e2a\u6280\u80fd",
+        )
+
+    def test_shop_display_does_not_call_known_zero_gold_unknown(self) -> None:
+        display = web_app.shop_rule_display_from_result(
+            {
+                "shop_entry_analysis": {
+                    "status": "not_actionable",
+                    "day_available_merchant_count": 3,
+                    "pool_count": 10,
+                    "target_density_band": "low",
+                    "target_counts": {},
+                    "gold_support": {
+                        "status": "unknown",
+                        "gold_known": True,
+                        "price_known": False,
+                        "current_gold": 0,
+                        "supports_entry": False,
+                    },
+                    "debug": {},
+                }
+            },
+            data={},
+        )
+
+        self.assertIn("当前 0 金", display["reason"])
+        self.assertIn("金币不足", display["reason"])
+        self.assertNotIn("金币状态：未知", display["reason"])
+
+    def test_summarize_recommendation_localizes_rule_reasons(self) -> None:
+        data = load_all_data(DATA_DIR)
+        result = {
+            "event_name": "Colt",
+            "recommendation": "Low Value",
+            "reasons": [
+                "shop_entry_status=not_actionable",
+                "Pool contains 3 current-build core cards.",
+                "Can upgrade owned cards: Bee, Crook.",
+                "Pool has 19 cards; 6 are build-relevant (32%).",
+                "Reward gives 1 items; expected relevant cards 0.0, useful hit chance 4%.",
+            ],
+        }
+
+        with patch.object(web_app, "load_observed_event_graph", return_value={}):
+            summary = web_app.summarize_recommendation(data, result)
+
+        joined = "\n".join(summary["reasons"])
+        self.assertNotIn("shop_entry_status", joined)
+        self.assertNotIn("Pool contains", joined)
+        self.assertNotIn("Can upgrade", joined)
+        self.assertNotIn("Reward gives", joined)
+        self.assertIn("\u5546\u5e97\u5165\u53e3\u8bc4\u4f30", joined)
+        self.assertIn("\u5f53\u524d\u9635\u5bb9\u6838\u5fc3\u5361", joined)
+        self.assertIn("\u53ef\u5347\u7ea7\u5df2\u62e5\u6709\u5361", joined)
 
 
 class WebAppStartupTests(unittest.TestCase):

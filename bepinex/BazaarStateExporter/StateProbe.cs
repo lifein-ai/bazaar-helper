@@ -555,11 +555,11 @@ namespace BazaarStateExporter
                 }
 
                 snapshot.owned_items.Add(owned);
-                if (string.Equals(owned.section, "Hand", StringComparison.OrdinalIgnoreCase))
+                if (IsBoardOwnedItem(owned))
                 {
                     snapshot.board_items.Add(owned);
                 }
-                else if (string.Equals(owned.section, "Stash", StringComparison.OrdinalIgnoreCase))
+                else if (IsStashOwnedItem(owned))
                 {
                     snapshot.stash_items.Add(owned);
                 }
@@ -835,7 +835,7 @@ namespace BazaarStateExporter
             // hand/stash getters can retain an instance after it is sold.
             foreach (CardSnapshot card in allCards)
             {
-                if (card == null || !IsOwnedItemSection(card.section))
+                if (!IsOwnedItemCard(card))
                 {
                     continue;
                 }
@@ -902,15 +902,89 @@ namespace BazaarStateExporter
 
             string section = card.section ?? "";
             string context = card.ui_context ?? "";
-            return IsOwnedItemSection(section)
-                || context.IndexOf("PlayerItemSocket_", StringComparison.OrdinalIgnoreCase) >= 0
-                || context.IndexOf("PlayerStorageSocket_", StringComparison.OrdinalIgnoreCase) >= 0;
+            return IsOwnedItemSection(section) || IsOwnedItemContext(context);
         }
 
         private static bool IsOwnedItemSection(string section)
         {
+            return IsBoardItemSection(section) || IsStashItemSection(section);
+        }
+
+        private static bool IsBoardItemSection(string section)
+        {
+            if (string.IsNullOrEmpty(section))
+            {
+                return false;
+            }
+
             return string.Equals(section, "Hand", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(section, "Stash", StringComparison.OrdinalIgnoreCase);
+                || string.Equals(section, "Board", StringComparison.OrdinalIgnoreCase)
+                || section.IndexOf("PlayerHand", StringComparison.OrdinalIgnoreCase) >= 0
+                || section.IndexOf("PlayerBoard", StringComparison.OrdinalIgnoreCase) >= 0
+                || section.IndexOf("Inventory", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static bool IsStashItemSection(string section)
+        {
+            if (string.IsNullOrEmpty(section))
+            {
+                return false;
+            }
+
+            return string.Equals(section, "Stash", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(section, "Storage", StringComparison.OrdinalIgnoreCase)
+                || section.IndexOf("PlayerStorage", StringComparison.OrdinalIgnoreCase) >= 0
+                || section.IndexOf("Backpack", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static bool IsOwnedItemContext(string context)
+        {
+            if (string.IsNullOrEmpty(context))
+            {
+                return false;
+            }
+
+            return context.IndexOf("PlayerItemSocket_", StringComparison.OrdinalIgnoreCase) >= 0
+                || context.IndexOf("PlayerStorageSocket_", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static bool IsOwnedItemCard(CardSnapshot card)
+        {
+            if (card == null
+                || string.IsNullOrEmpty(card.id)
+                || !string.Equals(card.card_type, "Item", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            return IsOwnedItemSection(card.section ?? "")
+                || IsOwnedItemContext(card.ui_context ?? "");
+        }
+
+        private static bool IsBoardOwnedItem(CardSnapshot card)
+        {
+            if (card == null)
+            {
+                return false;
+            }
+
+            string section = card.section ?? "";
+            string context = card.ui_context ?? "";
+            return IsBoardItemSection(section)
+                || context.IndexOf("PlayerItemSocket_", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static bool IsStashOwnedItem(CardSnapshot card)
+        {
+            if (card == null)
+            {
+                return false;
+            }
+
+            string section = card.section ?? "";
+            string context = card.ui_context ?? "";
+            return IsStashItemSection(section)
+                || context.IndexOf("PlayerStorageSocket_", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private static bool IsShopOfferCard(CardSnapshot card)
@@ -926,7 +1000,7 @@ namespace BazaarStateExporter
             string context = card.ui_context ?? "";
             if (section.IndexOf("Reward", StringComparison.OrdinalIgnoreCase) >= 0
                 || section.IndexOf("Selection", StringComparison.OrdinalIgnoreCase) >= 0
-                || IsOwnedItemSection(section))
+                || IsOwnedItemCard(card))
             {
                 return false;
             }
@@ -2332,10 +2406,12 @@ namespace BazaarStateExporter
                 }
 
                 object enchantment = GetField(item, "Enchantment");
+                string templateId = StringValue(GetField(item, "TemplateId"));
                 CardSnapshot card = new CardSnapshot
                 {
                     id = StringValue(GetField(item, "InstanceId")),
-                    template_id = StringValue(GetField(item, "TemplateId")),
+                    template_id = templateId,
+                    name = ResolveCardNameFromTemplateId(templateId),
                     rarity = NormalizeTier(StringValue(GetField(item, "Tier"))),
                     section = StringValue(GetField(item, "Section")),
                     card_type = StringValue(GetField(item, "Type")),
@@ -2353,6 +2429,23 @@ namespace BazaarStateExporter
                     "game_state_card");
 
                 yield return card;
+            }
+        }
+
+        private static string ResolveCardNameFromTemplateId(string templateId)
+        {
+            if (string.IsNullOrEmpty(templateId))
+            {
+                return null;
+            }
+
+            try
+            {
+                return ReadTemplateDisplayName(TryResolveStaticCardTemplate(templateId));
+            }
+            catch (Exception)
+            {
+                return null;
             }
         }
 

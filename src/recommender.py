@@ -1,8 +1,12 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from typing import Any
 
 from build_strategy import build_applies_to_day, build_phase_relation, get_game_stage_for_day
+from shop_pool_cache import (
+    get_cached_shop_pool_summary,
+    hydrate_cached_shop_cards,
+)
 
 
 RARITY_ORDER = {
@@ -15,10 +19,10 @@ RARITY_ORDER = {
 RARITY_BY_ORDER = {order: rarity for rarity, order in RARITY_ORDER.items()}
 
 ROLE_LABELS = {
-    "core": "核心",
-    "transition": "过渡",
-    "optional": "可选",
-    "unrelated": "无关",
+    "core": "core",
+    "transition": "transition",
+    "optional": "optional",
+    "unrelated": "unrelated",
 }
 
 RECOMMENDATION_RANK = {
@@ -30,6 +34,14 @@ RECOMMENDATION_RANK = {
 VISIBLE_OFFER_COUNT = 3
 REFRESH_OFFER_COUNT = 3
 SHOP_ITEM_TIER_DISTRIBUTION_RULE = "shop_item_tier_distribution_by_day"
+SHOP_ENTRY_STATUSES = {
+    "strong_candidate",
+    "candidate",
+    "situational",
+    "weak_candidate",
+    "not_actionable",
+    "unknown",
+}
 
 ENCHANTMENT_TAGS = {
     "fiery": ["burn"],
@@ -347,16 +359,14 @@ def get_card_role_for_build(
     build_data: dict[str, Any],
 ) -> str:
     """
-    判断一张卡在当前 build 里的定位。
+    鍒ゆ柇涓€寮犲崱鍦ㄥ綋鍓?build 閲岀殑瀹氫綅銆?
 
-    优先级：
-    1. community_builds.json 里的 core_cards / transition_cards / optional_cards
-    2. card_ratings.json 里的 build_roles
-    3. 默认 unrelated
+    浼樺厛绾э細
+    1. community_builds.json 閲岀殑 core_cards / transition_cards / optional_cards
+    2. card_ratings.json 閲岀殑 build_roles
+    3. 榛樿 unrelated
 
-    社区阵容文件是 Build 定位的唯一事实来源，
-    card_ratings.json 只提供全局卡牌评级和可选的定位补充。
-    """
+    绀惧尯闃靛鏂囦欢鏄?Build 瀹氫綅鐨勫敮涓€浜嬪疄鏉ユ簮锛?    card_ratings.json 鍙彁渚涘叏灞€鍗＄墝璇勭骇鍜屽彲閫夌殑瀹氫綅琛ュ厖銆?    """
 
     if card_name in build_data.get("core_cards", []):
         return "core"
@@ -578,15 +588,573 @@ def max_known_visible_item_price(visible_items: Any) -> int | None:
     return max(prices) if prices else None
 
 
+def _float_or_none(value: Any) -> float | None:
+    if value in (None, ""):
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _merchant_available_on_day(summary: dict[str, Any], current_day: int) -> bool | None:
+    available = summary.get("available_on_day")
+    if isinstance(available, bool):
+        return available
+
+    day_range = summary.get("available_day_range")
+    if not isinstance(day_range, list) or len(day_range) != 2:
+        return None
+    try:
+        start = int(day_range[0])
+        day = int(current_day)
+    except (TypeError, ValueError):
+        return None
+    raw_end = day_range[1]
+    if raw_end in (None, ""):
+        return day >= start
+    try:
+        end = int(raw_end)
+    except (TypeError, ValueError):
+        return None
+    return start <= day <= end
+
+
+def _shop_is_baseline_candidate(event_data: dict[str, Any]) -> bool:
+    return event_data.get("event_category") in {"shops", "skill_shops"}
+
+
+def _card_strategy_bucket(
+    card_name: str,
+    card_data: dict[str, Any],
+    *,
+    build_name: str,
+    build_data: dict[str, Any],
+    current_day: int,
+    current_hero: str | None,
+    owned_cards: dict[str, str],
+    all_builds: dict[str, Any] | None,
+) -> str:
+    role = get_card_role_for_build(card_name, card_data, build_name, build_data)
+    if role == "core":
+        return "missing_current_core" if card_name not in owned_cards else "current_core"
+    if role == "transition":
+        return "current_transition"
+    if role == "optional":
+        return "current_optional"
+
+    if not all_builds or not current_hero:
+        return "unrelated"
+
+    current_stage = get_game_stage_for_day(current_day)
+    has_past_core = False
+    for candidate_name, candidate in all_builds.items():
+        if candidate_name == build_name or candidate.get("hero") != current_hero:
+            continue
+        if card_name not in candidate.get("core_cards", []):
+            continue
+        relation = build_phase_relation(candidate, current_stage)
+        if relation == "past_build":
+            has_past_core = True
+            continue
+        return "future_core"
+
+    return "expired_core" if has_past_core else "unrelated"
+
+
+def _shop_target_profile(
+    cards_in_pool: list[dict[str, Any]],
+    *,
+    build_name: str,
+    build_data: dict[str, Any],
+    current_day: int,
+    current_hero: str | None,
+    owned_cards: dict[str, str],
+    all_builds: dict[str, Any] | None,
+) -> dict[str, Any]:
+    counts = {
+        "missing_current_core": 0,
+        "current_core": 0,
+        "current_transition": 0,
+        "current_optional": 0,
+        "future_core": 0,
+        "expired_core": 0,
+        "unrelated": 0,
+    }
+    sample_hits: dict[str, list[str]] = {key: [] for key in counts}
+    weights = {
+        "missing_current_core": 6.0,
+        "current_core": 5.0,
+        "current_transition": 3.5,
+        "current_optional": 2.5,
+        "future_core": 1.0,
+        "expired_core": 0.0,
+        "unrelated": 0.0,
+    }
+    weighted_score = 0.0
+
+    for card in cards_in_pool:
+        card_name = str(card.get("name") or "")
+        raw = card.get("raw") if isinstance(card.get("raw"), dict) else {}
+        bucket = _card_strategy_bucket(
+            card_name,
+            raw,
+            build_name=build_name,
+            build_data=build_data,
+            current_day=current_day,
+            current_hero=current_hero,
+            owned_cards=owned_cards,
+            all_builds=all_builds,
+        )
+        counts[bucket] = counts.get(bucket, 0) + 1
+        weighted_score += weights.get(bucket, 0.0)
+        if card_name and len(sample_hits.setdefault(bucket, [])) < 5:
+            sample_hits[bucket].append(card_name)
+
+    pool_count = len(cards_in_pool)
+    actionable_count = (
+        counts["missing_current_core"]
+        + counts["current_core"]
+        + counts["current_transition"]
+        + counts["current_optional"]
+    )
+    soft_target_count = actionable_count + counts["future_core"]
+    return {
+        "pool_count": pool_count,
+        "counts": counts,
+        "sample_hits": {key: value for key, value in sample_hits.items() if value},
+        "actionable_target_count": actionable_count,
+        "soft_target_count": soft_target_count,
+        "weighted_score": weighted_score,
+        "weighted_density": weighted_score / pool_count if pool_count else 0.0,
+        "actionable_density": actionable_count / pool_count if pool_count else 0.0,
+        "soft_target_density": soft_target_count / pool_count if pool_count else 0.0,
+        "theoretical_only": actionable_count == 0 and counts["future_core"] > 0,
+    }
+
+
+def _density_band_from_baseline(current: float, baseline: list[float]) -> tuple[str, float | None]:
+    values = sorted(value for value in baseline if isinstance(value, (int, float)))
+    if not values:
+        return "unknown", None
+    below_or_equal = sum(1 for value in values if value <= current)
+    percentile = below_or_equal / len(values)
+    if percentile >= 2 / 3:
+        return "high", percentile
+    if percentile <= 1 / 3:
+        return "low", percentile
+    return "medium", percentile
+
+
+def _entry_gold_support(
+    *,
+    current_gold: int | None,
+    summary: dict[str, Any] | None,
+    estimated_avg_item_price: float | None,
+) -> dict[str, Any]:
+    if current_gold is None:
+        return {
+            "status": "unknown",
+            "gold_known": False,
+            "price_known": False,
+            "current_gold": None,
+            "supports_entry": None,
+            "supports_refresh_then_buy": None,
+            "reason": "current_gold_unknown",
+        }
+
+    price = None
+    source = "unknown"
+    if isinstance(summary, dict):
+        price = _float_or_none(summary.get("median_price"))
+        source = "pool_median_price" if price is not None else source
+        if price is None:
+            price = _float_or_none(summary.get("avg_price"))
+            source = "pool_avg_price" if price is not None else source
+    if price is None and estimated_avg_item_price is not None:
+        price = float(estimated_avg_item_price)
+        source = "day_weighted_avg_price"
+
+    refresh_cost = (
+        _optional_nonnegative_int(summary.get("base_refresh_cost"))
+        if isinstance(summary, dict)
+        else None
+    )
+    if price is None:
+        return {
+            "status": "unknown",
+            "gold_known": True,
+            "price_known": False,
+            "current_gold": current_gold,
+            "supports_entry": current_gold > 0,
+            "supports_refresh_then_buy": None,
+            "estimated_purchase_price": None,
+            "estimated_purchase_price_source": source,
+            "base_refresh_cost": refresh_cost,
+            "reason": "price_unknown",
+        }
+
+    supports_entry = current_gold >= max(1.0, price * 0.8)
+    supports_refresh = (
+        current_gold >= refresh_cost + max(1.0, price * 0.8)
+        if refresh_cost is not None
+        else None
+    )
+    if supports_refresh:
+        status = "refresh_supported"
+    elif supports_entry:
+        status = "buy_supported"
+    else:
+        status = "insufficient"
+
+    return {
+        "status": status,
+        "gold_known": True,
+        "price_known": True,
+        "current_gold": current_gold,
+        "supports_entry": supports_entry,
+        "supports_refresh_then_buy": supports_refresh,
+        "estimated_purchase_price": round(price, 2),
+        "estimated_purchase_price_source": source,
+        "base_refresh_cost": refresh_cost,
+    }
+
+
+def build_shop_entry_analysis(
+    *,
+    event_name: str,
+    event_data: dict[str, Any],
+    cards: dict[str, Any],
+    build_name: str,
+    build_data: dict[str, Any],
+    current_day: int,
+    current_hero: str | None,
+    owned_cards: dict[str, str],
+    all_builds: dict[str, Any] | None,
+    rarity_rules: dict[str, Any],
+    data_context: dict[str, Any] | None,
+    shop_pool_summary: dict[str, Any] | None,
+    merchant_pool: list[dict[str, Any]],
+    estimated_avg_item_price: float | None,
+    current_gold: int | None,
+) -> dict[str, Any]:
+    if not isinstance(shop_pool_summary, dict):
+        return {
+            "phase": "shop_entry",
+            "status": "unknown",
+            "reasons": ["missing_shop_pool_summary"],
+            "debug": {"day": current_day, "merchant": event_name},
+        }
+
+    target_profile = _shop_target_profile(
+        merchant_pool,
+        build_name=build_name,
+        build_data=build_data,
+        current_day=current_day,
+        current_hero=current_hero,
+        owned_cards=owned_cards,
+        all_builds=all_builds,
+    )
+    available_on_day = _merchant_available_on_day(shop_pool_summary, current_day)
+
+    day_merchant_names: list[str] = []
+    baseline_densities: list[float] = []
+    baseline_debug: list[dict[str, Any]] = []
+    events = data_context.get("events", {}) if isinstance(data_context, dict) else {}
+    if isinstance(events, dict):
+        for baseline_name, baseline_event in events.items():
+            if not isinstance(baseline_event, dict) or not _shop_is_baseline_candidate(baseline_event):
+                continue
+            try:
+                summary = get_cached_shop_pool_summary(
+                    data=data_context,
+                    event_name=baseline_name,
+                    event_data=baseline_event,
+                    cards=cards,
+                    current_day=current_day,
+                    current_hero=current_hero,
+                    rarity_rules=rarity_rules,
+                    resolver=infer_possible_cards_for_event,
+                )
+            except Exception:
+                continue
+            if _merchant_available_on_day(summary, current_day) is not True:
+                continue
+            day_merchant_names.append(baseline_name)
+            baseline_pool = hydrate_cached_shop_cards(summary, cards)
+            profile = _shop_target_profile(
+                baseline_pool,
+                build_name=build_name,
+                build_data=build_data,
+                current_day=current_day,
+                current_hero=current_hero,
+                owned_cards=owned_cards,
+                all_builds=all_builds,
+            )
+            baseline_densities.append(float(profile["weighted_density"]))
+            baseline_debug.append(
+                {
+                    "merchant": baseline_name,
+                    "weighted_density": round(float(profile["weighted_density"]), 4),
+                    "pool_count": profile["pool_count"],
+                }
+            )
+
+    density_band, density_percentile = _density_band_from_baseline(
+        float(target_profile["weighted_density"]),
+        baseline_densities,
+    )
+    current_weighted_density = float(target_profile["weighted_density"])
+    ranked_baseline = sorted(
+        [
+            {
+                **item,
+                "weighted_density": float(item.get("weighted_density") or 0.0),
+            }
+            for item in baseline_debug
+        ],
+        key=lambda item: (-float(item.get("weighted_density") or 0.0), str(item.get("merchant") or "")),
+    )
+    density_rank = None
+    if ranked_baseline:
+        density_rank = 1 + sum(
+            1
+            for item in ranked_baseline
+            if float(item.get("weighted_density") or 0.0) > current_weighted_density
+        )
+    gold_support = _entry_gold_support(
+        current_gold=current_gold,
+        summary=shop_pool_summary,
+        estimated_avg_item_price=estimated_avg_item_price,
+    )
+
+    counts = target_profile["counts"]
+    has_current_targets = (
+        counts["missing_current_core"]
+        + counts["current_core"]
+        + counts["current_transition"]
+        + counts["current_optional"]
+    ) > 0
+    has_high_priority = counts["missing_current_core"] > 0 or counts["current_core"] > 0
+    theoretical_only = bool(target_profile["theoretical_only"])
+    supports_entry = gold_support.get("supports_entry")
+
+    if available_on_day is False:
+        status = "unknown"
+    elif supports_entry is False and (has_current_targets or counts["future_core"]):
+        status = "not_actionable"
+    elif not has_current_targets and counts["future_core"] <= 0:
+        status = "weak_candidate"
+    elif theoretical_only:
+        status = "situational" if gold_support.get("status") != "insufficient" else "not_actionable"
+    elif density_band == "high" and has_high_priority and supports_entry is not False:
+        status = "strong_candidate"
+    elif density_band in {"high", "medium"} and has_current_targets and supports_entry is not False:
+        status = "candidate"
+    elif has_current_targets:
+        status = "situational"
+    else:
+        status = "weak_candidate"
+
+    reasons: list[str] = []
+    if available_on_day is False:
+        reasons.append("merchant_not_available_on_current_day")
+    if has_high_priority:
+        reasons.append("pool_contains_current_core_targets")
+    elif counts["current_transition"] or counts["current_optional"]:
+        reasons.append("pool_contains_current_tempo_or_optional_targets")
+    elif counts["future_core"]:
+        reasons.append("only_future_core_targets_or_stash_value")
+    else:
+        reasons.append("no_current_build_targets_in_pool")
+    if density_band != "unknown":
+        reasons.append(f"target_density_{density_band}_vs_current_day_merchants")
+    if gold_support.get("status") == "insufficient":
+        reasons.append("gold_does_not_support_estimated_purchase")
+    if theoretical_only:
+        reasons.append("theoretical_pool_hit_without_current_actionable_target")
+
+    return {
+        "phase": "shop_entry",
+        "status": status if status in SHOP_ENTRY_STATUSES else "unknown",
+        "merchant": event_name,
+        "day": current_day,
+        "hero": current_hero,
+        "shop_tier": shop_pool_summary.get("shop_tier"),
+        "available_on_day": available_on_day,
+        "day_available_merchant_count": len(day_merchant_names),
+        "day_available_merchants": day_merchant_names,
+        "pool_count": target_profile["pool_count"],
+        "target_counts": counts,
+        "target_samples": target_profile["sample_hits"],
+        "weighted_density": round(float(target_profile["weighted_density"]), 4),
+        "actionable_density": round(float(target_profile["actionable_density"]), 4),
+        "target_density_band": density_band,
+        "target_density_percentile": (
+            round(float(density_percentile), 4)
+            if density_percentile is not None
+            else None
+        ),
+        "target_density_rank": density_rank,
+        "top_day_merchants_by_density": ranked_baseline[:5],
+        "gold_support": gold_support,
+        "theoretical_only": theoretical_only,
+        "worth_spending_choice": status in {"strong_candidate", "candidate"},
+        "reasons": reasons,
+        "debug": {
+            "day": current_day,
+            "merchant_available_on_day": available_on_day,
+            "day_available_merchant_count": len(day_merchant_names),
+            "merchant_pool_size": target_profile["pool_count"],
+            "current_core_hits": counts["missing_current_core"] + counts["current_core"],
+            "current_tempo_hits": counts["current_transition"],
+            "current_optional_hits": counts["current_optional"],
+            "future_core_hits": counts["future_core"],
+            "expired_core_hits": counts["expired_core"],
+            "density_band": density_band,
+            "gold_support_status": gold_support.get("status"),
+            "current_gold": current_gold,
+            "theoretical_only": theoretical_only,
+            "baseline_merchants": baseline_debug,
+        },
+    }
+
+
+def build_shop_inside_analysis(
+    *,
+    analyzed_cards: list[dict[str, Any]],
+    visible_items: Any,
+    current_shop: dict[str, Any] | None,
+    current_gold: int | None,
+    shop_entry_analysis: dict[str, Any] | None,
+    estimated_avg_item_price: float | None,
+    refresh_pool_ratio: float,
+) -> dict[str, Any]:
+    refresh_available = current_shop.get("refresh_available") if current_shop else None
+    refresh_cost = _optional_nonnegative_int(current_shop.get("refresh_cost")) if current_shop else None
+    refreshes_remaining = (
+        _optional_nonnegative_int(current_shop.get("refreshes_remaining"))
+        if current_shop
+        else None
+    )
+    visible_known_price = max_known_visible_item_price(visible_items)
+    purchase_budget_price = (
+        float(visible_known_price)
+        if visible_known_price is not None
+        else estimated_avg_item_price
+    )
+    purchase_budget_price_source = (
+        "runtime_visible_price"
+        if visible_known_price is not None
+        else "estimated_avg_shop_item_price"
+        if estimated_avg_item_price is not None
+        else "unknown"
+    )
+    gold_sufficient_for_refresh = (
+        current_gold - refresh_cost >= purchase_budget_price
+        if current_gold is not None
+        and refresh_cost is not None
+        and purchase_budget_price is not None
+        else current_gold > refresh_cost
+        if current_gold is not None and refresh_cost is not None
+        else None
+    )
+    visible_by_name: dict[str, dict[str, Any]] = {}
+    if isinstance(visible_items, list):
+        for item in visible_items:
+            if isinstance(item, dict) and item.get("name"):
+                visible_by_name[str(item["name"])] = item
+
+    worth_buying: list[dict[str, Any]] = []
+    unaffordable: list[dict[str, Any]] = []
+    visible_targets = [
+        card
+        for card in analyzed_cards
+        if card.get("role") in {"core", "transition", "optional"}
+    ]
+    for card in visible_targets:
+        visible = visible_by_name.get(str(card.get("name")), {})
+        price = _optional_nonnegative_int(visible.get("price"))
+        affordable = (
+            current_gold >= price
+            if current_gold is not None and price is not None
+            else None
+        )
+        item = {
+            "name": card.get("name"),
+            "role": card.get("role"),
+            "tier": card.get("tier"),
+            "price": price,
+            "affordable": affordable,
+        }
+        if affordable is False:
+            unaffordable.append(item)
+        else:
+            worth_buying.append(item)
+
+    pool_quality_high = (
+        isinstance(shop_entry_analysis, dict)
+        and shop_entry_analysis.get("target_density_band") == "high"
+    )
+    if visible_targets:
+        action, rationale = "buy", "visible_target_before_refresh"
+    elif refresh_available is False:
+        action, rationale = "skip", "refresh_not_available"
+    elif refresh_cost is None:
+        action, rationale = "skip", "refresh_cost_unknown"
+    elif current_gold is None:
+        action, rationale = "skip", "current_gold_unknown"
+    elif current_gold <= refresh_cost:
+        action, rationale = "skip", "not_enough_gold_after_refresh"
+    elif gold_sufficient_for_refresh is False:
+        action, rationale = "skip", "refresh_leaves_insufficient_purchase_budget"
+    elif pool_quality_high or refresh_pool_ratio > 0:
+        action, rationale = "refresh", "no_visible_target_but_shop_pool_is_actionable"
+    else:
+        action, rationale = "skip", "no_visible_target_and_pool_quality_low"
+
+    return {
+        "phase": "shop_inside",
+        "action": action,
+        "reason": rationale,
+        "visible_offer_count": len(visible_items) if isinstance(visible_items, list) else 0,
+        "worth_buying": worth_buying,
+        "unaffordable_targets": unaffordable,
+        "visible_target_count": len(visible_targets),
+        "refresh_available": refresh_available,
+        "refresh_cost": refresh_cost,
+        "refreshes_remaining": refreshes_remaining,
+        "refresh_scope": "current_shop_only",
+        "refresh_carries_over": False,
+        "estimated_avg_item_price": estimated_avg_item_price,
+        "purchase_budget_price": purchase_budget_price,
+        "purchase_budget_price_source": purchase_budget_price_source,
+        "gold_sufficient_for_refresh": gold_sufficient_for_refresh,
+        "refresh_pool_valuable_ratio": refresh_pool_ratio,
+        "pool_quality_band": (
+            shop_entry_analysis.get("target_density_band")
+            if isinstance(shop_entry_analysis, dict)
+            else None
+        ),
+        "debug": {
+            "uses_visible_items": True,
+            "current_gold": current_gold,
+            "has_visible_target": bool(visible_targets),
+            "refreshes_remaining": refreshes_remaining,
+            "refresh_pool_valuable_ratio": round(float(refresh_pool_ratio), 4),
+        },
+    }
+
+
 def get_event_draw_count(event_data: dict[str, Any]) -> int:
     """
-    返回这个事件一次能看到/获得多少个物品。
+    杩斿洖杩欎釜浜嬩欢涓€娆¤兘鐪嬪埌/鑾峰緱澶氬皯涓墿鍝併€?
 
-    规则：
-    - shops / skill_shops：默认看 6 张
-    - item_rewards / 带 card_reward 的 resource_events：默认获得 1 个
-    - card_reward.count 存在时，用 count
-    - count 缺失、为空、写错时，安全回退为 1
+    瑙勫垯锛?
+    - shops / skill_shops锛氶粯璁ょ湅 6 寮?
+    - item_rewards / 甯?card_reward 鐨?resource_events锛氶粯璁よ幏寰?1 涓?
+    - card_reward.count 瀛樺湪鏃讹紝鐢?count
+    - count 缂哄け銆佷负绌恒€佸啓閿欐椂锛屽畨鍏ㄥ洖閫€涓?1
     """
     event_category = event_data.get("event_category")
 
@@ -628,7 +1196,7 @@ def get_event_selection_count(event_data: dict[str, Any]) -> int:
 
 
 def event_has_skill_reward(event_data: dict[str, Any]) -> bool:
-    """判断事件是否包含技能收益。"""
+    """Return whether an event includes a skill reward."""
     if not isinstance(event_data, dict):
         return False
 
@@ -648,7 +1216,7 @@ def event_has_skill_reward(event_data: dict[str, Any]) -> bool:
     qualitative_rewards = event_data.get("qualitative_rewards", [])
     if isinstance(qualitative_rewards, list):
         for reward in qualitative_rewards:
-            if "skill" in normalize_text(str(reward)) or "技能" in str(reward):
+            if "skill" in normalize_text(str(reward)):
                 return True
 
     text_fields = [
@@ -665,7 +1233,6 @@ def event_has_skill_reward(event_data: dict[str, Any]) -> bool:
         "choose 1 of 3 skills",
         "choose a skill",
         "gain a skill",
-        "技能",
     ]
 
     return any(keyword in text for keyword in skill_keywords)
@@ -686,17 +1253,42 @@ def analyze_event(
     all_builds: dict[str, Any] | None = None,
     current_shop: dict[str, Any] | None = None,
     current_gold: int | None = None,
+    data_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     owned_cards = owned_cards or {}
     owned_card_enchantments = owned_card_enchantments or {}
-    possible_cards, resolved_rarity_filter = infer_possible_cards_for_event(
-        event_data,
-        cards,
-        current_day,
-        rarity_rules,
-        current_hero,
-    )
     is_shop = event_data.get("event_category") in {"shops", "skill_shops"}
+    shop_pool_summary: dict[str, Any] | None = None
+    if is_shop:
+        try:
+            shop_pool_summary = get_cached_shop_pool_summary(
+                data=data_context,
+                event_name=event_name,
+                event_data=event_data,
+                cards=cards,
+                current_day=current_day,
+                current_hero=current_hero,
+                rarity_rules=rarity_rules,
+                resolver=infer_possible_cards_for_event,
+            )
+        except Exception as exc:
+            shop_pool_summary = {
+                "cache_status": "fallback",
+                "reason": str(exc),
+                "merchant_name": event_name,
+            }
+
+    if is_shop and shop_pool_summary and shop_pool_summary.get("cache_status") == "hit":
+        possible_cards = hydrate_cached_shop_cards(shop_pool_summary, cards)
+        resolved_rarity_filter = shop_pool_summary.get("resolved_rarity_filter")
+    else:
+        possible_cards, resolved_rarity_filter = infer_possible_cards_for_event(
+            event_data,
+            cards,
+            current_day,
+            rarity_rules,
+            current_hero,
+        )
     refresh_pool_valuable_count = sum(
         get_card_role_for_build(card["name"], card["raw"], build_name, build_data)
         in {"core", "transition", "optional"}
@@ -718,8 +1310,32 @@ def analyze_event(
         if is_shop
         else None
     )
+    shop_entry_analysis = (
+        build_shop_entry_analysis(
+            event_name=event_name,
+            event_data=event_data,
+            cards=cards,
+            build_name=build_name,
+            build_data=build_data,
+            current_day=current_day,
+            current_hero=current_hero,
+            owned_cards=owned_cards,
+            all_builds=all_builds,
+            rarity_rules=rarity_rules,
+            data_context=data_context,
+            shop_pool_summary=shop_pool_summary,
+            merchant_pool=merchant_pool,
+            estimated_avg_item_price=estimated_avg_item_price,
+            current_gold=current_gold,
+        )
+        if is_shop
+        else None
+    )
     visible_items = current_shop.get("visible_items") if is_shop and current_shop else None
-    using_visible_items = isinstance(visible_items, list)
+    using_visible_items = (
+        isinstance(visible_items, list)
+        and any(isinstance(item, dict) and item.get("name") for item in visible_items)
+    )
     if using_visible_items:
         visible_names = {
             str(item.get("name") if isinstance(item, dict) else item)
@@ -839,6 +1455,8 @@ def analyze_event(
         "prob_high_tier_in_shop": probability_at_least_one(high_tier_ratio, draw_count),
         "expected_sell_gold": expected_sell_gold,
     }
+    if shop_pool_summary:
+        pool_stats["shop_pool_cache_status"] = shop_pool_summary.get("cache_status")
 
     recommendation, reasons = decide_recommendation(
         analyzed_cards,
@@ -852,79 +1470,48 @@ def analyze_event(
         event_data,
     )
     shop_decision = None
+    shop_inside_analysis = None
     if is_shop:
-        refresh_available = current_shop.get("refresh_available") if current_shop else None
-        refresh_cost = _optional_nonnegative_int(current_shop.get("refresh_cost")) if current_shop else None
-        visible_known_price = max_known_visible_item_price(visible_items)
-        purchase_budget_price = (
-            float(visible_known_price)
-            if visible_known_price is not None
-            else estimated_avg_item_price
-        )
-        purchase_budget_price_source = (
-            "runtime_visible_price"
-            if visible_known_price is not None
-            else "estimated_avg_shop_item_price"
-            if estimated_avg_item_price is not None
-            else "unknown"
-        )
-        gold_sufficient_for_refresh = (
-            current_gold - refresh_cost >= purchase_budget_price
-            if current_gold is not None
-            and refresh_cost is not None
-            and purchase_budget_price is not None
-            else current_gold > refresh_cost
-            if current_gold is not None and refresh_cost is not None
-            else None
-        )
-        visible_valuable = [
-            card for card in analyzed_cards
-            if card.get("role") in {"core", "transition", "optional"}
-        ]
-        if using_visible_items and visible_valuable:
-            action, rationale = "buy", "当前可见卡中已有构筑相关目标，不建议先刷新。"
-        elif refresh_available is False:
-            action, rationale = "skip", "当前不可刷新。"
-        elif refresh_cost is None:
-            action, rationale = "skip", "刷新成本未知，不主动建议刷新。"
-        elif current_gold is None:
-            action, rationale = "skip", "当前金币未知，无法确认刷新后购买力。"
-        elif current_gold <= refresh_cost:
-            action, rationale = "skip", "金币不足以在刷新后保留购买预算。"
-        elif gold_sufficient_for_refresh is False:
-            action, rationale = "skip", "Gold can pay the refresh cost, but the day-based shop item price estimate says there may not be enough left to buy an item."
-        elif refresh_pool_ratio >= 0.2:
-            action, rationale = "refresh", "当前没有明显目标，卡池匹配度较高且金币可承担刷新并保留购买预算。"
-        else:
-            action, rationale = "skip", "卡池与当前构筑匹配度不足，不建议付费刷新。"
-        shop_decision = {
-            "action": action,
-            "reason": rationale,
-            "visible_offer_count": VISIBLE_OFFER_COUNT,
-            "refresh_offer_count": REFRESH_OFFER_COUNT,
-            "using_visible_items": using_visible_items,
-            "refresh_available": refresh_available,
-            "refresh_cost": refresh_cost,
-            "estimated_avg_item_price": estimated_avg_item_price,
-            "purchase_budget_price": purchase_budget_price,
-            "purchase_budget_price_source": purchase_budget_price_source,
-            "gold_sufficient_for_refresh": gold_sufficient_for_refresh,
-            "refresh_pool_valuable_ratio": refresh_pool_ratio,
-        }
-        reasons.insert(0, rationale)
-    for card in alt_core_cards:
-        build_labels = "、".join(
-            (
-                f"{hit['display_name']}核心卡"
-                if hit["display_name"].endswith("阵容")
-                else f"{hit['display_name']}阵容核心卡"
+        if using_visible_items:
+            shop_inside_analysis = build_shop_inside_analysis(
+                analyzed_cards=analyzed_cards,
+                visible_items=visible_items,
+                current_shop=current_shop,
+                current_gold=current_gold,
+                shop_entry_analysis=shop_entry_analysis,
+                estimated_avg_item_price=estimated_avg_item_price,
+                refresh_pool_ratio=refresh_pool_ratio,
             )
+            shop_decision = shop_inside_analysis
+            reasons.insert(0, str(shop_inside_analysis.get("reason") or "shop_inside_analysis"))
+        elif isinstance(shop_entry_analysis, dict):
+            entry_status = shop_entry_analysis.get("status")
+            if entry_status == "strong_candidate":
+                recommendation = "High Value"
+            elif entry_status in {"candidate", "situational"}:
+                recommendation = "Medium Value"
+            elif entry_status in {"weak_candidate", "not_actionable"}:
+                recommendation = "Low Value"
+            shop_decision = {
+                "action": "enter" if entry_status in {"strong_candidate", "candidate"} else "defer",
+                "reason": ",".join(shop_entry_analysis.get("reasons", [])[:4]),
+                "using_visible_items": False,
+                "entry_status": entry_status,
+                "target_density_band": shop_entry_analysis.get("target_density_band"),
+                "gold_support": shop_entry_analysis.get("gold_support"),
+                "refresh_pool_valuable_ratio": refresh_pool_ratio,
+            }
+            reasons.insert(0, f"shop_entry_status={entry_status}")
+    for card in alt_core_cards:
+        build_labels = ", ".join(
+            str(hit.get("display_name") or hit.get("build_name") or "")
             for hit in card["alt_core_build_hits"]
+            if hit
         )
-        reasons.append(f"{card['name']}：这是{build_labels}。")
+        reasons.append(f"{card['name']}: core target for alternate build(s): {build_labels}.")
     if alt_core_card_count >= 2:
         reasons.append(
-            f"卡池中有 {alt_core_card_count} 张其他阵容核心卡，具有转型/备选阵容价值。"
+            f"Pool contains {alt_core_card_count} alternate-build core cards."
         )
         if recommendation == "Low Value":
             recommendation = "Medium Value"
@@ -946,6 +1533,7 @@ def analyze_event(
                     owned_card_enchantments=owned_card_enchantments,
                     include_followups=False,
                     all_builds=all_builds,
+                    data_context=data_context,
                 )
             )
 
@@ -956,11 +1544,7 @@ def analyze_event(
         )
 
         if followup_value_summary:
-            reasons = [
-                reason
-                for reason in reasons
-                if "暂未识别到明确的卡牌或资源收益" not in reason
-            ]
+            reasons = [reason for reason in reasons if reason]
 
     if followup_value_summary:
         followup_pool_stats = followup_value_summary.get("pool_stats", {})
@@ -1004,6 +1588,9 @@ def analyze_event(
         "followup_hit_chance": followup_value_summary.get("followup_hit_chance") if followup_value_summary else 0.0,
         "followup_value_summary": followup_value_summary,
         "pool_stats": pool_stats,
+        "shop_pool_summary": shop_pool_summary,
+        "shop_entry_analysis": shop_entry_analysis,
+        "shop_inside_analysis": shop_inside_analysis,
         "recommendation": recommendation,
         "reasons": reasons,
         "shop_decision": shop_decision,
@@ -1081,19 +1668,19 @@ def apply_followup_value(
 
     if any(value > 0 for value in resource_rewards.values() if isinstance(value, (int, float))):
         reasons.append(
-            f"该父事件可进入后续选择，最佳后续预计可获得 {format_resource_rewards(resource_rewards)}。"
+            f"Best follow-up can provide {format_resource_rewards(resource_rewards)}."
         )
 
     total_pool_count = int(pool_stats.get("total_pool_count", 0))
     if total_pool_count > 0:
         reasons.append(
-            "该父事件可进入后续选择，最佳后续 "
-            f"{best.get('event_name', '选项')} 预计命中率 {float(pool_stats.get('prob_valuable_in_shop', 0.0)):.0%}，"
-            f"核心 {float(pool_stats.get('prob_core_in_shop', 0.0)):.0%}，"
-            f"期望 {float(pool_stats.get('expected_valuable_in_shop', 0.0)):.1f}。"
+            f"Best follow-up {best.get('event_name', 'option')} has "
+            f"{float(pool_stats.get('prob_valuable_in_shop', 0.0)):.0%} useful hit chance, "
+            f"{float(pool_stats.get('prob_core_in_shop', 0.0)):.0%} core hit chance, "
+            f"expected useful cards {float(pool_stats.get('expected_valuable_in_shop', 0.0)):.1f}."
         )
     elif not any(value > 0 for value in resource_rewards.values() if isinstance(value, (int, float))):
-        reasons.append("检测到后续选项，但目前看收益有限。")
+        reasons.append("Follow-up options detected, but current estimated value is limited.")
 
     current_rank = RECOMMENDATION_RANK.get(recommendation, 99)
     best_rank = RECOMMENDATION_RANK.get(best_recommendation, 99)
@@ -1231,64 +1818,64 @@ def decide_recommendation(
 
     if high_tier_core_cards:
         names = ", ".join(card["name"] for card in high_tier_core_cards)
-        reasons.append(f"可能命中高评级核心卡：{names}。")
+        reasons.append(f"Can hit high-tier core cards: {names}.")
 
     if core_count >= 2:
-        reasons.append(f"候选池里有 {core_count} 张可能适配当前构筑的核心卡。")
+        reasons.append(f"Pool contains {core_count} current-build core cards.")
 
     if upgrade_hits:
-        reasons.append(f"可能升级已拥有的卡：{', '.join(upgrade_hits)}。")
+        reasons.append(f"Can upgrade owned cards: {', '.join(upgrade_hits)}.")
 
     if owned_target_hits:
         names = ", ".join(card["name"] for card in owned_target_hits[:5])
-        reasons.append(f"能作用到已拥有的匹配物品：{names}。")
+        reasons.append(f"Affects owned matching items: {names}.")
 
     if transition_count > 0:
-        reasons.append(f"包含 {transition_count} 张可选卡，可以帮助前中期稳定。")
+        reasons.append(f"Pool contains {transition_count} transition cards.")
 
     if high_tier_count > 0:
-        reasons.append(f"候选池里有 {high_tier_count} 张 S/A 评级卡。")
+        reasons.append(f"Pool contains {high_tier_count} S/A tier cards.")
 
     if has_resource_reward:
-        reasons.append(f"额外提供资源：{format_resource_rewards(resource_rewards)}。")
+        reasons.append(f"Provides resources: {format_resource_rewards(resource_rewards)}.")
 
     if has_skill_reward:
-        reasons.append("包含技能收益，最低按可以考虑处理。")
+        reasons.append("Includes a skill reward.")
 
     if expected_sell_gold > 0:
         reasons.append(
-            f"无用物品也可以卖出，预期约 {expected_sell_gold:.1f} 金币。"
+            f"Unrelated items still have estimated sell value around {expected_sell_gold:.1f} gold."
         )
 
     if event_data.get("event_category") == "enchant_events":
         enchantment_tags = event_data.get("enchantment_tags", [])
         if enchantment_tags:
-            reasons.append(f"可以提供附魔方向：{', '.join(enchantment_tags)}。")
+            reasons.append(f"Can provide enchantment direction: {', '.join(enchantment_tags)}.")
         else:
-            reasons.append("可以给物品附魔，但具体附魔价值暂不明确。")
+            reasons.append("Can enchant an item, but exact enchantment value is unclear.")
 
     if total_pool_count > 0:
         reasons.append(
-            f"候选池共有 {total_pool_count} 张卡，其中 {valuable_count} 张与当前构筑相关"
-            f"（{valuable_ratio:.0%}）。"
+            f"Pool has {total_pool_count} cards; {valuable_count} are build-relevant "
+            f"({valuable_ratio:.0%})."
         )
         if selection_count < draw_count:
             reasons.append(
-                f"该奖励展示 {draw_count} 张卡并选择 {selection_count} 张，"
-                f"预期看到 {expected_valuable:.1f} 张构筑相关卡，"
-                f"至少看到一张的概率为 {prob_valuable:.0%}。"
+                f"Shows {draw_count} cards and lets you choose {selection_count}; "
+                f"expected relevant cards {expected_valuable:.1f}, "
+                f"chance to see at least one relevant card {prob_valuable:.0%}."
             )
         elif event_data.get("event_category") in {"shops", "skill_shops"}:
             reasons.append(
-                f"商店当前展示 {VISIBLE_OFFER_COUNT} 张卡，预期命中 {expected_valuable:.1f} 张构筑相关卡；"
-                f"至少看到一张的概率为 {prob_valuable:.0%}。"
+                f"Shop view expects {expected_valuable:.1f} relevant cards; "
+                f"chance to see at least one relevant card {prob_valuable:.0%}."
             )
         else:
             reasons.append(
-                f"该奖励给 {draw_count} 张物品，预期命中 {expected_valuable:.1f} 张构筑相关卡；"
-                f"有用概率为 {prob_valuable:.0%}。"
+                f"Reward gives {draw_count} items; expected relevant cards {expected_valuable:.1f}, "
+                f"useful hit chance {prob_valuable:.0%}."
             )
-        reasons.append(f"至少命中一张核心卡的概率为 {prob_core:.0%}。")
+        reasons.append(f"Chance to hit at least one core card is {prob_core:.0%}.")
 
     if (
         not analyzed_cards
@@ -1297,7 +1884,7 @@ def decide_recommendation(
         and not owned_target_hits
         and event_data.get("event_category") != "enchant_events"
     ):
-        reasons.append("暂未识别到明确的卡牌或资源收益。")
+        reasons.append("No clear card or resource value identified.")
 
     if event_data.get("effect") == "upgrade_items" and upgradeable_valuable_hits:
         return "High Value", reasons
@@ -1330,20 +1917,20 @@ def decide_recommendation(
         return "Medium Value", reasons
 
     if analyzed_cards:
-        reasons.append("存在少量可用卡，但命中率偏低。")
+        reasons.append("Some usable cards exist, but hit quality is low.")
 
     return "Low Value", reasons
 
 
 def format_resource_rewards(resource_rewards: dict[str, int]) -> str:
     labels = {
-        "exp": "经验",
-        "gold": "金币",
-        "health": "生命",
-        "income": "收入",
-        "regen": "恢复",
-        "speed": "加速",
-        "toughness": "韧性",
+        "exp": "exp",
+        "gold": "gold",
+        "health": "health",
+        "income": "income",
+        "regen": "regen",
+        "speed": "speed",
+        "toughness": "toughness",
     }
     parts = [
         f"{labels.get(name, name)} +{value}"
@@ -1351,12 +1938,12 @@ def format_resource_rewards(resource_rewards: dict[str, int]) -> str:
         if value > 0
     ]
 
-    return ", ".join(parts) if parts else "无"
+    return ", ".join(parts) if parts else "none"
 
 
 def format_rarity_filter(rarity_filter: dict[str, str] | None) -> str:
     if rarity_filter is None:
-        return "无卡牌稀有度限制"
+        return "no rarity filter"
     return f"{rarity_filter['min']} - {rarity_filter['max']}"
 
 

@@ -223,6 +223,95 @@ def build_merchant_profiles(
     return dict(sorted(profiles.items(), key=lambda item: item[0].lower()))
 
 
+def normalize_day_range(value: Any) -> list[int | None] | None:
+    if not isinstance(value, list) or len(value) != 2:
+        return None
+    try:
+        start = int(value[0])
+    except (TypeError, ValueError):
+        return None
+    if start <= 0:
+        return None
+
+    raw_end = value[1]
+    if raw_end in (None, ""):
+        end = None
+    else:
+        try:
+            end = int(raw_end)
+        except (TypeError, ValueError):
+            return None
+        if end < start:
+            return None
+    return [start, end]
+
+
+def merge_merchant_meta(
+    profiles: dict[str, dict[str, Any]],
+    merchant_meta: dict[str, Any],
+) -> tuple[dict[str, dict[str, Any]], list[str]]:
+    if not isinstance(merchant_meta, dict) or not merchant_meta:
+        return profiles, []
+
+    result = {name: dict(profile) for name, profile in profiles.items()}
+    index = merchant_profile_index(result)
+    warnings: list[str] = []
+
+    for merchant_name, meta in merchant_meta.items():
+        if not isinstance(meta, dict):
+            warnings.append(f"Invalid merchant meta entry: {merchant_name}")
+            continue
+
+        profile = index.get(normalize_key(merchant_name))
+        if not profile:
+            warnings.append(f"Merchant meta did not match a profile: {merchant_name}")
+            continue
+
+        day_range = normalize_day_range(meta.get("available_day_range"))
+        if day_range is None:
+            warnings.append(f"Invalid merchant available_day_range: {merchant_name}")
+            continue
+
+        profile["available_day_range"] = day_range
+        profile["available_days"] = normalize_text(meta.get("available_days")) or format_day_range(day_range)
+        profile["available_day_source"] = "data/merchant_meta.json"
+
+    return dict(sorted(result.items(), key=lambda item: item[0].lower())), warnings
+
+
+def format_day_range(day_range: list[int | None]) -> str:
+    start, end = day_range
+    if end is None:
+        return f"{start}-10+"
+    return f"{start}-{end}"
+
+
+def merchant_available_on_day(profile: dict[str, Any], day: Any) -> bool | None:
+    day_range = normalize_day_range(profile.get("available_day_range"))
+    if day_range is None:
+        return None
+    try:
+        current_day = int(day)
+    except (TypeError, ValueError):
+        return None
+    if current_day <= 0:
+        return None
+
+    start, end = day_range
+    return current_day >= start and (end is None or current_day <= end)
+
+
+def available_merchant_profiles_for_day(
+    profiles: dict[str, dict[str, Any]],
+    day: Any,
+) -> dict[str, dict[str, Any]]:
+    return {
+        name: profile
+        for name, profile in profiles.items()
+        if merchant_available_on_day(profile, day) is not False
+    }
+
+
 def merchant_profile_index(
     profiles: dict[str, dict[str, Any]],
 ) -> dict[str, dict[str, Any]]:

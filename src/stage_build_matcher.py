@@ -86,6 +86,9 @@ def analyze_stage_builds(
         key=lambda item: (
             -IMPORTANCE_RANK[item["importance"]],
             -match_band_rank(item["match_band"]),
+            -float(item.get("core_completion_ratio", 0.0)),
+            -int(item.get("owned_core_count", 0)),
+            int(item.get("core_total", 0)),
             item["build_id"],
         ),
     )
@@ -138,6 +141,9 @@ def match_build(
     owned_optional = [name for name in optional if name in owned_cards]
     relation = build_phase_relation(build, current_phase)
     band = build_match_band(len(owned_core), len(core), len(owned_optional))
+    core_total = len(core)
+    owned_core_count = len(owned_core)
+    core_completion_ratio = owned_core_count / core_total if core_total else 0.0
     reasons: list[str] = []
     if relation == "past_build":
         importance = "ignored"
@@ -162,6 +168,9 @@ def match_build(
         "phase": build["phase"],
         "applicable_stages": build["applicable_stages"],
         "owned_core": owned_core,
+        "owned_core_count": owned_core_count,
+        "core_total": core_total,
+        "core_completion_ratio": round(core_completion_ratio, 4),
         "missing_core": missing_core,
         "owned_optional": owned_optional,
         "match_band": band,

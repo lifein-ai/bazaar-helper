@@ -99,6 +99,44 @@ def test_past_core_is_ignored_and_current_close_core_is_critical() -> None:
     assert result["shop_action"] == "buy_visible"
 
 
+def test_build_ranking_prefers_core_completion_ratio_within_same_band() -> None:
+    data = _data()
+    data["builds"] = {
+        "wide": {
+            "hero": "Vanessa",
+            "name": "Wide",
+            "phase": "mid",
+            "core_cards": ["A", "B", "W1", "W2", "W3", "W4", "W5", "W6", "W7"],
+            "optional_cards": [],
+        },
+        "focused": {
+            "hero": "Vanessa",
+            "name": "Focused",
+            "phase": "mid",
+            "core_cards": ["A", "B", "C", "F1", "F2", "F3"],
+            "optional_cards": [],
+        },
+    }
+    for name in ("W1", "W2", "W3", "W4", "W5", "W6", "W7", "F1", "F2", "F3"):
+        data["cards"][name] = {"size": "Small", "buy_prices": {"silver": 3}}
+
+    result = analyze_stage_builds(
+        data=data,
+        hero="Vanessa",
+        day=7,
+        owned_cards={"A", "B", "C"},
+        candidates=[],
+        gold=10,
+        prestige=15,
+        inventory_slots_used=5,
+        inventory_slots_total=10,
+        current_shop=None,
+    )
+
+    names = [item["name"] for item in result["best_matching_builds"]]
+    assert names.index("Focused") < names.index("Wide")
+
+
 def test_visible_core_bundle_only_uses_actual_candidates() -> None:
     result = analyze_stage_builds(
         data=_data(),

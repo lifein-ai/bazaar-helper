@@ -10,11 +10,15 @@ $ReleaseRoot = Join-Path $ProjectRoot "release\BazaarHelper"
 $DistRoot = Join-Path $ProjectRoot "dist\BazaarHelper"
 $GuidesRoot = Join-Path $ProjectRoot "guides"
 $VenvPython = Join-Path $ProjectRoot ".venv\Scripts\python.exe"
+$BuildVenvRoot = Join-Path $ProjectRoot ".venv-build"
+$BuildVenvPython = Join-Path $BuildVenvRoot "Scripts\python.exe"
 $BundledPython = Join-Path $env:USERPROFILE ".cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe"
 $BuildPythonPathFile = Join-Path $ProjectRoot "build_python_path.txt"
 $InternalTestKey = Join-Path $ProjectRoot "runtime\deepseek_api_key.txt"
 $VersionFile = Join-Path $ProjectRoot "VERSION"
 $RuntimeGameDirFile = Join-Path $env:LOCALAPPDATA "BazaarHelper\runtime\game_dir.txt"
+$BuildPythonImports = "import socket, pytest, PyInstaller, openpyxl, et_xmlfile, packaging.specifiers, docx"
+$RequiredBuildPackages = @("pytest", "pyinstaller", "openpyxl", "et_xmlfile", "packaging", "python-docx")
 
 Set-Location $ProjectRoot
 
@@ -27,11 +31,14 @@ function Test-BuildPython {
     if (-not $PythonExe) {
         return $false
     }
+    if (-not (Test-Path $PythonExe)) {
+        return $false
+    }
 
     try {
         $previousNativeErrorPreference = $PSNativeCommandUseErrorActionPreference
         $PSNativeCommandUseErrorActionPreference = $false
-        & $PythonExe @PythonArgs -c "import socket, pytest, PyInstaller" *> $null
+        & $PythonExe @PythonArgs -c $BuildPythonImports *> $null
         return $LASTEXITCODE -eq 0
     } catch {
         return $false
@@ -42,25 +49,89 @@ function Test-BuildPython {
     }
 }
 
+function Reset-BuildVenv {
+    if (Test-Path $BuildVenvRoot) {
+        $resolvedBuildVenv = [System.IO.Path]::GetFullPath($BuildVenvRoot)
+        $expectedBuildVenv = [System.IO.Path]::GetFullPath((Join-Path $ProjectRoot ".venv-build"))
+        if ($resolvedBuildVenv -ne $expectedBuildVenv) {
+            throw "Unexpected build venv path: $resolvedBuildVenv"
+        }
+        Remove-Item -LiteralPath $resolvedBuildVenv -Recurse -Force
+    }
+}
+
+function Install-BuildPythonPackages {
+    param(
+        [string]$PythonExe,
+        [string[]]$PythonArgs = @()
+    )
+
+    & $PythonExe @PythonArgs -m pip install --upgrade pip
+    if ($LASTEXITCODE -ne 0) {
+        throw "Unable to upgrade pip for build Python."
+    }
+    & $PythonExe @PythonArgs -m pip install @RequiredBuildPackages
+    if ($LASTEXITCODE -ne 0) {
+        throw "Unable to install build Python packages: $($RequiredBuildPackages -join ', ')"
+    }
+}
+
+function New-BuildVenvFrom {
+    param(
+        [object]$BasePython
+    )
+
+    if (-not $BasePython -or -not $BasePython.Exe -or -not (Test-Path $BasePython.Exe)) {
+        return $null
+    }
+
+    Write-Host "Creating local build environment with: $($BasePython.Label)"
+    Reset-BuildVenv
+    & $BasePython.Exe @($BasePython.Args) -m venv $BuildVenvRoot
+    if ($LASTEXITCODE -ne 0) {
+        throw "Unable to create build virtual environment: $BuildVenvRoot"
+    }
+
+    Install-BuildPythonPackages $BuildVenvPython
+    if (Test-BuildPython $BuildVenvPython) {
+        return [pscustomobject]@{
+            Exe = $BuildVenvPython
+            Args = @()
+            Label = "$BuildVenvPython (auto-created)"
+        }
+    }
+
+    return $null
+}
+
 function Resolve-BuildPython {
     $candidates = New-Object System.Collections.Generic.List[object]
     if (Test-Path $BuildPythonPathFile) {
         $configuredPython = (Get-Content -LiteralPath $BuildPythonPathFile -Raw -Encoding UTF8).Trim()
-        if ($configuredPython) {
+        if ($configuredPython -and (Test-Path $configuredPython)) {
             $candidates.Add([pscustomobject]@{
                 Exe = $configuredPython
                 Args = @()
                 Label = "$configuredPython (build_python_path.txt)"
             })
+        } elseif ($configuredPython) {
+            Write-Host "Ignoring stale packaging Python path: $configuredPython" -ForegroundColor Yellow
         }
     }
-    if ($env:BAZAAR_HELPER_BUILD_PYTHON) {
+    if ($env:BAZAAR_HELPER_BUILD_PYTHON -and (Test-Path $env:BAZAAR_HELPER_BUILD_PYTHON)) {
         $candidates.Add([pscustomobject]@{
             Exe = $env:BAZAAR_HELPER_BUILD_PYTHON
             Args = @()
             Label = $env:BAZAAR_HELPER_BUILD_PYTHON
         })
+    } elseif ($env:BAZAAR_HELPER_BUILD_PYTHON) {
+        Write-Host "Ignoring stale BAZAAR_HELPER_BUILD_PYTHON: $env:BAZAAR_HELPER_BUILD_PYTHON" -ForegroundColor Yellow
     }
+    $candidates.Add([pscustomobject]@{
+        Exe = $BuildVenvPython
+        Args = @()
+        Label = $BuildVenvPython
+    })
     $candidates.Add([pscustomobject]@{
         Exe = $VenvPython
         Args = @()
@@ -94,9 +165,41 @@ function Resolve-BuildPython {
         }
     }
 
+    $baseCandidates = @()
+    if ($systemPython -and $systemPython.Source) {
+        $baseCandidates += [pscustomobject]@{
+            Exe = $systemPython.Source
+            Args = @()
+            Label = $systemPython.Source
+        }
+    }
+    if ($pyLauncher -and $pyLauncher.Source) {
+        $baseCandidates += [pscustomobject]@{
+            Exe = $pyLauncher.Source
+            Args = @("-3")
+            Label = "$($pyLauncher.Source) -3"
+        }
+    }
+    $baseCandidates += [pscustomobject]@{
+        Exe = $BundledPython
+        Args = @()
+        Label = $BundledPython
+    }
+
+    foreach ($baseCandidate in $baseCandidates) {
+        try {
+            $created = New-BuildVenvFrom $baseCandidate
+            if ($created) {
+                return $created
+            }
+        } catch {
+            Write-Host "Unable to bootstrap from $($baseCandidate.Label): $($_.Exception.Message)" -ForegroundColor Yellow
+        }
+    }
+
     throw @"
 No usable packaging Python was found.
-Need a Python that can import: socket, pytest, PyInstaller.
+Need a Python that can import: socket, pytest, PyInstaller, openpyxl, et_xmlfile, packaging.specifiers.
 
 Recommended setup:
   C:\Path\To\python.exe -m pip install pytest pyinstaller openpyxl et_xmlfile
@@ -115,10 +218,16 @@ $BuildPython = Resolve-BuildPython
 $BuildPythonExe = $BuildPython.Exe
 $BuildPythonArgs = [string[]]$BuildPython.Args
 Write-Host "Using packaging Python: $($BuildPython.Label)"
-if (-not (Test-Path $BuildPythonPathFile) -and $BuildPythonArgs.Count -eq 0) {
+if ($BuildPythonArgs.Count -eq 0) {
     try {
-        Set-Content -LiteralPath $BuildPythonPathFile -Value $BuildPythonExe -Encoding UTF8
-        Write-Host "Saved packaging Python path to: $BuildPythonPathFile"
+        $savedBuildPython = ""
+        if (Test-Path $BuildPythonPathFile) {
+            $savedBuildPython = (Get-Content -LiteralPath $BuildPythonPathFile -Raw -Encoding UTF8).Trim()
+        }
+        if ($savedBuildPython -ne $BuildPythonExe) {
+            Set-Content -LiteralPath $BuildPythonPathFile -Value $BuildPythonExe -Encoding UTF8
+            Write-Host "Saved packaging Python path to: $BuildPythonPathFile"
+        }
     } catch {
         Write-Host "Unable to save packaging Python path: $($_.Exception.Message)" -ForegroundColor Yellow
     }
@@ -152,6 +261,8 @@ if (Test-Path $PytestTemp) {
 }
 New-Item -ItemType Directory -Path $PytestTemp -Force | Out-Null
 & $BuildPythonExe @BuildPythonArgs -m pytest -q tests\test_app_paths.py tests\test_web_app.py `
+    tests\test_recommender.py `
+    tests\test_shop_state.py `
     tests\test_guide_retriever.py `
     tests\test_update_manager.py `
     tests\test_build_simulation_evaluator.py `

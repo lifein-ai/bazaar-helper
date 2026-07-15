@@ -50,6 +50,7 @@ def analyze_game_state(data: dict, state: GameState, top: int | None = None) -> 
                 all_builds=data["builds"],
                 current_shop=state.effective_shop,
                 current_gold=state.gold,
+                data_context=data,
             )
         )
 

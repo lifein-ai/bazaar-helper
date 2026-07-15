@@ -222,9 +222,13 @@ function Sync-GamePlugin {
 
     $pluginDir = Join-Path $gameDir "BepInEx\plugins\BazaarStateExporter"
     $configPath = Join-Path $gameDir "BepInEx\config\local.bazaar.stateexporter.cfg"
+    $runtimeDir = Join-Path $StateRoot "runtime"
+    $outputPath = Join-Path $runtimeDir "game_state.json"
     New-Item -ItemType Directory -Path $pluginDir -Force | Out-Null
+    New-Item -ItemType Directory -Path $runtimeDir -Force | Out-Null
     Copy-Item -LiteralPath $sourceDll -Destination (Join-Path $pluginDir "BazaarStateExporter.dll") -Force
 
+    Set-PluginConfigValue $configPath "OutputPath" $outputPath
     Set-PluginConfigValue $configPath "HelperExecutablePath" (Join-Path $AppRoot "BazaarHelper.exe")
     Set-PluginConfigValue $configPath "ManualAnalysisKey" "F8"
     Set-PluginConfigValue $configPath "ManualAnalyze" "true"
