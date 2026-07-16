@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from build_strategy import build_applicable_stages, build_phase_relation, get_game_stage_for_day
+from dooley_rules import dooley_missing_unobtainable_core_cards
 
 
 PHASES = ("early", "mid", "late")
@@ -35,7 +36,13 @@ def analyze_stage_builds(
         if isinstance(raw, dict) and raw.get("hero") in (None, hero)
     ]
     build_matches = [
-        match_build(build, owned_cards, current_phase)
+        match_build(
+            build,
+            owned_cards,
+            current_phase,
+            current_day=day,
+            cards=data.get("cards", {}),
+        )
         for build in builds
     ]
     match_by_id = {item["build_id"]: item for item in build_matches}
@@ -81,7 +88,7 @@ def analyze_stage_builds(
         [
             match
             for match in build_matches
-            if match["relation"] != "past_build"
+            if match["relation"] not in {"past_build", "blocked_build"}
         ],
         key=lambda item: (
             -IMPORTANCE_RANK[item["importance"]],
@@ -133,6 +140,8 @@ def match_build(
     build: dict[str, Any],
     owned_cards: set[str],
     current_phase: str,
+    current_day: int | None = None,
+    cards: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     core = build["core_cards"]
     optional = build["optional_cards"]
@@ -140,12 +149,28 @@ def match_build(
     missing_core = [name for name in core if name not in owned_cards]
     owned_optional = [name for name in optional if name in owned_cards]
     relation = build_phase_relation(build, current_phase)
+    blocked_missing_core = dooley_missing_unobtainable_core_cards(
+        hero=str(build.get("hero") or ""),
+        current_day=current_day or 1,
+        core_cards=core,
+        owned_cards=owned_cards,
+        cards=cards,
+    )
     band = build_match_band(len(owned_core), len(core), len(owned_optional))
     core_total = len(core)
     owned_core_count = len(owned_core)
     core_completion_ratio = owned_core_count / core_total if core_total else 0.0
     reasons: list[str] = []
-    if relation == "past_build":
+    if blocked_missing_core:
+        importance = "ignored"
+        band = "none"
+        relation = "blocked_build"
+        reasons.append(
+            "Dooley core event has passed; missing event-only core card(s): "
+            + ", ".join(blocked_missing_core)
+            + "."
+        )
+    elif relation == "past_build":
         importance = "ignored"
         band = "none"
         reasons.append("该阵容已经过期，默认不再提供当前规划价值。")
@@ -203,6 +228,7 @@ def evaluate_candidate(
         )
         if role is None:
             continue
+        match = build_matches.get(build["build_id"], {})
         hits.append(
             {
                 "build_id": build["build_id"],
@@ -210,11 +236,15 @@ def evaluate_candidate(
                 "build_phase": build["phase"],
                 "applicable_stages": build["applicable_stages"],
                 "role": role,
-                "relation": build_phase_relation(build, current_phase),
+                "relation": match.get("relation") or build_phase_relation(build, current_phase),
             }
         )
 
-    active_hits = [hit for hit in hits if hit["relation"] != "past_build"]
+    active_hits = [
+        hit
+        for hit in hits
+        if hit["relation"] not in {"past_build", "blocked_build"}
+    ]
     reasons: list[str] = []
     risks: list[str] = []
     needs_ai = False

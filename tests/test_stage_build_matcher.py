@@ -326,3 +326,84 @@ def test_multi_stage_build_matches_current_stage_until_it_expires() -> None:
     assert mid_result["candidate_cards"][0]["recommendation_type"] == "buy_now"
     assert late_result["candidate_cards"][0]["build_hits"] == []
     assert late_result["candidate_cards"][0]["recommendation_type"] == "skip"
+
+
+def test_dooley_after_day_two_blocks_build_missing_event_only_core() -> None:
+    data = {
+        "builds": {
+            "critical": {
+                "hero": "Dooley",
+                "name": "Critical",
+                "phase": "mid",
+                "core_cards": ["Critical Core", "Tesla Coil"],
+                "optional_cards": [],
+            },
+            "cora": {
+                "hero": "Dooley",
+                "name": "Cora",
+                "phase": "mid",
+                "core_cards": ["C.O.R.A", "Tesla Coil"],
+                "optional_cards": [],
+            },
+        },
+        "cards": {
+            "Critical Core": {"tags": ["core"], "buy_prices": {"silver": 3}},
+            "C.O.R.A": {"tags": ["core"], "buy_prices": {"silver": 3}},
+            "Tesla Coil": {"tags": ["tech"], "buy_prices": {"silver": 3}},
+        },
+    }
+
+    result = analyze_stage_builds(
+        data=data,
+        hero="Dooley",
+        day=6,
+        owned_cards={"Tesla Coil"},
+        candidates=[{"name": "Critical Core"}, {"name": "C.O.R.A"}],
+        gold=10,
+        prestige=15,
+        inventory_slots_used=1,
+        inventory_slots_total=10,
+        current_shop={"refresh_available": True, "refresh_cost": 1},
+    )
+
+    matches = {item["build_id"]: item for item in result["build_matches"]}
+    cards = {item["card_name"]: item for item in result["candidate_cards"]}
+    assert matches["critical"]["relation"] == "blocked_build"
+    assert [item["build_id"] for item in result["best_matching_builds"]] == ["cora"]
+    assert cards["Critical Core"]["build_hits"] == []
+    assert cards["Critical Core"]["recommendation_type"] == "skip"
+    assert cards["C.O.R.A"]["recommendation_type"] == "buy_now"
+
+
+def test_dooley_owned_event_only_core_keeps_build_recommendable() -> None:
+    data = {
+        "builds": {
+            "critical": {
+                "hero": "Dooley",
+                "name": "Critical",
+                "phase": "mid",
+                "core_cards": ["Critical Core", "Tesla Coil"],
+                "optional_cards": [],
+            },
+        },
+        "cards": {
+            "Critical Core": {"tags": ["core"], "buy_prices": {"silver": 3}},
+            "Tesla Coil": {"tags": ["tech"], "buy_prices": {"silver": 3}},
+        },
+    }
+
+    result = analyze_stage_builds(
+        data=data,
+        hero="Dooley",
+        day=6,
+        owned_cards={"Critical Core"},
+        candidates=[{"name": "Tesla Coil"}],
+        gold=10,
+        prestige=15,
+        inventory_slots_used=1,
+        inventory_slots_total=10,
+        current_shop={"refresh_available": True, "refresh_cost": 1},
+    )
+
+    assert result["build_matches"][0]["relation"] == "current_build"
+    assert result["candidate_cards"][0]["recommendation_type"] == "buy_now"

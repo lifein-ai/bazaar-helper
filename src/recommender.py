@@ -3,6 +3,7 @@
 from typing import Any
 
 from build_strategy import build_applies_to_day, build_phase_relation, get_game_stage_for_day
+from dooley_rules import dooley_build_is_blocked_by_missing_core
 from shop_pool_cache import (
     get_cached_shop_pool_summary,
     hydrate_cached_shop_cards,
@@ -390,6 +391,8 @@ def get_alt_core_build_hits(
     current_hero: str | None,
     current_day: int,
     all_builds: dict[str, Any] | None,
+    owned_cards: dict[str, str] | None = None,
+    cards: dict[str, Any] | None = None,
 ) -> list[dict[str, str]]:
     if not all_builds or not current_hero:
         return []
@@ -400,6 +403,14 @@ def get_alt_core_build_hits(
         if build_name == current_build_name or candidate.get("hero") != current_hero:
             continue
         if build_phase_relation(candidate, current_stage) == "past_build":
+            continue
+        if dooley_build_is_blocked_by_missing_core(
+            hero=current_hero,
+            current_day=current_day,
+            build_data=candidate,
+            owned_cards=owned_cards,
+            cards=cards,
+        ):
             continue
         if card_name not in candidate.get("core_cards", []):
             continue
@@ -652,6 +663,13 @@ def _card_strategy_bucket(
         if candidate_name == build_name or candidate.get("hero") != current_hero:
             continue
         if card_name not in candidate.get("core_cards", []):
+            continue
+        if dooley_build_is_blocked_by_missing_core(
+            hero=current_hero,
+            current_day=current_day,
+            build_data=candidate,
+            owned_cards=owned_cards,
+        ):
             continue
         relation = build_phase_relation(candidate, current_stage)
         if relation == "past_build":
@@ -1363,6 +1381,8 @@ def analyze_event(
                 current_hero=current_hero,
                 current_day=current_day,
                 all_builds=all_builds,
+                owned_cards=owned_cards,
+                cards=cards,
             )
         )
         if (

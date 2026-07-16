@@ -24,6 +24,7 @@ from ai_advisor import analyze_with_ai, compact_recommendations
 from build_strategy import applicable_build_names, build_applies_to_day, get_game_stage_for_day
 from combat_simulator import estimate_self_health_ttk
 from data_loader import load_all_data
+from dooley_rules import dooley_build_is_blocked_by_missing_core
 from game_state import GameState
 from guide_retriever import guide_cache_marker, retrieve_guides_for_ai
 from app_paths import get_app_root, get_runtime_dir
@@ -439,6 +440,13 @@ def choose_build(
         name
         for name, build_data in data["builds"].items()
         if build_data.get("hero") in (None, hero)
+        and not dooley_build_is_blocked_by_missing_core(
+            hero=hero,
+            current_day=day,
+            build_data=build_data,
+            owned_cards=owned_cards,
+            cards=data.get("cards", {}),
+        )
     ]
     if hero_builds:
         return hero_builds[0]
@@ -457,6 +465,13 @@ def match_build_from_owned_cards(
         (name, build_data)
         for name, build_data in data["builds"].items()
         if build_data.get("hero") in (None, hero)
+        and not dooley_build_is_blocked_by_missing_core(
+            hero=hero,
+            current_day=day,
+            build_data=build_data,
+            owned_cards=owned_names,
+            cards=data.get("cards", {}),
+        )
     ]
     if not hero_builds:
         return None
@@ -473,7 +488,17 @@ def match_build_from_owned_cards(
     if best_score > 0:
         return best_name
 
-    matching = applicable_build_names(data["builds"], hero, day)
+    matching = [
+        name
+        for name in applicable_build_names(data["builds"], hero, day)
+        if not dooley_build_is_blocked_by_missing_core(
+            hero=hero,
+            current_day=day,
+            build_data=data["builds"].get(name, {}),
+            owned_cards=owned_names,
+            cards=data.get("cards", {}),
+        )
+    ]
     if matching:
         return matching[0]
     return hero_builds[0][0]

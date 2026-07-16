@@ -181,6 +181,66 @@ class RecommenderTests(unittest.TestCase):
         self.assertEqual(early_result["alt_core_card_count"], 1)
         self.assertEqual(late_result["alt_core_card_count"], 0)
 
+    def test_dooley_alt_core_ignores_build_missing_event_only_core_after_day_two(self) -> None:
+        cards = {
+            "Tesla Coil": {
+                "type": "Item",
+                "hero": "Dooley",
+                "heroes": ["Dooley"],
+                "tags": ["tech"],
+                "min_rarity": "bronze",
+                "max_rarity": "diamond",
+                "tier": "C",
+            },
+            "Critical Core": {
+                "type": "Item",
+                "hero": "Dooley",
+                "heroes": ["Dooley"],
+                "tags": ["core"],
+                "min_rarity": "bronze",
+                "max_rarity": "diamond",
+                "tier": "C",
+            },
+        }
+        builds = {
+            "CurrentBuild": {
+                "hero": "Dooley",
+                "core_cards": [],
+                "transition_cards": [],
+                "optional_cards": [],
+            },
+            "BlockedAlt": {
+                "hero": "Dooley",
+                "display_name": "Blocked",
+                "phase": "mid",
+                "core_cards": ["Critical Core", "Tesla Coil"],
+            },
+        }
+
+        result = analyze_event(
+            event_name="Test Reward",
+            event_data={
+                "event_category": "item_rewards",
+                "card_reward": {
+                    "enabled": True,
+                    "exact_names": ["Tesla Coil"],
+                    "hero_scope": "current",
+                    "count": 1,
+                },
+            },
+            cards=cards,
+            build_name="CurrentBuild",
+            build_data=builds["CurrentBuild"],
+            current_day=3,
+            rarity_rules={},
+            current_hero="Dooley",
+            owned_cards={},
+            all_builds=builds,
+        )
+
+        self.assertEqual(result["alt_core_card_count"], 0)
+        self.assertEqual(result["possible_cards"][0]["alt_core_build_hits"], [])
+
     def test_probability_at_least_one(self) -> None:
         self.assertEqual(probability_at_least_one(0.0), 0.0)
         self.assertEqual(probability_at_least_one(1.0), 1.0)
