@@ -17,6 +17,7 @@ sys.path.insert(0, str(SCRIPTS_DIR))
 from ai_advisor import (
     LAST_AI_PROMPT_DEBUG,
     build_ai_messages,
+    call_deepseek,
     compact_recommendations,
     prepare_ai_payload_for_model,
 )
@@ -35,6 +36,20 @@ from web_app import analyze_payload, normalize_payload_for_analysis
 
 
 DATA_DIR = PROJECT_ROOT / "data"
+
+
+class _FakeDeepSeekResponse:
+    def __init__(self, body: str) -> None:
+        self.body = body
+
+    def __enter__(self) -> "_FakeDeepSeekResponse":
+        return self
+
+    def __exit__(self, exc_type, exc, traceback) -> None:
+        return None
+
+    def read(self) -> bytes:
+        return self.body.encode("utf-8")
 BUILD_FIXTURE_PATH = Path(__file__).parent / "fixtures" / "builds.json"
 
 
@@ -635,6 +650,37 @@ class RecommenderTests(unittest.TestCase):
         self.assertIn("top_day_merchants_by_density", encoded)
         self.assertNotIn("card_names", encoded)
         self.assertNotIn("card_ids", encoded)
+
+    def test_ai_payload_tolerates_unknown_build(self) -> None:
+        data = load_all_data(DATA_DIR)
+        payload = compact_recommendations(
+            data=data,
+            hero="Vanessa",
+            build_name="UnknownRuntimeBuild",
+            current_day=5,
+            owned_cards={},
+            results=[],
+            build_analysis={"candidate_cards": []},
+        )
+
+        self.assertEqual(payload["当前阵容"], "UnknownRuntimeBuild")
+        self.assertIn("未匹配", payload["当前阵容适用时机"])
+
+    def test_deepseek_invalid_json_becomes_runtime_error(self) -> None:
+        with (
+            patch("ai_advisor.resolve_api_key", return_value="test-key"),
+            patch("ai_advisor.urllib.request.urlopen", return_value=_FakeDeepSeekResponse("not json")),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "无法解析"):
+                call_deepseek([{"role": "user", "content": "hi"}])
+
+    def test_deepseek_unexpected_shape_becomes_runtime_error(self) -> None:
+        with (
+            patch("ai_advisor.resolve_api_key", return_value="test-key"),
+            patch("ai_advisor.urllib.request.urlopen", return_value=_FakeDeepSeekResponse("[]")),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "不符合预期"):
+                call_deepseek([{"role": "user", "content": "hi"}])
 
     def test_item_and_skill_pools_are_kept_separate(self) -> None:
         cards = {

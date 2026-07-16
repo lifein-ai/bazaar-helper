@@ -3,6 +3,7 @@
 import json
 import os
 import re
+import socket
 import sys
 import urllib.error
 import urllib.request
@@ -975,13 +976,22 @@ def compact_recommendations(
     guide_context: list[dict[str, Any]] | None = None,
     state_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    build_data = data["builds"][build_name]
+    builds = data.get("builds", {})
+    build_data = builds.get(build_name, {}) if isinstance(builds, dict) else {}
+    if not isinstance(build_data, dict):
+        build_data = {}
     current_stage = get_game_stage_for_day(current_day)
     compact_builds = _compact_build_matches(build_analysis)
     current_build_display = (
         build_data.get("name")
         or build_data.get("display_name")
         or build_name
+        or "未知阵容"
+    )
+    build_timing_summary = (
+        format_build_timing_summary(build_data, current_day)
+        if build_data
+        else "当前阵容未匹配到本地阵容数据。"
     )
 
     payload = {
@@ -990,7 +1000,7 @@ def compact_recommendations(
         "天数": current_day,
         "当前阶段": STAGE_LABELS_ZH.get(current_stage, current_stage),
         "当前阵容": current_build_display,
-        "当前阵容适用时机": format_build_timing_summary(build_data, current_day),
+        "当前阵容适用时机": build_timing_summary,
         "当前状态": _compact_state_context(
             data=data,
             owned_cards=owned_cards,
@@ -1314,8 +1324,16 @@ def call_deepseek(
         raise RuntimeError(f"DeepSeek API 返回 HTTP {exc.code}：{error_body}") from exc
     except urllib.error.URLError as exc:
         raise RuntimeError(f"无法连接 DeepSeek API：{exc.reason}") from exc
+    except (TimeoutError, socket.timeout) as exc:
+        raise RuntimeError("连接 DeepSeek API 超时。") from exc
 
-    decoded = json.loads(response_body)
+    try:
+        decoded = json.loads(response_body)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError("DeepSeek API 返回了无法解析的 JSON。") from exc
+    if not isinstance(decoded, dict):
+        raise RuntimeError("DeepSeek API 返回结构不符合预期。")
+
     usage = decoded.get("usage")
     LAST_AI_USAGE.clear()
     if isinstance(usage, dict):
@@ -1332,7 +1350,10 @@ def call_deepseek(
                 + json.dumps(LAST_AI_USAGE, ensure_ascii=False, separators=(",", ":")),
                 file=sys.stderr,
             )
-    return decoded["choices"][0]["message"]["content"]
+    try:
+        return decoded["choices"][0]["message"]["content"]
+    except (KeyError, IndexError, TypeError) as exc:
+        raise RuntimeError("DeepSeek API 返回结构不符合预期。") from exc
 
 
 def analyze_with_ai(

@@ -1426,9 +1426,49 @@ namespace BazaarStateExporter
                 }
             }
 
+            if (webException != null)
+            {
+                string serverMessage = ReadServerErrorMessage(webException);
+                if (!string.IsNullOrEmpty(serverMessage))
+                {
+                    return includeAiForRequest
+                        ? "智能分析失败：" + serverMessage
+                        : "扫描分析失败：" + serverMessage;
+                }
+            }
+
             return includeAiForRequest
                 ? "智能分析失败：" + ex.Message
                 : "扫描分析失败：" + ex.Message;
+        }
+
+        private static string ReadServerErrorMessage(WebException webException)
+        {
+            try
+            {
+                HttpWebResponse response = webException.Response as HttpWebResponse;
+                if (response == null)
+                {
+                    return "";
+                }
+                using (Stream stream = response.GetResponseStream())
+                {
+                    if (stream == null)
+                    {
+                        return "";
+                    }
+                    using (StreamReader reader = new StreamReader(stream, Encoding.UTF8))
+                    {
+                        string body = reader.ReadToEnd();
+                        string parsed = OverlayAnalysisParser.ParseErrorMessage(body);
+                        return string.IsNullOrEmpty(parsed) ? body : parsed;
+                    }
+                }
+            }
+            catch
+            {
+                return "";
+            }
         }
 
         private string BuildAnalysisUrl(bool includeAiForRequest)
@@ -1904,6 +1944,13 @@ namespace BazaarStateExporter
 
     internal static class OverlayAnalysisParser
     {
+        public static string ParseErrorMessage(string json)
+        {
+            return FirstNonEmpty(
+                FindStringProperty(json, "ai_error"),
+                FindStringProperty(json, "error"));
+        }
+
         public static OverlayCombatSimulation ParseCombatSimulation(string json)
         {
             string error = FindStringProperty(json, "error");

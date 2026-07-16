@@ -362,7 +362,7 @@ def attach_cached_ai_analysis(
 
     try:
         ai_analysis = analyze_with_ai(ai_payload)
-    except RuntimeError as exc:
+    except Exception as exc:  # noqa: BLE001 - AI failure should not fail rule analysis.
         response["ai_error"] = str(exc)
         return True
 
@@ -2852,7 +2852,7 @@ def analyze_payload(
         try:
             response["ai_analysis"] = analyze_with_ai(ai_payload)
             AI_ANALYSIS_CACHE[cache_key] = response["ai_analysis"]
-        except RuntimeError as exc:
+        except Exception as exc:  # noqa: BLE001 - AI failure should not fail rule analysis.
             response["ai_error"] = str(exc)
 
     if observation_warning:

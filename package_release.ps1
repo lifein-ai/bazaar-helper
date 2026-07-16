@@ -1,6 +1,7 @@
 param(
     [string]$GameDir = $env:BAZAAR_GAME_DIR,
-    [switch]$SkipGamePluginSync
+    [switch]$SkipGamePluginSync,
+    [switch]$SkipUpdatePackage
 )
 
 $ErrorActionPreference = "Stop"
@@ -17,6 +18,7 @@ $BuildPythonPathFile = Join-Path $ProjectRoot "build_python_path.txt"
 $InternalTestKey = Join-Path $ProjectRoot "runtime\deepseek_api_key.txt"
 $VersionFile = Join-Path $ProjectRoot "VERSION"
 $RuntimeGameDirFile = Join-Path $env:LOCALAPPDATA "BazaarHelper\runtime\game_dir.txt"
+$UpdatePackageScript = Join-Path $ProjectRoot "scripts\make_update_package.ps1"
 $BuildPythonImports = "import socket, pytest, PyInstaller, openpyxl, et_xmlfile, packaging.specifiers, docx"
 $RequiredBuildPackages = @("pytest", "pyinstaller", "openpyxl", "et_xmlfile", "packaging", "python-docx")
 
@@ -225,7 +227,11 @@ if ($BuildPythonArgs.Count -eq 0) {
             $savedBuildPython = (Get-Content -LiteralPath $BuildPythonPathFile -Raw -Encoding UTF8).Trim()
         }
         if ($savedBuildPython -ne $BuildPythonExe) {
-            Set-Content -LiteralPath $BuildPythonPathFile -Value $BuildPythonExe -Encoding UTF8
+            [System.IO.File]::WriteAllText(
+                $BuildPythonPathFile,
+                $BuildPythonExe + [Environment]::NewLine,
+                [System.Text.UTF8Encoding]::new($false)
+            )
             Write-Host "Saved packaging Python path to: $BuildPythonPathFile"
         }
     } catch {
@@ -238,7 +244,7 @@ if (-not (Test-Path $VersionFile)) {
 }
 $ReleaseVersion = (Get-Content -LiteralPath $VersionFile -Raw -Encoding UTF8).Trim()
 
-Write-Host "[1/6] Rebuilding generated event data..."
+Write-Host "[1/7] Rebuilding generated event data..."
 & $BuildPythonExe @BuildPythonArgs .\scripts\build_events_from_encounters.py `
     --encounters .\data\encounters_generated.json `
     --output .\data\events.json
@@ -249,7 +255,7 @@ if (-not (Test-Path (Join-Path $ProjectRoot "data\events.json"))) {
     throw "Generated event data missing: data\events.json"
 }
 
-Write-Host "[2/6] Running release tests..."
+Write-Host "[2/7] Running release tests..."
 $PytestTemp = Join-Path $ProjectRoot ".tmp\pytest-release"
 if (Test-Path $PytestTemp) {
     $resolvedPytestTemp = [System.IO.Path]::GetFullPath($PytestTemp)
@@ -272,19 +278,19 @@ if ($LASTEXITCODE -ne 0) {
     throw "Tests failed."
 }
 
-Write-Host "[3/6] Building BepInEx plugin..."
+Write-Host "[3/7] Building BepInEx plugin..."
 dotnet build .\bepinex\BazaarStateExporter\BazaarStateExporter.csproj -c Release
 if ($LASTEXITCODE -ne 0) {
     throw "BepInEx plugin build failed."
 }
 
-Write-Host "[4/6] Building BazaarHelper.exe..."
+Write-Host "[4/7] Building BazaarHelper.exe..."
 & $BuildPythonExe @BuildPythonArgs -m PyInstaller --noconfirm .\BazaarHelper.spec
 if ($LASTEXITCODE -ne 0) {
     throw "PyInstaller build failed."
 }
 
-Write-Host "[5/6] Assembling complete release folder..."
+Write-Host "[5/7] Assembling complete release folder..."
 & $BuildPythonExe @BuildPythonArgs .\scripts\build_user_guide.py
 if ($LASTEXITCODE -ne 0) {
     throw "User guide build failed."
@@ -319,10 +325,6 @@ Copy-Item -LiteralPath (Join-Path $ProjectRoot "install_plugin.bat") -Destinatio
 Copy-Item -LiteralPath (Join-Path $ProjectRoot "set_ai_key.bat") -Destination $ReleaseRoot
 Copy-Item -LiteralPath (Join-Path $ProjectRoot "README.md") -Destination $ReleaseRoot
 Copy-Item -LiteralPath (Join-Path $ProjectRoot "docs\BazaarHelper_User_Guide.docx") -Destination $ReleaseRoot
-if (-not (Test-Path $InternalTestKey) -or (Get-Item $InternalTestKey).Length -eq 0) {
-    throw "Internal test API key is missing or empty: $InternalTestKey"
-}
-Copy-Item -LiteralPath $InternalTestKey -Destination (Join-Path $ReleaseRoot "bundled_ai_key.txt")
 Copy-Item `
     -LiteralPath (Join-Path $ProjectRoot "bepinex\BazaarStateExporter\bin\Release\net472\BazaarStateExporter.dll") `
     -Destination (Join-Path $ReleaseRoot "bepinex_plugin\BazaarStateExporter.dll")
@@ -332,9 +334,20 @@ $versionInfo = [ordered]@{
     version = $ReleaseVersion
     built_at = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
 }
-$versionInfo | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $ReleaseRoot "version.json") -Encoding UTF8
+$versionJson = $versionInfo | ConvertTo-Json
+[System.IO.File]::WriteAllText(
+    (Join-Path $ReleaseRoot "version.json"),
+    $versionJson + [Environment]::NewLine,
+    [System.Text.UTF8Encoding]::new($false)
+)
 
-Write-Host "[6/6] Verifying release files..."
+if ((Test-Path $InternalTestKey) -and (Get-Item $InternalTestKey).Length -gt 0) {
+    Copy-Item -LiteralPath $InternalTestKey -Destination (Join-Path $ReleaseRoot "bundled_ai_key.txt")
+} else {
+    Write-Host "No internal API key found; release will rely on user-provided DEEPSEEK_API_KEY or set_ai_key.bat." -ForegroundColor Yellow
+}
+
+Write-Host "[6/7] Verifying release files..."
 $CommonGuidesDir = "guides\" + [string]([char]0x901A) + [string]([char]0x7528)
 $requiredPaths = @(
     "BazaarHelper.exe",
@@ -365,7 +378,6 @@ $requiredPaths = @(
     "install_plugin.bat",
     "set_ai_key.bat",
     "BazaarHelper_User_Guide.docx",
-    "bundled_ai_key.txt",
     "bepinex_plugin\BazaarStateExporter.dll"
 )
 
@@ -374,6 +386,21 @@ foreach ($relativePath in $requiredPaths) {
     if (-not (Test-Path $fullPath)) {
         throw "Release file missing: $fullPath"
     }
+}
+
+if (-not $SkipUpdatePackage) {
+    if (-not (Test-Path $UpdatePackageScript)) {
+        throw "Update package script missing: $UpdatePackageScript"
+    }
+    Write-Host "[7/7] Creating update zip and manifest template..."
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $UpdatePackageScript `
+        -ReleaseRoot $ReleaseRoot `
+        -OutputRoot (Join-Path $ProjectRoot "releases")
+    if ($LASTEXITCODE -ne 0) {
+        throw "Update package creation failed."
+    }
+} else {
+    Write-Host "[7/7] Skipping update zip creation."
 }
 
 if (-not $SkipGamePluginSync) {

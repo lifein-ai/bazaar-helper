@@ -299,6 +299,39 @@ class WebAppResilienceTests(unittest.TestCase):
         self.assertEqual(second["ai_analysis"], "cached ai")
         self.assertEqual(ai.call_count, 1)
 
+    def test_ai_analysis_failure_does_not_fail_analysis(self) -> None:
+        web_app.ANALYSIS_CACHE.clear()
+        web_app.AI_PAYLOAD_CACHE.clear()
+        web_app.AI_ANALYSIS_CACHE.clear()
+        data = load_all_data(DATA_DIR)
+        payload = {
+            "source": "bepinex",
+            "hero": "Vanessa",
+            "day": 6,
+            "event_options": ["Colt"],
+            "owned_cards": [],
+            "visible_cards": [],
+        }
+
+        with patch.object(web_app, "analyze_with_ai", side_effect=ValueError("bad ai")):
+            response = web_app.analyze_payload(data, payload, top=3, include_ai=True)
+
+        self.assertIn("recommendations", response)
+        self.assertEqual(response["ai_error"], "bad ai")
+
+    def test_cached_ai_analysis_failure_does_not_fail_analysis(self) -> None:
+        web_app.AI_PAYLOAD_CACHE.clear()
+        web_app.AI_ANALYSIS_CACHE.clear()
+        cache_key = (1, "state", "", 3, "guide")
+        response = {"recommendations": [{"event_name": "Colt"}]}
+        web_app.AI_PAYLOAD_CACHE[cache_key] = {"英雄": "Vanessa"}
+
+        with patch.object(web_app, "analyze_with_ai", side_effect=ValueError("bad ai")):
+            handled = web_app.attach_cached_ai_analysis(response, cache_key)
+
+        self.assertTrue(handled)
+        self.assertEqual(response["ai_error"], "bad ai")
+
     def test_waiting_runtime_state_does_not_error(self) -> None:
         web_app.ANALYSIS_CACHE.clear()
         data = load_all_data(DATA_DIR)
