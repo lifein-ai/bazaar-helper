@@ -586,12 +586,24 @@ def estimated_avg_shop_item_price(
     return weighted_total / usable_probability
 
 
-def max_known_visible_item_price(visible_items: Any) -> int | None:
+def _visible_entry_is_skill(item: dict[str, Any]) -> bool:
+    raw = item.get("raw") if isinstance(item.get("raw"), dict) else {}
+    card_type = item.get("card_type") or item.get("type") or raw.get("card_type") or raw.get("type")
+    return normalize_text(str(card_type)) == "skill"
+
+
+def max_known_visible_item_price(
+    visible_items: Any,
+    *,
+    ignore_skill_prices: bool = False,
+) -> int | None:
     if not isinstance(visible_items, list):
         return None
     prices: list[int] = []
     for item in visible_items:
         if not isinstance(item, dict):
+            continue
+        if ignore_skill_prices and _visible_entry_is_skill(item):
             continue
         price = item.get("price")
         if isinstance(price, (int, float)) and price >= 0:
@@ -769,6 +781,7 @@ def _entry_gold_support(
     current_gold: int | None,
     summary: dict[str, Any] | None,
     estimated_avg_item_price: float | None,
+    free_purchase: bool = False,
 ) -> dict[str, Any]:
     if current_gold is None:
         return {
@@ -779,6 +792,25 @@ def _entry_gold_support(
             "supports_entry": None,
             "supports_refresh_then_buy": None,
             "reason": "current_gold_unknown",
+        }
+    if free_purchase:
+        refresh_cost = (
+            _optional_nonnegative_int(summary.get("base_refresh_cost"))
+            if isinstance(summary, dict)
+            else None
+        )
+        return {
+            "status": "free_purchase",
+            "gold_known": True,
+            "price_known": True,
+            "current_gold": current_gold,
+            "supports_entry": True,
+            "supports_refresh_then_buy": (
+                current_gold >= refresh_cost if refresh_cost is not None else None
+            ),
+            "estimated_purchase_price": 0,
+            "estimated_purchase_price_source": "skill_shop_free",
+            "base_refresh_cost": refresh_cost,
         }
 
     price = None
@@ -944,6 +976,7 @@ def build_shop_entry_analysis(
         current_gold=current_gold,
         summary=shop_pool_summary,
         estimated_avg_item_price=estimated_avg_item_price,
+        free_purchase=event_data.get("event_category") == "skill_shops",
     )
 
     counts = target_profile["counts"]
@@ -1047,6 +1080,7 @@ def build_shop_inside_analysis(
     shop_entry_analysis: dict[str, Any] | None,
     estimated_avg_item_price: float | None,
     refresh_pool_ratio: float,
+    free_skill_prices: bool = False,
 ) -> dict[str, Any]:
     refresh_available = current_shop.get("refresh_available") if current_shop else None
     refresh_cost = _optional_nonnegative_int(current_shop.get("refresh_cost")) if current_shop else None
@@ -1055,7 +1089,10 @@ def build_shop_inside_analysis(
         if current_shop
         else None
     )
-    visible_known_price = max_known_visible_item_price(visible_items)
+    visible_known_price = max_known_visible_item_price(
+        visible_items,
+        ignore_skill_prices=free_skill_prices,
+    )
     purchase_budget_price = (
         float(visible_known_price)
         if visible_known_price is not None
@@ -1092,7 +1129,11 @@ def build_shop_inside_analysis(
     ]
     for card in visible_targets:
         visible = visible_by_name.get(str(card.get("name")), {})
-        price = _optional_nonnegative_int(visible.get("price"))
+        price = (
+            None
+            if free_skill_prices and _visible_entry_is_skill(visible)
+            else _optional_nonnegative_int(visible.get("price"))
+        )
         affordable = (
             current_gold >= price
             if current_gold is not None and price is not None
@@ -1325,7 +1366,7 @@ def analyze_event(
             cards,
             rarity_rules,
         )
-        if is_shop
+        if is_shop and event_data.get("event_category") != "skill_shops"
         else None
     )
     shop_entry_analysis = (
@@ -1501,6 +1542,7 @@ def analyze_event(
                 shop_entry_analysis=shop_entry_analysis,
                 estimated_avg_item_price=estimated_avg_item_price,
                 refresh_pool_ratio=refresh_pool_ratio,
+                free_skill_prices=event_data.get("event_category") == "skill_shops",
             )
             shop_decision = shop_inside_analysis
             reasons.insert(0, str(shop_inside_analysis.get("reason") or "shop_inside_analysis"))

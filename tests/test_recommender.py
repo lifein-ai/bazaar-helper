@@ -1451,6 +1451,38 @@ class RecommenderTests(unittest.TestCase):
         self.assertTrue(all(card["raw"]["type"] == "Skill" for card in cards))
         self.assertTrue(all("ammo" in card["tags"] for card in cards))
 
+    def test_skill_shop_visible_skill_ignores_runtime_price(self) -> None:
+        data = load_all_data(DATA_DIR)
+        result = analyze_event(
+            event_name="C4",
+            event_data=data["events"]["C4"],
+            cards=data["cards"],
+            build_name="test_skill_build",
+            build_data={"core_cards": ["Depth Charge"]},
+            current_day=6,
+            rarity_rules=data["rarity_rules"],
+            current_hero="Vanessa",
+            current_shop={
+                "visible_items": [
+                    {"name": "Depth Charge", "card_type": "Skill", "price": 99}
+                ],
+                "refresh_available": True,
+                "refresh_cost": 1,
+            },
+            current_gold=0,
+        )
+
+        analysis = result["shop_inside_analysis"]
+        self.assertEqual(analysis["action"], "buy")
+        self.assertEqual(analysis["worth_buying"][0]["name"], "Depth Charge")
+        self.assertIsNone(analysis["worth_buying"][0]["price"])
+        self.assertIsNone(analysis["worth_buying"][0]["affordable"])
+        self.assertIsNone(analysis["purchase_budget_price"])
+        self.assertEqual(
+            result["shop_entry_analysis"]["gold_support"]["estimated_purchase_price"],
+            0,
+        )
+
     def test_generated_events_include_followup_options(self) -> None:
         data = load_all_data(DATA_DIR)
         mushroom_options = {

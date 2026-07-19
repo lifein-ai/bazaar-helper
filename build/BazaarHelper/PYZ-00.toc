@@ -119,6 +119,7 @@
   ('dis',
    'C:\\Users\\MR\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\dis.py',
    'PYMODULE'),
+  ('dooley_rules', 'D:\\bazzarhelp\\src\\dooley_rules.py', 'PYMODULE'),
   ('email',
    'C:\\Users\\MR\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\email\\__init__.py',
    'PYMODULE'),

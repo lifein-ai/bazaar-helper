@@ -17,6 +17,8 @@ $StateRoot = Join-Path $LocalAppData "BazaarHelper"
 $UpdateRoot = Join-Path $StateRoot "updates"
 $BackupRoot = Join-Path $StateRoot "backups"
 $LogPath = Join-Path $StateRoot "update.log"
+$RuntimeRoot = Join-Path $StateRoot "runtime"
+$HelperPathFile = Join-Path $RuntimeRoot "helper_path.txt"
 
 function Write-UpdateLog {
     param([string]$Message)
@@ -242,6 +244,13 @@ function Sync-GamePlugin {
     Write-UpdateLog "Synced BepInEx plugin to game directory: $gameDir"
 }
 
+function Write-HelperPathRecord {
+    $exe = Join-Path $AppRoot "BazaarHelper.exe"
+    New-Item -ItemType Directory -Path $RuntimeRoot -Force | Out-Null
+    [System.IO.File]::WriteAllText($HelperPathFile, $exe, [System.Text.UTF8Encoding]::new($false))
+    Write-UpdateLog "Recorded BazaarHelper executable path: $exe"
+}
+
 function Start-UpdatedApp {
     $exe = Join-Path $AppRoot "BazaarHelper.exe"
     if (Test-Path $exe) {
@@ -343,6 +352,7 @@ try {
     Write-UpdateLog "Installing update version $payloadVersion."
     Remove-ReplacedProgramPaths $payloadRoot $AppRoot
     Copy-Payload $payloadRoot $AppRoot
+    Write-HelperPathRecord
     try {
         Sync-GamePlugin $AppRoot
     } catch {

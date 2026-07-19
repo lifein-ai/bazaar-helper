@@ -15,6 +15,7 @@ set "RUNTIME_DIR=%LOCALAPPDATA%\BazaarHelper\runtime"
 set "OUTPUT_PATH=%RUNTIME_DIR%\game_state.json"
 set "INSTALL_STATUS_PATH=%RUNTIME_DIR%\install_status.json"
 set "GAME_DIR_PATH=%RUNTIME_DIR%\game_dir.txt"
+set "HELPER_PATH_FILE=%RUNTIME_DIR%\helper_path.txt"
 set "HELPER_EXE=%~dp0BazaarHelper.exe"
 
 if not exist "!RUNTIME_DIR!" mkdir "!RUNTIME_DIR!"
@@ -88,12 +89,33 @@ if errorlevel 1 (
 set "BAZAAR_CONFIG_FILE=!CONFIG_FILE!"
 set "BAZAAR_OUTPUT_PATH=!OUTPUT_PATH!"
 set "BAZAAR_HELPER_EXE=!HELPER_EXE!"
+set "BAZAAR_HELPER_PATH_FILE=!HELPER_PATH_FILE!"
 set "BAZAAR_GAME_DIR_FILE=!GAME_DIR_PATH!"
 set "BAZAAR_GAME_DIR=!GAME_DIR!"
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$lines = @('[Export]', ('OutputPath = ' + $env:BAZAAR_OUTPUT_PATH), 'PollIntervalSeconds = 1', 'EnableHudResourceScanning = true', 'EnableVisibleCardScanning = true', '', '[Debug]', 'WritePlaceholderWhenEmpty = false', 'EnableRuntimeInspection = false', '', '[Overlay]', 'EnableInGameOverlay = true', 'HelperBaseUrl = http://127.0.0.1:8765', 'AutoStartHelper = true', ('HelperExecutablePath = ' + $env:BAZAAR_HELPER_EXE), 'ManualAnalyze = true', 'IncludeAi = false', 'AutoAnalyze = false', 'FontScale = 1.15', 'ToggleKey = F7', 'LockToggleKey = F6', 'ManualAnalysisKey = F8', 'AiAnalysisKey = F5', 'Locked = true', 'RecommendationX = 16', 'RecommendationY = 56', 'RecommendationWidth = 500', 'RecommendationHeight = 620', 'BuildX = 532', 'BuildY = 56', 'BuildWidth = 400', 'BuildHeight = 620'); [System.IO.File]::WriteAllLines($env:BAZAAR_CONFIG_FILE, $lines, [System.Text.UTF8Encoding]::new($false)); [System.IO.File]::WriteAllText($env:BAZAAR_GAME_DIR_FILE, $env:BAZAAR_GAME_DIR, [System.Text.UTF8Encoding]::new($false))"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$lines = @('[Export]', ('OutputPath = ' + $env:BAZAAR_OUTPUT_PATH), 'PollIntervalSeconds = 1', 'EnableHudResourceScanning = true', 'EnableVisibleCardScanning = true', '', '[Debug]', 'WritePlaceholderWhenEmpty = false', 'EnableRuntimeInspection = false', '', '[Overlay]', 'EnableInGameOverlay = true', 'HelperBaseUrl = http://127.0.0.1:8765', 'AutoStartHelper = true', ('HelperExecutablePath = ' + $env:BAZAAR_HELPER_EXE), 'ManualAnalyze = true', 'IncludeAi = false', 'AutoAnalyze = false', 'FontScale = 1.15', 'ToggleKey = F7', 'LockToggleKey = F6', 'ManualAnalysisKey = F8', 'AiAnalysisKey = F5', 'Locked = true', 'RecommendationX = 16', 'RecommendationY = 56', 'RecommendationWidth = 500', 'RecommendationHeight = 620', 'BuildX = 532', 'BuildY = 56', 'BuildWidth = 400', 'BuildHeight = 620'); [System.IO.File]::WriteAllLines($env:BAZAAR_CONFIG_FILE, $lines, [System.Text.UTF8Encoding]::new($false)); [System.IO.File]::WriteAllText($env:BAZAAR_GAME_DIR_FILE, $env:BAZAAR_GAME_DIR, [System.Text.UTF8Encoding]::new($false)); [System.IO.File]::WriteAllText($env:BAZAAR_HELPER_PATH_FILE, $env:BAZAAR_HELPER_EXE, [System.Text.UTF8Encoding]::new($false))"
 if errorlevel 1 (
     echo ERROR: Cannot write plugin config:
     echo !CONFIG_FILE!
+    pause
+    exit /b 1
+)
+
+echo.
+echo Starting BazaarHelper local API service...
+if exist "%~dp0start.bat" (
+    call "%~dp0start.bat"
+) else (
+    start "BazaarHelper" "!HELPER_EXE!" --port 8765 --api-only
+)
+
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$ok = $false; for ($i = 0; $i -lt 12; $i++) { try { $r = Invoke-RestMethod -UseBasicParsing -Uri 'http://127.0.0.1:8765/' -TimeoutSec 1; if ($r.ok -eq $true -and $r.analysis_endpoint -eq '/api/analysis') { $ok = $true; break } } catch { Start-Sleep -Milliseconds 500 } }; if ($ok) { exit 0 } else { exit 1 }" >nul 2>&1
+if errorlevel 1 (
+    echo ERROR: BazaarHelper local API service did not respond on:
+    echo http://127.0.0.1:8765/
+    echo.
+    echo Please run start.bat manually and check whether Windows security software blocks BazaarHelper.exe.
+    echo If start.bat opens and closes immediately, send this file:
+    echo %LOCALAPPDATA%\BazaarHelper\update.log
     pause
     exit /b 1
 )

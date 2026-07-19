@@ -530,15 +530,12 @@ namespace BazaarStateExporter
             {
                 RuntimeStateCache.ClearShopRefresh();
             }
-            bool selectionSetIsShopItems =
+            bool selectionSetIsShopOffers =
                 (!selectionSetHasEncounters || screenModeIsShop)
                 && RuntimeStateCache.ShopRefreshAvailable.HasValue
                 && selectedCards.Count > 0
-                && selectedCards.All(card => string.Equals(
-                    card.card_type,
-                    "Item",
-                    StringComparison.OrdinalIgnoreCase));
-            if (selectionSetIsShopItems)
+                && selectedCards.All(card => IsShopOfferCardType(card.card_type));
+            if (selectionSetIsShopOffers)
             {
                 snapshot.event_options.Clear();
                 snapshot.event_option_ids.Clear();
@@ -568,7 +565,7 @@ namespace BazaarStateExporter
             HashSet<string> eventOptionIdSet = new HashSet<string>(snapshot.event_option_ids);
             HashSet<string> detailedEventOptionIds = new HashSet<string>();
             List<CardSnapshot> shopCards = new List<CardSnapshot>();
-            if (selectionSetIsShopItems && !screenModeIsShop)
+            if (selectionSetIsShopOffers && !screenModeIsShop)
             {
                 shopCards.AddRange(selectedCards);
             }
@@ -639,7 +636,7 @@ namespace BazaarStateExporter
 
             // Rebuild screen-specific groups after merging UI-captured cards so
             // current_shop never includes Selection/Reward cards.
-            if (!selectionSetIsShopItems && !screenModeIsShop)
+            if (!selectionSetIsShopOffers && !screenModeIsShop)
             {
                 shopCards.Clear();
             }
@@ -991,7 +988,7 @@ namespace BazaarStateExporter
         {
             if (card == null
                 || string.IsNullOrEmpty(card.id)
-                || !string.Equals(card.card_type, "Item", StringComparison.OrdinalIgnoreCase))
+                || !IsShopOfferCardType(card.card_type))
             {
                 return false;
             }
@@ -1010,6 +1007,12 @@ namespace BazaarStateExporter
                 || context.IndexOf("Merchant", StringComparison.OrdinalIgnoreCase) >= 0
                 || context.IndexOf("OpponentItemSocket_", StringComparison.OrdinalIgnoreCase) >= 0
                 || context.IndexOf("OpponentPortraitSocketMerchant", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static bool IsShopOfferCardType(string cardType)
+        {
+            return string.Equals(cardType, "Item", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(cardType, "Skill", StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool IsCurrentEventOptionCard(CardSnapshot card)
@@ -2363,7 +2366,9 @@ namespace BazaarStateExporter
                 card_type = card.card_type,
                 source = card.source,
                 ui_context = card.ui_context,
-                price = card.price,
+                price = string.Equals(card.card_type, "Skill", StringComparison.OrdinalIgnoreCase)
+                    ? null
+                    : card.price,
                 runtime_type = card.runtime_type,
             };
             clone.enchantments.AddRange(card.enchantments);

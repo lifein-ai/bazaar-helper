@@ -1552,7 +1552,7 @@ namespace BazaarStateExporter
             }
             lastHelperStartAttemptUtc = now;
 
-            string executablePath = helperExecutablePath == null ? "" : helperExecutablePath.Value.Trim();
+            string executablePath = ResolveHelperExecutablePath();
             if (string.IsNullOrEmpty(executablePath) || !File.Exists(executablePath))
             {
                 logger?.LogInfo(
@@ -1579,6 +1579,50 @@ namespace BazaarStateExporter
             catch (Exception ex)
             {
                 logger?.LogInfo("In-game overlay failed to auto-start BazaarHelper: " + ex.Message);
+            }
+        }
+
+        private string ResolveHelperExecutablePath()
+        {
+            string configuredPath = helperExecutablePath == null ? "" : helperExecutablePath.Value.Trim();
+            if (!string.IsNullOrEmpty(configuredPath) && File.Exists(configuredPath))
+            {
+                return configuredPath;
+            }
+
+            string rememberedPath = ReadRememberedHelperExecutablePath();
+            if (!string.IsNullOrEmpty(rememberedPath) && File.Exists(rememberedPath))
+            {
+                logger?.LogInfo(
+                    "In-game overlay using remembered BazaarHelper path because configured path is missing: "
+                    + rememberedPath);
+                return rememberedPath;
+            }
+
+            return configuredPath;
+        }
+
+        private static string ReadRememberedHelperExecutablePath()
+        {
+            try
+            {
+                string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                if (string.IsNullOrEmpty(localAppData))
+                {
+                    return "";
+                }
+
+                string pathFile = Path.Combine(localAppData, "BazaarHelper", "runtime", "helper_path.txt");
+                if (!File.Exists(pathFile))
+                {
+                    return "";
+                }
+
+                return File.ReadAllText(pathFile, Encoding.UTF8).Trim();
+            }
+            catch
+            {
+                return "";
             }
         }
 

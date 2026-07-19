@@ -1118,7 +1118,7 @@ namespace BazaarStateExporter
         {
             if (card == null
                 || string.IsNullOrEmpty(card.id)
-                || !string.Equals(card.card_type, "Item", StringComparison.OrdinalIgnoreCase))
+                || !IsShopOfferCardType(card.card_type))
             {
                 return false;
             }
@@ -1140,6 +1140,12 @@ namespace BazaarStateExporter
                 || context.IndexOf("OpponentPortraitSocketMerchant", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
+        private static bool IsShopOfferCardType(string cardType)
+        {
+            return string.Equals(cardType, "Item", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(cardType, "Skill", StringComparison.OrdinalIgnoreCase);
+        }
+
         private static CardSnapshot BuildCardSnapshot(object controller, string source)
         {
             object cardData = GetProperty(controller, "CardData");
@@ -1159,7 +1165,12 @@ namespace BazaarStateExporter
                 card_type = StringValue(GetProperty(cardData, "Type")),
                 source = source,
                 ui_context = GetUiContext(controller),
-                price = GetCurrentPrice(controller),
+                price = string.Equals(
+                    StringValue(GetProperty(cardData, "Type")),
+                    "Skill",
+                    StringComparison.OrdinalIgnoreCase)
+                    ? null
+                    : GetCurrentPrice(controller),
             };
 
             if (HasValue(enchantment))

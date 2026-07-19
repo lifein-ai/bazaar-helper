@@ -18,6 +18,7 @@ $BuildPythonPathFile = Join-Path $ProjectRoot "build_python_path.txt"
 $InternalTestKey = Join-Path $ProjectRoot "runtime\deepseek_api_key.txt"
 $VersionFile = Join-Path $ProjectRoot "VERSION"
 $RuntimeGameDirFile = Join-Path $env:LOCALAPPDATA "BazaarHelper\runtime\game_dir.txt"
+$RuntimeHelperPathFile = Join-Path $env:LOCALAPPDATA "BazaarHelper\runtime\helper_path.txt"
 $UpdatePackageScript = Join-Path $ProjectRoot "scripts\make_update_package.ps1"
 $BuildPythonImports = "import socket, pytest, PyInstaller, openpyxl, et_xmlfile, packaging.specifiers, docx"
 $RequiredBuildPackages = @("pytest", "pyinstaller", "openpyxl", "et_xmlfile", "packaging", "python-docx")
@@ -498,6 +499,11 @@ if (-not $SkipGamePluginSync) {
             }
             [System.IO.File]::WriteAllLines($configPath, $lines, [System.Text.UTF8Encoding]::new($false))
         }
+        [System.IO.File]::WriteAllText(
+            $RuntimeHelperPathFile,
+            (Join-Path $ReleaseRoot "BazaarHelper.exe"),
+            [System.Text.UTF8Encoding]::new($false)
+        )
         Write-Host "Synced BepInEx plugin to game directory:" -ForegroundColor Green
         Write-Host $GameDir
     } else {
