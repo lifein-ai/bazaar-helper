@@ -19,8 +19,10 @@ namespace BazaarStateExporter
         {
             RuntimeCardExportResult result = new RuntimeCardExportResult();
             string liveCardsPath = ResolveLiveCardsPath(outputPath);
+            string liveMonstersPath = ResolveLiveMonstersPath(outputPath);
             string diagnosticsPath = ResolveDiagnosticsPath(outputPath);
             result.OutputPath = liveCardsPath;
+            result.MonstersOutputPath = liveMonstersPath;
             result.DiagnosticsPath = diagnosticsPath;
 
             // Keep the one-shot export light. Full diagnostics scan every loaded type and
@@ -32,6 +34,7 @@ namespace BazaarStateExporter
             try
             {
                 List<Dictionary<string, object>> cards = new List<Dictionary<string, object>>();
+                List<Dictionary<string, object>> monsters = new List<Dictionary<string, object>>();
                 object clientCacheType = FindLoadedType("TheBazaar.ClientCache");
                 result.FoundClientCache = clientCacheType != null;
 
@@ -64,6 +67,14 @@ namespace BazaarStateExporter
                     WriteJsonAtomic(liveCardsPath, cards);
                 }
 
+                object staticDataManager = TryGetStaticDataManager();
+                result.FoundStaticDataManager = staticDataManager != null;
+                if (TryCollectMonstersFromStaticData(staticDataManager, monsters, result, logger))
+                {
+                    result.ExportedMonsterCount = monsters.Count;
+                    WriteJsonAtomic(liveMonstersPath, monsters);
+                }
+
                 if (logger != null)
                 {
                     logger.LogInfo("Runtime card export: found TheBazaar.ClientCache=" + result.FoundClientCache);
@@ -77,8 +88,12 @@ namespace BazaarStateExporter
                     logger.LogInfo("Runtime card export: LoadCardMap count=" + result.LoadCardMapCount);
                     logger.LogInfo("Runtime card export: found CardMap=" + result.FoundCardMap);
                     logger.LogInfo("Runtime card export: exported card count=" + result.ExportedCardCount);
+                    logger.LogInfo("Runtime card export: found StaticDataManager=" + result.FoundStaticDataManager);
+                    logger.LogInfo("Runtime card export: MonsterMap count=" + result.MonsterMapCount);
+                    logger.LogInfo("Runtime card export: exported monster count=" + result.ExportedMonsterCount);
                     logger.LogInfo("Runtime card export: found Karnok=" + result.FoundKarnok);
                     logger.LogInfo("Runtime card export: live_cards_raw.json write path=" + liveCardsPath);
+                    logger.LogInfo("Runtime card export: live_monsters_raw.json write path=" + liveMonstersPath);
                     logger.LogInfo("Runtime card export: cache diagnostics skipped for performance.");
                     if (cards.Count == 0)
                     {
@@ -255,6 +270,417 @@ namespace BazaarStateExporter
 
             AppendCardsFromValue(map, cards, result);
             return cards.Count > 0;
+        }
+
+        private static object TryGetStaticDataManager()
+        {
+            Type dataType = FindLoadedType("TheBazaar.Data");
+            object manager;
+            if (dataType != null && TryInvokeMember(dataType, "GetStatic", new object[0], out manager) && manager != null)
+            {
+                return manager;
+            }
+
+            Type bppType = FindLoadedType("BazaarPlusPlus.GameInterop.StaticCards.BppStaticDataAccess");
+            if (bppType != null && TryInvokeParameterlessMember(bppType, "TryGetReadyManagerObject", out manager) && manager != null)
+            {
+                return manager;
+            }
+
+            return null;
+        }
+
+        private static bool TryCollectMonstersFromStaticData(
+            object staticDataManager,
+            List<Dictionary<string, object>> monsters,
+            RuntimeCardExportResult result,
+            ManualLogSource logger)
+        {
+            if (staticDataManager == null || monsters == null)
+            {
+                return false;
+            }
+
+            object monsterMap = FindMemberValue(staticDataManager, "_monsters", "Monsters", "MonsterMap");
+            if (monsterMap == null)
+            {
+                return false;
+            }
+
+            int monsterMapCount;
+            if (TryGetCollectionCount(monsterMap, out monsterMapCount))
+            {
+                result.MonsterMapCount = monsterMapCount;
+            }
+
+            object cardMap = null;
+            TryInvokeMember(staticDataManager, "GetCardMap", new object[0], out cardMap);
+            Dictionary<string, List<Dictionary<string, object>>> encountersByMonsterId =
+                BuildCombatEncounterLinks(cardMap);
+
+            foreach (object monster in EnumerateDictionaryValues(monsterMap))
+            {
+                Dictionary<string, object> record =
+                    BuildMonsterRecord(monster, staticDataManager, encountersByMonsterId);
+                if (record != null)
+                {
+                    monsters.Add(record);
+                }
+            }
+
+            return monsters.Count > 0;
+        }
+
+        private static Dictionary<string, List<Dictionary<string, object>>> BuildCombatEncounterLinks(object cardMap)
+        {
+            Dictionary<string, List<Dictionary<string, object>>> result =
+                new Dictionary<string, List<Dictionary<string, object>>>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (object template in EnumerateDictionaryValues(cardMap))
+            {
+                if (template == null)
+                {
+                    continue;
+                }
+
+                object combatant = FindMemberValue(template, "CombatantType", "<CombatantType>k__BackingField");
+                string monsterTemplateId = ReadStringFromSources(
+                    combatant,
+                    null,
+                    "MonsterTemplateId",
+                    "<MonsterTemplateId>k__BackingField");
+                if (string.IsNullOrEmpty(monsterTemplateId))
+                {
+                    continue;
+                }
+
+                Dictionary<string, object> card = BuildCardRecord(template);
+                if (card == null)
+                {
+                    continue;
+                }
+
+                card["monster_template_id"] = monsterTemplateId;
+                string level = ReadStringFromSources(combatant, null, "Level", "<Level>k__BackingField");
+                if (!string.IsNullOrEmpty(level))
+                {
+                    card["monster_level"] = level;
+                }
+
+                List<Dictionary<string, object>> links;
+                if (!result.TryGetValue(monsterTemplateId, out links))
+                {
+                    links = new List<Dictionary<string, object>>();
+                    result[monsterTemplateId] = links;
+                }
+                links.Add(card);
+            }
+
+            return result;
+        }
+
+        private static Dictionary<string, object> BuildMonsterRecord(
+            object monster,
+            object staticDataManager,
+            Dictionary<string, List<Dictionary<string, object>>> encountersByMonsterId)
+        {
+            if (monster == null)
+            {
+                return null;
+            }
+
+            string id = ReadStringFromSources(monster, null, "Id", "<Id>k__BackingField");
+            string internalName = ReadStringFromSources(
+                monster,
+                null,
+                "InternalName",
+                "<InternalName>k__BackingField");
+            object player = FindMemberValue(monster, "Player", "<Player>k__BackingField");
+
+            Dictionary<string, object> record =
+                new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            record["id"] = EmptyToNull(id);
+            record["template_id"] = EmptyToNull(id);
+            record["internal_name"] = EmptyToNull(internalName);
+            record["name"] = EmptyToNull(internalName);
+            record["health"] = TryReadPlayerHealth(player);
+            record["attributes"] = SerializeRawEffectValue(
+                FindMemberValue(player, "Attributes", "<Attributes>k__BackingField"),
+                0,
+                new HashSet<object>(ReferenceEqualityComparer.Instance));
+            record["items"] = BuildMonsterItemInstances(player, staticDataManager);
+            record["skills"] = BuildMonsterSkillInstances(player, staticDataManager);
+
+            List<Dictionary<string, object>> encounters;
+            if (!string.IsNullOrEmpty(id)
+                && encountersByMonsterId != null
+                && encountersByMonsterId.TryGetValue(id, out encounters))
+            {
+                record["encounters"] = encounters;
+            }
+            else
+            {
+                record["encounters"] = new List<Dictionary<string, object>>();
+            }
+
+            return record;
+        }
+
+        private static List<Dictionary<string, object>> BuildMonsterItemInstances(
+            object player,
+            object staticDataManager)
+        {
+            List<Dictionary<string, object>> result = new List<Dictionary<string, object>>();
+            object hand = FindMemberValue(player, "Hand", "<Hand>k__BackingField");
+            AppendCardInstances(result, FindMemberValue(hand, "Items", "<Items>k__BackingField"), "Hand", staticDataManager);
+            object stash = FindMemberValue(player, "Stash", "<Stash>k__BackingField");
+            AppendCardInstances(result, FindMemberValue(stash, "Items", "<Items>k__BackingField"), "Stash", staticDataManager);
+            return result;
+        }
+
+        private static List<Dictionary<string, object>> BuildMonsterSkillInstances(
+            object player,
+            object staticDataManager)
+        {
+            List<Dictionary<string, object>> result = new List<Dictionary<string, object>>();
+            AppendCardInstances(
+                result,
+                FindMemberValue(player, "Skills", "<Skills>k__BackingField"),
+                "Skill",
+                staticDataManager);
+            return result;
+        }
+
+        private static void AppendCardInstances(
+            List<Dictionary<string, object>> result,
+            object instances,
+            string section,
+            object staticDataManager)
+        {
+            if (result == null || instances == null)
+            {
+                return;
+            }
+
+            foreach (object instance in EnumerateDictionaryValues(instances))
+            {
+                Dictionary<string, object> record =
+                    BuildCardInstanceRecord(instance, section, staticDataManager);
+                if (record != null)
+                {
+                    result.Add(record);
+                }
+            }
+        }
+
+        private static Dictionary<string, object> BuildCardInstanceRecord(
+            object instance,
+            string section,
+            object staticDataManager)
+        {
+            if (instance == null)
+            {
+                return null;
+            }
+
+            string templateId = ReadStringFromSources(
+                instance,
+                null,
+                "TemplateId",
+                "<TemplateId>k__BackingField");
+            Dictionary<string, object> record =
+                new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            record["id"] = EmptyToNull(ReadStringFromSources(
+                instance,
+                null,
+                "InstanceId",
+                "<InstanceId>k__BackingField"));
+            record["template_id"] = EmptyToNull(templateId);
+            record["section"] = section;
+            record["rarity"] = EmptyToNull(ReadStringFromSources(instance, null, "Tier", "<Tier>k__BackingField"));
+            record["socket_id"] = EmptyToNull(ReadStringFromSources(instance, null, "SocketId", "<SocketId>k__BackingField"));
+            record["enchantment"] = EmptyToNull(ReadStringFromSources(
+                instance,
+                null,
+                "EnchantmentType",
+                "<EnchantmentType>k__BackingField"));
+            record["attributes"] = SerializeRawEffectValue(
+                FindMemberValue(instance, "Attributes", "<Attributes>k__BackingField"),
+                0,
+                new HashSet<object>(ReferenceEqualityComparer.Instance));
+
+            object template = ResolveStaticCardTemplate(staticDataManager, templateId);
+            Dictionary<string, object> templateRecord = BuildCardRecord(template);
+            if (templateRecord != null)
+            {
+                CopyIfPresent(templateRecord, record, "name");
+                CopyIfPresent(templateRecord, record, "internal_name");
+                CopyIfPresent(templateRecord, record, "card_type");
+                CopyIfPresent(templateRecord, record, "size");
+                CopyIfPresent(templateRecord, record, "tags");
+                CopyIfPresent(templateRecord, record, "hidden_tags");
+                CopyIfPresent(templateRecord, record, "description");
+            }
+
+            return record;
+        }
+
+        private static object ResolveStaticCardTemplate(object staticDataManager, string templateId)
+        {
+            if (staticDataManager == null || string.IsNullOrEmpty(templateId))
+            {
+                return null;
+            }
+
+            Guid parsed;
+            if (!Guid.TryParse(templateId, out parsed))
+            {
+                return null;
+            }
+
+            object template;
+            return TryInvokeMember(staticDataManager, "GetCardById", new object[] { parsed }, out template)
+                ? template
+                : null;
+        }
+
+        private static object TryReadPlayerHealth(object player)
+        {
+            object attributes = FindMemberValue(player, "Attributes", "<Attributes>k__BackingField");
+            int health;
+            if (TryReadAttributeInt(attributes, "Health", out health))
+            {
+                return health;
+            }
+            if (TryReadAttributeInt(attributes, "HealthMax", out health))
+            {
+                return health;
+            }
+            return null;
+        }
+
+        private static bool TryReadAttributeInt(object attributes, string attributeName, out int value)
+        {
+            value = 0;
+            IDictionary dictionary = attributes as IDictionary;
+            if (dictionary == null || string.IsNullOrEmpty(attributeName))
+            {
+                return false;
+            }
+
+            foreach (DictionaryEntry entry in dictionary)
+            {
+                string key = entry.Key == null ? "" : entry.Key.ToString();
+                if (!string.Equals(key, attributeName, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                return TryConvertToInt(entry.Value, out value);
+            }
+
+            return false;
+        }
+
+        private static bool TryConvertToInt(object raw, out int value)
+        {
+            value = 0;
+            if (raw == null)
+            {
+                return false;
+            }
+
+            if (raw is int)
+            {
+                value = (int)raw;
+                return true;
+            }
+
+            if (raw is uint)
+            {
+                uint uintValue = (uint)raw;
+                if (uintValue <= int.MaxValue)
+                {
+                    value = (int)uintValue;
+                    return true;
+                }
+                return false;
+            }
+
+            double parsedDouble;
+            if (double.TryParse(
+                    raw.ToString(),
+                    NumberStyles.Any,
+                    CultureInfo.InvariantCulture,
+                    out parsedDouble))
+            {
+                value = (int)Math.Round(parsedDouble);
+                return true;
+            }
+
+            return false;
+        }
+
+        private static IEnumerable<object> EnumerateDictionaryValues(object value)
+        {
+            if (value == null)
+            {
+                yield break;
+            }
+
+            IDictionary dictionary = value as IDictionary;
+            if (dictionary != null)
+            {
+                foreach (DictionaryEntry entry in dictionary)
+                {
+                    if (entry.Value != null)
+                    {
+                        yield return entry.Value;
+                    }
+                }
+                yield break;
+            }
+
+            IEnumerable enumerable = value as IEnumerable;
+            if (enumerable == null || value is string)
+            {
+                yield return value;
+                yield break;
+            }
+
+            foreach (object item in enumerable)
+            {
+                if (item == null)
+                {
+                    continue;
+                }
+
+                object itemValue;
+                if (TryGetMemberValue(item, "Value", out itemValue) && itemValue != null)
+                {
+                    yield return itemValue;
+                }
+                else
+                {
+                    yield return item;
+                }
+            }
+        }
+
+        private static void CopyIfPresent(
+            Dictionary<string, object> source,
+            Dictionary<string, object> target,
+            string key)
+        {
+            object value;
+            if (source != null
+                && target != null
+                && !string.IsNullOrEmpty(key)
+                && source.TryGetValue(key, out value)
+                && value != null)
+            {
+                target[key] = value;
+            }
         }
 
         private static bool TryCollectCardsFromMemberNames(object target, IEnumerable<string> memberNames, List<Dictionary<string, object>> cards, RuntimeCardExportResult result)
@@ -1231,6 +1657,18 @@ namespace BazaarStateExporter
             }
 
             return Path.Combine(directory, "live_cards_raw.json");
+        }
+
+        private static string ResolveLiveMonstersPath(string outputPath)
+        {
+            string fullPath = Path.GetFullPath(Environment.ExpandEnvironmentVariables(outputPath ?? string.Empty));
+            string directory = Path.GetDirectoryName(fullPath);
+            if (string.IsNullOrEmpty(directory))
+            {
+                directory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "runtime");
+            }
+
+            return Path.Combine(directory, "live_monsters_raw.json");
         }
 
         private static object FindCacheObject(string cacheName)
@@ -3335,10 +3773,14 @@ namespace BazaarStateExporter
         public bool FoundClientCache;
         public bool FoundRunConfigurationCache;
         public bool FoundCardMap;
+        public bool FoundStaticDataManager;
         public bool FoundBazaarPlusPlusFallback;
         public int ExportedCardCount;
+        public int ExportedMonsterCount;
+        public int? MonsterMapCount;
         public bool FoundKarnok;
         public string OutputPath;
+        public string MonstersOutputPath;
         public string DiagnosticsPath;
         public string BppReadyManagerType;
         public string LoadCardMapResultType;

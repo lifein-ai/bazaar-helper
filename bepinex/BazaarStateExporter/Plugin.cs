@@ -568,16 +568,19 @@ namespace BazaarStateExporter
         public static string BuildStateSignature(GameStateSnapshot snapshot)
         {
             StringBuilder builder = new StringBuilder();
-            AppendPart(builder, "v2");
+            AppendPart(builder, "v3");
             AppendPart(builder, snapshot.hero);
             AppendPart(builder, snapshot.day.ToString());
             AppendPart(builder, RuntimeStateCache.CurrentScreenMode);
             AppendPart(builder, snapshot.gold.HasValue ? snapshot.gold.Value.ToString() : "");
             AppendPart(builder, snapshot.health.HasValue ? snapshot.health.Value.ToString() : "");
+            AppendPart(builder, snapshot.monster_health.HasValue ? snapshot.monster_health.Value.ToString() : "");
             AppendStrings(builder, snapshot.event_option_ids);
             AppendStrings(builder, snapshot.event_option_template_ids);
             AppendEventOptions(builder, snapshot.event_options_detailed);
             AppendCards(builder, snapshot.owned_cards);
+            AppendCards(builder, snapshot.monster_items);
+            AppendCards(builder, snapshot.monster_skills);
             AppendCards(builder, snapshot.visible_cards);
             AppendCards(
                 builder,

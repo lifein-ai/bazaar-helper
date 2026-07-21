@@ -9,7 +9,91 @@ from typing import Any, Callable
 
 
 TIER_ORDER = ["Bronze", "Silver", "Gold", "Diamond", "Legendary"]
-TIME_LIKE_ATTRIBUTES = {"ChargeAmount", "HasteAmount", "FreezeAmount", "SlowAmount"}
+TIME_LIKE_ATTRIBUTES = {
+    "ChargeAmount",
+    "HasteAmount",
+    "FreezeAmount",
+    "SlowAmount",
+    "UseICD",
+    "UseIcd",
+    "ItemUseICD",
+    "ItemUseIcd",
+    "UseInternalCooldown",
+    "MulticastInterval",
+    "MulticastIntervalSec",
+    "MulticastIntervalSeconds",
+    "FlatCooldownReduction",
+    "CooldownReduction",
+}
+ITEM_USE_ICD_SEC = 0.25
+CHARGE_PORT_ICD_SEC = 0.25
+
+
+@dataclass
+class ItemCooldownState:
+    base_cooldown: float
+    remaining_cooldown: float
+    next_use_available_time: float = 0.0
+    effective_cooldown: float | None = None
+    cooldown_elapsed: float = 0.0
+    modifiers: list[dict[str, Any]] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        if self.effective_cooldown is None:
+            self.effective_cooldown = self.base_cooldown
+
+
+@dataclass
+class ChargePortState:
+    port_id: str
+    next_available_time: float = 0.0
+
+
+@dataclass(frozen=True)
+class HealCleanseConfig:
+    ratio: float = 0.10
+    basis: str = "current_status"
+    rounding: str = "ceil"
+    require_actual_heal: bool = True
+    lifesteal_triggers_cleanse: bool = False
+
+
+DEFAULT_HEAL_CLEANSE_CONFIG = HealCleanseConfig()
+
+
+@dataclass(frozen=True)
+class OverhealConfig:
+    normal_heal_triggers_overheal: bool = True
+    regen_triggers_overheal: bool = False
+    lifesteal_triggers_overheal: bool = False
+
+
+DEFAULT_OVERHEAL_CONFIG = OverhealConfig()
+
+
+@dataclass(frozen=True)
+class BurnConfig:
+    shield_damage_multiplier: float = 0.5
+    decay_per_tick: int = 1
+    tick_interval: float = 0.5
+    rounding: str = "ceil"
+
+
+DEFAULT_BURN_CONFIG = BurnConfig()
+
+
+@dataclass(frozen=True)
+class CooldownModifyConfig:
+    progress_mode: str = "preserve_progress_ratio"
+
+
+DEFAULT_COOLDOWN_MODIFY_CONFIG = CooldownModifyConfig()
+
+
+@dataclass(frozen=True)
+class ItemTimingConfig:
+    use_icd: float = ITEM_USE_ICD_SEC
+    multicast_interval: float | None = None
 
 
 @dataclass(frozen=True)
@@ -41,6 +125,9 @@ class EffectRule:
     action_type: str
     trigger_type: str
     amount: float
+    effect_id: str = ""
+    operation: str = "Add"
+    duration_sec: float = 0.0
     attribute_type: str = ""
     target_type: str = ""
     target_mode: str = ""
@@ -55,6 +142,10 @@ class EffectRule:
     trigger_exclude_self: bool = False
     trigger_attribute_changed: str = ""
     trigger_change_type: str = ""
+    max_triggers_per_combat: int | None = None
+    trigger_limit_scope: str = "combat"
+    raw_action: dict[str, Any] = field(default_factory=dict)
+    action_path: str = "0"
 
 
 @dataclass
@@ -68,10 +159,12 @@ class CombatSummary:
     total_burn_tick_damage: float
     total_poison_tick_damage: float
     total_shield: float
+    total_heal: float
     by_card_damage: dict[str, float]
     by_card_burn: dict[str, float]
     by_card_poison: dict[str, float]
     by_card_shield: dict[str, float]
+    by_card_heal: dict[str, float]
     cumulative_damage_by_second: list[float]
     debug_timeline: list[dict[str, Any]]
     random_trials: int | None = None
@@ -90,6 +183,8 @@ class SelfTtkEstimate:
     direct_damage: float
     total_burn_tick_damage: float
     total_poison_tick_damage: float
+    total_heal: float
+    total_shield: float
     simulated_card_count: int
     skipped_cards: list[dict[str, Any]]
     by_card_uses: dict[str, float]
@@ -107,6 +202,8 @@ class SelfTtkEstimate:
             "direct_damage": self.direct_damage,
             "total_burn_tick_damage": self.total_burn_tick_damage,
             "total_poison_tick_damage": self.total_poison_tick_damage,
+            "total_heal": self.total_heal,
+            "total_shield": self.total_shield,
             "simulated_card_count": self.simulated_card_count,
             "skipped_cards": self.skipped_cards,
             "by_card_uses": self.by_card_uses,
@@ -235,14 +332,18 @@ def effective_tier(card: PlacedCard) -> str:
 
 
 def effect_rows(card: dict[str, Any]) -> list[dict[str, Any]]:
+    return [row for _, row in effect_rows_with_ids(card)]
+
+
+def effect_rows_with_ids(card: dict[str, Any]) -> list[tuple[str, dict[str, Any]]]:
     raw = card.get("raw_effects") or {}
-    rows: list[dict[str, Any]] = []
+    rows: list[tuple[str, dict[str, Any]]] = []
     for group_name in ("abilities", "auras"):
         group = raw.get(group_name) or {}
         if isinstance(group, dict):
-            rows.extend(v for v in group.values() if isinstance(v, dict))
+            rows.extend((f"{group_name}:{key}", value) for key, value in group.items() if isinstance(value, dict))
         elif isinstance(group, list):
-            rows.extend(v for v in group if isinstance(v, dict))
+            rows.extend((f"{group_name}:{index}", value) for index, value in enumerate(group) if isinstance(value, dict))
     return rows
 
 
@@ -321,7 +422,7 @@ def resolve_value(value_node: Any, source: PlacedCard) -> float:
 
 
 def action_amount(action: dict[str, Any], source: PlacedCard, default_attr: str = "") -> float:
-    value_node = get_field(action, "Value")
+    value_node = get_field(action, "Value", "ReferenceValue")
     if value_node is not None:
         value = resolve_value(value_node, source)
         if math.isfinite(value):
@@ -336,6 +437,10 @@ def default_attribute_for_action(action_type: str) -> str:
         "TActionPlayerBurnApply": "BurnApplyAmount",
         "TActionPlayerPoisonApply": "PoisonApplyAmount",
         "TActionPlayerShieldApply": "ShieldApplyAmount",
+        "TActionPlayerHealApply": "HealAmount",
+        "TActionPlayerHeal": "HealAmount",
+        "TActionPlayerRegenApply": "RegenApplyAmount",
+        "TActionPlayerRageApply": "RageApplyAmount",
         "TActionCardCharge": "ChargeAmount",
         "TActionCardHaste": "HasteAmount",
         "TActionCardSlow": "SlowAmount",
@@ -356,7 +461,17 @@ def card_tags(card: PlacedCard, aura_tags: dict[str, set[str]] | None = None) ->
     return tags
 
 
+def is_skill_card(card: PlacedCard) -> bool:
+    return str(card.card.get("type") or card.card.get("card_type") or "").lower() == "skill"
+
+
+def targetable_cards(cards: list[PlacedCard]) -> list[PlacedCard]:
+    return [card for card in cards if not is_skill_card(card)]
+
+
 def get_card_cooldown_sec(card: PlacedCard, cards: list[PlacedCard] | None = None) -> float:
+    if is_skill_card(card):
+        return 0.0
     if card.cooldown_override_sec is not None:
         return max(0.0, float(card.cooldown_override_sec))
     cooldown = get_attr_value_by_tier(card.card, "CooldownMax", effective_tier(card))
@@ -530,54 +645,143 @@ def expand_trigger_branches(trigger: Any) -> list[dict[str, Any]]:
 
 def read_rules(card: PlacedCard, action_types: set[str] | None = None) -> list[EffectRule]:
     rules: list[EffectRule] = []
-    for row in effect_rows(card.card):
+    for effect_id, row in effect_rows_with_ids(card.card):
         action = get_field(row, "Action", default={}) or {}
-        action_type = type_name(action)
-        if action_types is not None and action_type not in action_types:
-            continue
-        target = get_field(action, "Target", default={}) or {}
-        target_condition = extract_condition_meta(get_field(target, "Conditions"))
-        amount = action_amount(
-            action,
-            card,
-            default_attr=str(get_field(action, "AttributeType", default="") or default_attribute_for_action(action_type)),
-        )
-        for branch in expand_trigger_branches(get_field(row, "Trigger", default={})):
-            subject = branch.get("subject") or {}
-            trigger_condition = extract_condition_meta(get_field(subject, "Conditions"))
-            raw_trigger = branch.get("raw") or {}
-            count = get_field(target, "TargetCount", default=get_field(action, "TargetCount"))
-            rules.append(
-                EffectRule(
-                    source_id=card.placement_id,
-                    action_type=action_type,
-                    trigger_type=str(branch.get("type") or ""),
-                    amount=amount,
-                    attribute_type=str(get_field(action, "AttributeType", default="")),
-                    target_type=type_name(target),
-                    target_mode=str(get_field(target, "TargetMode", default="")),
-                    target_section=str(get_field(target, "TargetSection", default="")),
-                    target_count=int(count) if isinstance(count, (int, float)) and count > 0 else None,
-                    target_exclude_self=bool(get_field(target, "ExcludeSelf", default=False)),
-                    target_include_origin=bool(get_field(target, "IncludeOrigin", default=False)),
-                    target_condition=target_condition,
-                    trigger_subject_type=type_name(subject),
-                    trigger_subject_mode=str(get_field(subject, "TargetMode", default="")),
-                    trigger_condition=trigger_condition,
-                    trigger_exclude_self=bool(get_field(subject, "ExcludeSelf", default=False)),
-                    trigger_attribute_changed=str(get_field(raw_trigger, "AttributeChanged", default="")),
-                    trigger_change_type=str(get_field(raw_trigger, "ChangeType", default="")),
-                )
+        parent_target = get_field(action, "Target", default={}) or {}
+        for action_path, expanded_action in expand_action_nodes(action):
+            action_type = type_name(expanded_action)
+            if action_types is not None and action_type not in action_types:
+                continue
+            target = get_field(expanded_action, "Target", default=parent_target) or parent_target
+            target_condition = extract_condition_meta(get_field(target, "Conditions"))
+            operation = str(get_field(expanded_action, "Operation", default="Add") or "Add")
+            duration = resolve_duration_sec(get_field(expanded_action, "Duration"))
+            amount = action_amount(
+                expanded_action,
+                card,
+                default_attr=str(get_field(expanded_action, "AttributeType", default="") or default_attribute_for_action(action_type)),
             )
+            for branch in expand_trigger_branches(get_field(row, "Trigger", default={})):
+                subject = branch.get("subject") or {}
+                trigger_condition = extract_condition_meta(get_field(subject, "Conditions"))
+                raw_trigger = branch.get("raw") or {}
+                count = get_field(target, "TargetCount", default=get_field(expanded_action, "TargetCount"))
+                trigger_limit = first_int_field(
+                    raw_trigger,
+                    "MaxTriggers",
+                    "MaxTriggerCount",
+                    "TriggerLimit",
+                    "TriggersPerCombat",
+                    "UsesPerCombat",
+                )
+                if trigger_limit is None:
+                    trigger_limit = first_int_field(
+                        row,
+                        "MaxTriggers",
+                        "MaxTriggerCount",
+                        "TriggerLimit",
+                        "TriggersPerCombat",
+                        "UsesPerCombat",
+                    )
+                rules.append(
+                    EffectRule(
+                        source_id=card.placement_id,
+                        action_type=action_type,
+                        trigger_type=str(branch.get("type") or ""),
+                        amount=amount,
+                        effect_id=f"{card.placement_id}:{effect_id}:{action_path}:{action_type}",
+                        operation=operation,
+                        duration_sec=duration,
+                        attribute_type=str(get_field(expanded_action, "AttributeType", default="")),
+                        target_type=type_name(target),
+                        target_mode=str(get_field(target, "TargetMode", default="")),
+                        target_section=str(get_field(target, "TargetSection", default="")),
+                        target_count=int(count) if isinstance(count, (int, float)) and count > 0 else None,
+                        target_exclude_self=bool(get_field(target, "ExcludeSelf", default=False)),
+                        target_include_origin=bool(get_field(target, "IncludeOrigin", default=False)),
+                        target_condition=target_condition,
+                        trigger_subject_type=type_name(subject),
+                        trigger_subject_mode=str(get_field(subject, "TargetMode", default="")),
+                        trigger_condition=trigger_condition,
+                        trigger_exclude_self=bool(get_field(subject, "ExcludeSelf", default=False)),
+                        trigger_attribute_changed=str(get_field(raw_trigger, "AttributeChanged", default="")),
+                        trigger_change_type=str(get_field(raw_trigger, "ChangeType", default="")),
+                        max_triggers_per_combat=trigger_limit,
+                        trigger_limit_scope=str(
+                            get_field(
+                                raw_trigger,
+                                "LimitScope",
+                                "TriggerLimitScope",
+                                "CounterScope",
+                                default=get_field(row, "LimitScope", "TriggerLimitScope", "CounterScope", default="combat"),
+                            )
+                            or "combat"
+                        ),
+                        raw_action=expanded_action,
+                        action_path=action_path,
+                    )
+                )
     return rules
 
 
+def expand_action_nodes(action: Any, *, depth: int = 0, path: str = "0", max_depth: int = 20) -> list[tuple[str, dict[str, Any]]]:
+    if not isinstance(action, dict):
+        return []
+    if depth >= max_depth:
+        return [(path, action)]
+    if type_name(action) != "TActionAnd":
+        return [(path, action)]
+    actions = get_field(action, "Actions", default=[]) or []
+    out: list[tuple[str, dict[str, Any]]] = []
+    for index, child in enumerate(actions):
+        if isinstance(child, dict):
+            out.extend(expand_action_nodes(child, depth=depth + 1, path=f"{path}.{index}", max_depth=max_depth))
+    return out or [(path, action)]
+
+
+def first_int_field(node: Any, *names: str) -> int | None:
+    if not isinstance(node, dict):
+        return None
+    for name in names:
+        value = get_field(node, name)
+        try:
+            number = int(value)
+        except (TypeError, ValueError):
+            continue
+        if number > 0:
+            return number
+    return None
+
+
+def resolve_duration_sec(duration_node: Any) -> float:
+    if not isinstance(duration_node, dict):
+        return 0.0
+    duration_type = str(get_field(duration_node, "DurationType", default=""))
+    if duration_type == "UntilEndOfCombat":
+        return math.inf
+    for key in ("DurationInMs", "durationInMs"):
+        value = get_field(duration_node, key)
+        if value is not None:
+            try:
+                return max(0.0, float(value) / 1000.0)
+            except (TypeError, ValueError):
+                return 0.0
+    for key in ("DurationSec", "durationSec", "Seconds"):
+        value = get_field(duration_node, key)
+        if value is not None:
+            try:
+                return max(0.0, float(value))
+            except (TypeError, ValueError):
+                return 0.0
+    return 0.0
+
+
 def left_card(cards: list[PlacedCard], source: PlacedCard) -> PlacedCard | None:
-    return next((c for c in cards if c.start + (c.width or card_width(c.card)) == source.start), None)
+    return next((c for c in targetable_cards(cards) if c.start + (c.width or card_width(c.card)) == source.start), None)
 
 
 def right_card(cards: list[PlacedCard], source: PlacedCard) -> PlacedCard | None:
-    return next((c for c in cards if c.start == source.start + (source.width or card_width(source.card))), None)
+    return next((c for c in targetable_cards(cards) if c.start == source.start + (source.width or card_width(source.card))), None)
 
 
 def pick_x_most(cards: list[PlacedCard], mode: str) -> PlacedCard | None:
@@ -605,13 +809,16 @@ def resolve_targets(
 
     if rule.target_type == "TTargetCardSelf":
         return [source] if match(source) else []
+    if "Opponent" in rule.target_section:
+        return []
+    pool = targetable_cards(cards)
     if rule.target_type == "TTargetCardSection":
-        return [c for c in cards if match(c)]
+        return [c for c in pool if match(c)]
     if rule.target_type == "TTargetCardXMost":
-        chosen = pick_x_most([c for c in cards if match(c)], rule.target_mode or "RightMostCard")
+        chosen = pick_x_most([c for c in pool if match(c)], rule.target_mode or "RightMostCard")
         return [chosen] if chosen else []
     if rule.target_type == "TTargetCardRandom":
-        pool = [c for c in cards if match(c)]
+        pool = [c for c in pool if match(c)]
         if not pool:
             return []
         count = min(len(pool), max(1, int(rule.target_count or 1)))
@@ -629,7 +836,7 @@ def resolve_targets(
     left = left_card(cards, source)
     right = right_card(cards, source)
     all_right = sorted(
-        [c for c in cards if c.start >= source.start + (source.width or card_width(source.card))],
+        [c for c in pool if c.start >= source.start + (source.width or card_width(source.card))],
         key=lambda c: c.start,
     )
     if rule.target_mode == "LeftCard":
@@ -671,6 +878,10 @@ def trigger_matches(
         "performedshield": "shield",
         "performedreload": "reload",
         "performeddestruction": "destruction",
+        "performedheal": "heal",
+        "performedregen": "regen",
+        "cardcritted": "crit",
+        "critted": "crit",
     }
     for token, key in performed_map.items():
         if token in lower:
@@ -708,6 +919,188 @@ def compute_multicast_map(cards: list[PlacedCard]) -> dict[str, int]:
         multicast = get_attr_value_by_tier(card.card, "Multicast", effective_tier(card))
         values[card.placement_id] = max(1, int(round(multicast or 1)))
     return values
+
+
+def item_timing_config(card: PlacedCard) -> ItemTimingConfig:
+    tier = effective_tier(card)
+    use_icd = first_positive_attr(
+        card,
+        tier,
+        "UseICD",
+        "UseIcd",
+        "ItemUseICD",
+        "ItemUseIcd",
+        "UseInternalCooldown",
+    )
+    multicast_interval = first_positive_attr(
+        card,
+        tier,
+        "MulticastInterval",
+        "MulticastIntervalSec",
+        "MulticastIntervalSeconds",
+    )
+    return ItemTimingConfig(
+        use_icd=use_icd if use_icd is not None else ITEM_USE_ICD_SEC,
+        multicast_interval=multicast_interval,
+    )
+
+
+def first_positive_attr(card: PlacedCard, tier: str, *names: str) -> float | None:
+    for name in names:
+        value = get_attr_value_by_tier(card.card, name, tier)
+        if value > 0:
+            return value
+    return None
+
+
+def clone_placed_cards(cards: list[PlacedCard]) -> list[PlacedCard]:
+    return [
+        PlacedCard(
+            placement_id=card.placement_id,
+            card=deepcopy(card.card),
+            start=card.start,
+            width=card.width,
+            tier=card.tier,
+            cooldown_override_sec=card.cooldown_override_sec,
+            shield_enchanted=card.shield_enchanted,
+        )
+        for card in cards
+    ]
+
+
+def set_attr_value_by_tier(card: dict[str, Any], attr_type: str, tier: str, value: float) -> None:
+    raw = card.setdefault("raw_effects", {})
+    tiers_raw = raw.setdefault("tiers_raw", {})
+    normalized = normalize_tier(tier)
+    if normalized not in tiers_raw:
+        for label in TIER_ORDER:
+            if label in tiers_raw:
+                normalized = label
+                break
+        else:
+            normalized = "Bronze"
+    tier_raw = tiers_raw.setdefault(normalized, {})
+    attrs = tier_raw.setdefault("Attributes", {})
+    attrs[str(attr_type)] = value
+
+
+def apply_attribute_operation(current: float, amount: float, operation: str) -> float:
+    op = str(operation or "Add").strip().lower()
+    if op == "multiply":
+        return current * amount
+    if op in {"subtract", "sub"}:
+        return current - amount
+    if op in {"set", "replace"}:
+        return amount
+    return current + amount
+
+
+def status_cleanse_amount(
+    stack: float,
+    config: HealCleanseConfig = DEFAULT_HEAL_CLEANSE_CONFIG,
+    *,
+    actual_heal: float = 0.0,
+) -> float:
+    if stack <= 0 or config.ratio <= 0:
+        return 0.0
+    basis = str(config.basis or "current_status").lower()
+    basis_amount = actual_heal if basis == "actual_heal" else stack
+    if basis_amount <= 0:
+        return 0.0
+    raw = basis_amount * config.ratio
+    rounding = str(config.rounding or "ceil").lower()
+    if rounding == "floor":
+        amount = math.floor(raw)
+    elif rounding == "round":
+        amount = round(raw)
+    else:
+        amount = math.ceil(raw)
+    return min(stack, max(0.0, float(amount)))
+
+
+def apply_static_card_auras(cards: list[PlacedCard], rng: Callable[[], float] | None = None) -> list[PlacedCard]:
+    adjusted = clone_placed_cards(cards)
+    for source in adjusted:
+        for rule in read_rules(source, {"TAuraActionCardModifyAttribute"}):
+            if not rule.attribute_type:
+                continue
+            for target in resolve_targets(adjusted, source, source, rule, rng):
+                if is_skill_card(target):
+                    continue
+                tier = effective_tier(target)
+                current = get_attr_value_by_tier(target.card, rule.attribute_type, tier)
+                updated = apply_attribute_operation(current, rule.amount, rule.operation)
+                set_attr_value_by_tier(target.card, rule.attribute_type, tier, updated)
+    return adjusted
+
+
+def static_player_modifier_events(cards: list[PlacedCard], duration_sec: float) -> list[dict[str, Any]]:
+    events: list[dict[str, Any]] = []
+    for source in cards:
+        for rule in read_rules(source, {"TAuraActionPlayerModifyAttribute"}):
+            if rule.attribute_type == "PercentDamageReduction" and rule.amount > 0:
+                events.append(
+                    {
+                        "time": 0.0,
+                        "kind": "damage-reduction",
+                        "source": card_label(source),
+                        "value": rule.amount,
+                        "duration": rule.duration_sec if rule.duration_sec > 0 else duration_sec,
+                    }
+                )
+    return events
+
+
+def revive_events(cards: list[PlacedCard]) -> list[dict[str, Any]]:
+    events: list[dict[str, Any]] = []
+    for source in cards:
+        for row in effect_rows(source.card):
+            action = get_field(row, "Action", default={}) or {}
+            if type_name(action) != "TActionPlayerReviveHeal":
+                continue
+            amount = action_amount(action, source, default_attr="HealAmount")
+            events.append(
+                {
+                    "time": 0.0,
+                    "kind": "revive",
+                    "source": card_label(source),
+                    "value": amount if amount > 0 else 0.5,
+                    "mode": "health" if amount > 0 else "health_fraction",
+                    "used": False,
+                }
+            )
+    return events
+
+
+def card_attr_with_bonus(
+    card: PlacedCard,
+    cards: list[PlacedCard],
+    attr_type: str,
+    bonus: dict[str, dict[str, float]],
+) -> float:
+    return (
+        get_attr_value_by_tier(card.card, attr_type, effective_tier(card))
+        + bonus.get(attr_type, {}).get(card.placement_id, 0.0)
+    )
+
+
+def crit_multiplier_for_casts(
+    card: PlacedCard,
+    cards: list[PlacedCard],
+    bonus: dict[str, dict[str, float]],
+    casts: int,
+    rng: Callable[[], float] | None,
+) -> tuple[float, float]:
+    chance = max(0.0, min(100.0, card_attr_with_bonus(card, cards, "CritChance", bonus))) / 100.0
+    if chance <= 0:
+        return 1.0, 0.0
+    if rng is None:
+        return 1.0 + chance, casts * chance
+    crits = 0
+    for _ in range(max(1, int(casts))):
+        if rng() < chance:
+            crits += 1
+    return 1.0 + (crits / max(1, int(casts))), float(crits)
 
 
 def build_damage_curve(events: list[dict[str, float]], duration_sec: float) -> list[float]:
@@ -748,8 +1141,10 @@ def simulate_combat(
         ]
         return aggregate_summaries(runs, duration_sec)
 
+    crit_rng = rng
     rng = rng or (lambda: 0.0)
-    active = [card for card in cards if get_card_cooldown_sec(card, cards) > 0]
+    cards = apply_static_card_auras(cards, rng)
+    active = [card for card in cards if not is_skill_card(card) and get_card_cooldown_sec(card, cards) > 0]
     multicast = compute_multicast_map(cards)
     rule_types = {
         "TActionCardCharge",
@@ -758,8 +1153,14 @@ def simulate_combat(
         "TActionCardForceUse",
         "TActionCardReload",
         "TActionCardFreeze",
+        "TActionPlayerDamage",
+        "TActionPlayerBurnApply",
         "TActionPlayerShieldApply",
+        "TActionPlayerHealApply",
+        "TActionPlayerHeal",
         "TActionPlayerPoisonApply",
+        "TActionPlayerRegenApply",
+        "TActionPlayerModifyAttribute",
         "TActionCardModifyAttribute",
     }
     rules_by_source = {card.placement_id: read_rules(card, rule_types) for card in cards}
@@ -776,24 +1177,96 @@ def simulate_combat(
     burn_by_card = {card.placement_id: 0.0 for card in active}
     poison_by_card = {card.placement_id: 0.0 for card in active}
     shield_by_card = {card.placement_id: 0.0 for card in active}
+    heal_by_card = {card.placement_id: 0.0 for card in active}
     bonus = {
         "DamageAmount": {card.placement_id: 0.0 for card in active},
         "BurnApplyAmount": {card.placement_id: 0.0 for card in active},
         "PoisonApplyAmount": {card.placement_id: 0.0 for card in active},
         "ShieldApplyAmount": {card.placement_id: 0.0 for card in active},
+        "HealAmount": {card.placement_id: 0.0 for card in active},
+        "RegenApplyAmount": {card.placement_id: 0.0 for card in active},
+        "CritChance": {card.placement_id: 0.0 for card in active},
+        "Lifesteal": {card.placement_id: 0.0 for card in active},
     }
 
     total_damage = 0.0
     total_burn_applied = 0.0
     total_poison_applied = 0.0
     total_shield = 0.0
+    total_heal = 0.0
     burn_events: list[dict[str, Any]] = []
     poison_events: list[dict[str, Any]] = []
+    regen_events: list[dict[str, Any]] = []
     damage_events: list[dict[str, float]] = []
-    timeline: list[dict[str, Any]] = []
+    timeline: list[dict[str, Any]] = [
+        *static_player_modifier_events(cards, duration_sec),
+        *revive_events(cards),
+    ]
     now = 0.0
     guard = 0
     epsilon = 1e-6
+
+    for source in cards:
+        for rule in rules_by_source.get(source.placement_id, []):
+            if "fightstarted" not in rule.trigger_type.lower():
+                continue
+            amount = max(0.0, rule.amount)
+            if amount <= 0:
+                continue
+            targets = resolve_targets(cards, source, source, rule, rng)
+            if rule.action_type == "TActionCardCharge":
+                for target in targets:
+                    if target.placement_id in cooldown_state:
+                        cooldown_state[target.placement_id] = max(0.0, cooldown_state[target.placement_id] - amount)
+                        timeline.append({"time": 0.0, "kind": "charge", "source": card_label(source), "target": card_label(target), "value": amount})
+            elif rule.action_type == "TActionCardHaste":
+                for target in targets:
+                    if target.placement_id in haste_until:
+                        haste_until[target.placement_id] = max(haste_until[target.placement_id], amount)
+            elif rule.action_type == "TActionCardSlow":
+                for target in targets:
+                    if target.placement_id in cooldown_state:
+                        cooldown_state[target.placement_id] += amount
+            elif rule.action_type == "TActionCardFreeze":
+                for target in targets:
+                    if target.placement_id in cooldown_state:
+                        cooldown_state[target.placement_id] += amount
+            elif rule.action_type == "TActionPlayerShieldApply":
+                total_shield += amount
+                shield_by_card[source.placement_id] = shield_by_card.get(source.placement_id, 0.0) + amount
+                timeline.append({"time": 0.0, "kind": "shield", "source": card_label(source), "value": amount})
+            elif rule.action_type == "TActionPlayerDamage":
+                total_damage += amount
+                damage_by_card[source.placement_id] = damage_by_card.get(source.placement_id, 0.0) + amount
+                damage_events.append({"time": 0.0, "amount": amount})
+                timeline.append({"time": 0.0, "kind": "use", "source": card_label(source), "value": amount})
+            elif rule.action_type == "TActionPlayerBurnApply":
+                total_burn_applied += amount
+                burn_by_card[source.placement_id] = burn_by_card.get(source.placement_id, 0.0) + amount
+                burn_events.append({"time": 0.0, "amount": amount})
+            elif rule.action_type in {"TActionPlayerHealApply", "TActionPlayerHeal"}:
+                total_heal += amount
+                heal_by_card[source.placement_id] = heal_by_card.get(source.placement_id, 0.0) + amount
+                timeline.append({"time": 0.0, "kind": "heal", "source": card_label(source), "value": amount})
+            elif rule.action_type == "TActionPlayerRegenApply":
+                regen_events.append({"time": 0.0, "amount": amount})
+                timeline.append({"time": 0.0, "kind": "regen-apply", "source": card_label(source), "value": amount})
+            elif rule.action_type == "TActionPlayerModifyAttribute" and rule.attribute_type == "PercentDamageReduction":
+                timeline.append(
+                    {
+                        "time": 0.0,
+                        "kind": "damage-reduction",
+                        "source": card_label(source),
+                        "value": amount,
+                        "duration": rule.duration_sec if rule.duration_sec > 0 else duration_sec,
+                    }
+                )
+            elif rule.action_type == "TActionCardModifyAttribute":
+                mapped = normalize_offense_attr(rule.attribute_type)
+                if mapped:
+                    for target in targets:
+                        if target.placement_id in bonus[mapped]:
+                            bonus[mapped][target.placement_id] += amount
 
     while now < duration_sec and guard < 1600:
         guard += 1
@@ -837,19 +1310,34 @@ def simulate_combat(
             base_damage = base_on_use_amount(fired, "TActionPlayerDamage", opponent_only=True)
             base_burn = base_on_use_amount(fired, "TActionPlayerBurnApply", opponent_only=True)
             base_poison = base_on_use_amount(fired, "TActionPlayerPoisonApply", opponent_only=True)
-            dealt = max(0.0, base_damage + bonus["DamageAmount"].get(fired.placement_id, 0.0)) * casts
-            burn = max(0.0, base_burn + bonus["BurnApplyAmount"].get(fired.placement_id, 0.0)) * casts
-            poison = max(0.0, base_poison + bonus["PoisonApplyAmount"].get(fired.placement_id, 0.0)) * casts
+            base_shield = base_on_use_amount(fired, "TActionPlayerShieldApply")
+            base_heal = (
+                base_on_use_amount(fired, "TActionPlayerHealApply")
+                + base_on_use_amount(fired, "TActionPlayerHeal")
+            )
+            base_regen = base_on_use_amount(fired, "TActionPlayerRegenApply")
+            crit_multiplier, crits = crit_multiplier_for_casts(fired, cards, bonus, casts, crit_rng)
+            dealt = max(0.0, base_damage + bonus["DamageAmount"].get(fired.placement_id, 0.0)) * casts * crit_multiplier
+            burn = max(0.0, base_burn + bonus["BurnApplyAmount"].get(fired.placement_id, 0.0)) * casts * crit_multiplier
+            poison = max(0.0, base_poison + bonus["PoisonApplyAmount"].get(fired.placement_id, 0.0)) * casts * crit_multiplier
+            shield = max(0.0, base_shield + bonus["ShieldApplyAmount"].get(fired.placement_id, 0.0)) * casts * crit_multiplier
+            heal = max(0.0, base_heal + bonus["HealAmount"].get(fired.placement_id, 0.0)) * casts * crit_multiplier
+            regen = max(0.0, base_regen + bonus["RegenApplyAmount"].get(fired.placement_id, 0.0)) * casts * crit_multiplier
+            lifesteal = max(0.0, card_attr_with_bonus(fired, cards, "Lifesteal", bonus)) / 100.0
+            lifesteal_heal = dealt * lifesteal if dealt > 0 and lifesteal > 0 else 0.0
             performed = {
                 "damage": casts if dealt > 0 else 0,
                 "burn": casts if burn > 0 else 0,
                 "poison": casts if poison > 0 else 0,
+                "crit": crits,
                 "slow": 0,
                 "haste": 0,
                 "freeze": 0,
                 "reload": 0,
                 "destruction": 0,
-                "shield": 0,
+                "shield": casts if shield > 0 else 0,
+                "heal": casts if heal > 0 or lifesteal_heal > 0 else 0,
+                "regen": casts if regen > 0 else 0,
             }
             if dealt:
                 total_damage += dealt
@@ -863,12 +1351,37 @@ def simulate_combat(
                 total_poison_applied += poison
                 poison_by_card[fired.placement_id] += poison
                 poison_events.append({"time": now, "amount": poison})
+            if shield:
+                total_shield += shield
+                shield_by_card[fired.placement_id] += shield
+                timeline.append({"time": now, "kind": "shield", "source": card_label(fired), "value": shield})
+            if heal:
+                total_heal += heal
+                heal_by_card[fired.placement_id] += heal
+                timeline.append({"time": now, "kind": "heal", "source": card_label(fired), "value": heal})
+            if regen:
+                regen_events.append({"time": now, "amount": regen})
+                timeline.append({"time": now, "kind": "regen-apply", "source": card_label(fired), "value": regen})
+            if lifesteal_heal:
+                total_heal += lifesteal_heal
+                heal_by_card[fired.placement_id] += lifesteal_heal
+                timeline.append({"time": now, "kind": "heal", "source": card_label(fired), "value": lifesteal_heal, "reason": "lifesteal"})
+            if crits:
+                timeline.append({"time": now, "kind": "crit", "source": card_label(fired), "value": crits})
             timeline.append({"time": now, "kind": "use", "source": card_label(fired), "value": dealt})
 
             for source in cards:
                 for rule in rules_by_source.get(source.placement_id, []):
                     if (
-                        rule.action_type == "TActionPlayerPoisonApply"
+                        rule.action_type in {
+                            "TActionPlayerDamage",
+                            "TActionPlayerBurnApply",
+                            "TActionPlayerPoisonApply",
+                            "TActionPlayerShieldApply",
+                            "TActionPlayerHealApply",
+                            "TActionPlayerHeal",
+                            "TActionPlayerRegenApply",
+                        }
                         and rule.trigger_type == "TTriggerOnCardFired"
                         and source.placement_id == fired.placement_id
                     ):
@@ -923,12 +1436,49 @@ def simulate_combat(
                     elif rule.action_type == "TActionPlayerShieldApply":
                         total_shield += amount
                         shield_by_card[source.placement_id] = shield_by_card.get(source.placement_id, 0.0) + amount
+                        timeline.append({"time": now, "kind": "shield", "source": card_label(source), "value": amount})
                         performed["shield"] += 1
+                    elif rule.action_type == "TActionPlayerDamage":
+                        total_damage += amount
+                        damage_by_card[source.placement_id] = damage_by_card.get(source.placement_id, 0.0) + amount
+                        damage_events.append({"time": now, "amount": amount})
+                        timeline.append({"time": now, "kind": "use", "source": card_label(source), "value": amount})
+                        performed["damage"] += 1
+                    elif rule.action_type == "TActionPlayerBurnApply":
+                        total_burn_applied += amount
+                        burn_by_card[source.placement_id] = burn_by_card.get(source.placement_id, 0.0) + amount
+                        burn_events.append({"time": now, "amount": amount})
+                        performed["burn"] += 1
+                    elif rule.action_type == "TActionPlayerHealApply":
+                        total_heal += amount
+                        heal_by_card[source.placement_id] = heal_by_card.get(source.placement_id, 0.0) + amount
+                        timeline.append({"time": now, "kind": "heal", "source": card_label(source), "value": amount})
+                        performed["heal"] += 1
+                    elif rule.action_type == "TActionPlayerHeal":
+                        total_heal += amount
+                        heal_by_card[source.placement_id] = heal_by_card.get(source.placement_id, 0.0) + amount
+                        timeline.append({"time": now, "kind": "heal", "source": card_label(source), "value": amount})
+                        performed["heal"] += 1
                     elif rule.action_type == "TActionPlayerPoisonApply":
                         total_poison_applied += amount
                         poison_by_card[source.placement_id] = poison_by_card.get(source.placement_id, 0.0) + amount
                         poison_events.append({"time": now, "amount": amount})
                         performed["poison"] += 1
+                    elif rule.action_type == "TActionPlayerRegenApply":
+                        regen_events.append({"time": now, "amount": amount})
+                        timeline.append({"time": now, "kind": "regen-apply", "source": card_label(source), "value": amount})
+                        performed["regen"] += 1
+                    elif rule.action_type == "TActionPlayerModifyAttribute":
+                        if rule.attribute_type == "PercentDamageReduction":
+                            timeline.append(
+                                {
+                                    "time": now,
+                                    "kind": "damage-reduction",
+                                    "source": card_label(source),
+                                    "value": amount,
+                                    "duration": rule.duration_sec if rule.duration_sec > 0 else duration_sec - now,
+                                }
+                            )
                     elif rule.action_type == "TActionCardModifyAttribute":
                         mapped = normalize_offense_attr(rule.attribute_type)
                         if mapped:
@@ -945,7 +1495,9 @@ def simulate_combat(
 
     poison_tick_damage = calculate_poison_ticks(poison_events, duration_sec, damage_events, timeline)
     burn_tick_damage = calculate_burn_ticks(burn_events, duration_sec, damage_events, timeline)
+    regen_tick_heal = calculate_regen_ticks(regen_events, duration_sec, timeline)
     total_damage += poison_tick_damage + burn_tick_damage
+    total_heal += regen_tick_heal
     return CombatSummary(
         duration_sec=duration_sec,
         total_uses=sum(uses.values()),
@@ -956,10 +1508,12 @@ def simulate_combat(
         total_burn_tick_damage=burn_tick_damage,
         total_poison_tick_damage=poison_tick_damage,
         total_shield=total_shield,
+        total_heal=total_heal,
         by_card_damage=damage_by_card,
         by_card_burn=burn_by_card,
         by_card_poison=poison_by_card,
         by_card_shield=shield_by_card,
+        by_card_heal=heal_by_card,
         cumulative_damage_by_second=build_damage_curve(damage_events, duration_sec),
         debug_timeline=sorted(timeline, key=lambda item: item["time"]),
     )
@@ -975,6 +1529,10 @@ def action_performed_key(action_type: str) -> str:
         "TActionPlayerBurnApply": "burn",
         "TActionPlayerPoisonApply": "poison",
         "TActionPlayerShieldApply": "shield",
+        "TActionPlayerHealApply": "heal",
+        "TActionPlayerHeal": "heal",
+        "TActionPlayerRegenApply": "regen",
+        "TActionPlayerRageApply": "rage",
         "TActionCardDestroy": "destruction",
         "TActionCardTransformDestroyed": "destruction",
     }.get(action_type, "")
@@ -989,6 +1547,16 @@ def normalize_offense_attr(attribute_type: str) -> str:
         return "PoisonApplyAmount"
     if attribute_type == "ShieldApplyAmount":
         return "ShieldApplyAmount"
+    if attribute_type in {"HealAmount", "HealApplyAmount"}:
+        return "HealAmount"
+    if attribute_type in {"RegenAmount", "RegenApplyAmount"}:
+        return "RegenApplyAmount"
+    if attribute_type == "RageApplyAmount":
+        return "RageApplyAmount"
+    if attribute_type == "CritChance":
+        return "CritChance"
+    if attribute_type == "Lifesteal":
+        return "Lifesteal"
     return ""
 
 
@@ -1037,6 +1605,25 @@ def calculate_burn_ticks(
     return total
 
 
+def calculate_regen_ticks(
+    events: list[dict[str, Any]],
+    duration_sec: float,
+    timeline: list[dict[str, Any]],
+) -> float:
+    ordered = sorted(events, key=lambda item: item["time"])
+    index = 0
+    stack = 0.0
+    total = 0.0
+    for tick in range(1, max(1, int(math.floor(duration_sec))) + 1):
+        while index < len(ordered) and ordered[index]["time"] <= tick + 1e-6:
+            stack += float(ordered[index]["amount"])
+            index += 1
+        if stack > 0:
+            total += stack
+            timeline.append({"time": float(tick), "kind": "heal", "source": "regen", "value": stack})
+    return total
+
+
 def aggregate_summaries(summaries: list[CombatSummary], duration_sec: float) -> CombatSummary:
     count = max(1, len(summaries))
 
@@ -1063,10 +1650,12 @@ def aggregate_summaries(summaries: list[CombatSummary], duration_sec: float) -> 
         total_burn_tick_damage=sum(summary.total_burn_tick_damage for summary in summaries) / count,
         total_poison_tick_damage=sum(summary.total_poison_tick_damage for summary in summaries) / count,
         total_shield=sum(summary.total_shield for summary in summaries) / count,
+        total_heal=sum(summary.total_heal for summary in summaries) / count,
         by_card_damage=avg_map("by_card_damage"),
         by_card_burn=avg_map("by_card_burn"),
         by_card_poison=avg_map("by_card_poison"),
         by_card_shield=avg_map("by_card_shield"),
+        by_card_heal=avg_map("by_card_heal"),
         cumulative_damage_by_second=curve,
         debug_timeline=[],
         random_trials=count,
@@ -1144,7 +1733,7 @@ def estimate_self_health_ttk(
     if target <= 0:
         return None
 
-    placed, skipped = build_current_board_placements(data, state)
+    placed, skipped = build_current_board_placements(data, state, include_skills=True)
     if not placed:
         return SelfTtkEstimate(
             target_health=target,
@@ -1155,6 +1744,8 @@ def estimate_self_health_ttk(
             direct_damage=0.0,
             total_burn_tick_damage=0.0,
             total_poison_tick_damage=0.0,
+            total_heal=0.0,
+            total_shield=0.0,
             simulated_card_count=0,
             skipped_cards=skipped,
             by_card_uses={},
@@ -1185,7 +1776,9 @@ def estimate_self_health_ttk(
         direct_damage=direct_damage,
         total_burn_tick_damage=summary.total_burn_tick_damage,
         total_poison_tick_damage=summary.total_poison_tick_damage,
-        simulated_card_count=len(placed),
+        total_heal=summary.total_heal,
+        total_shield=summary.total_shield,
+        simulated_card_count=len(targetable_cards(placed)),
         skipped_cards=skipped,
         by_card_uses=summary.by_card,
         by_card_damage=summary.by_card_damage,
@@ -1197,6 +1790,8 @@ def estimate_self_health_ttk(
 def build_current_board_placements(
     data: dict[str, Any],
     state: Any,
+    *,
+    include_skills: bool = False,
 ) -> tuple[list[PlacedCard], list[dict[str, Any]]]:
     card_index = template_index(data.get("cards", {}))
     entries = current_board_entries(state)
@@ -1213,6 +1808,7 @@ def build_current_board_placements(
                     "id": entry.get("id"),
                     "template_id": entry.get("template_id"),
                     "name": entry.get("name"),
+                    "card_type": entry.get("card_type") or entry.get("type") or "item",
                     "reason": "template_not_found",
                 }
             )
@@ -1238,6 +1834,39 @@ def build_current_board_placements(
                 shield_enchanted=has_enchantment(entry, "shield"),
             )
         )
+    if include_skills:
+        for index, entry in enumerate(current_skill_entries(state)):
+            if not isinstance(entry, dict):
+                continue
+            template = find_card_template(entry, card_index)
+            if template is None:
+                skipped.append(
+                    {
+                        "id": entry.get("id"),
+                        "template_id": entry.get("template_id"),
+                        "name": entry.get("name"),
+                        "card_type": "skill",
+                        "reason": "template_not_found",
+                    }
+                )
+                continue
+            card = apply_instance_snapshot(template, entry)
+            placed.append(
+                PlacedCard(
+                    placement_id=str(
+                        entry.get("id")
+                        or entry.get("instance_id")
+                        or entry.get("template_id")
+                        or entry.get("name")
+                        or f"skill_{index}"
+                    ),
+                    card=card,
+                    start=100 + index,
+                    width=1,
+                    tier=str(entry.get("rarity") or entry.get("tier") or card.get("rarity") or ""),
+                    shield_enchanted=has_enchantment(entry, "shield"),
+                )
+            )
     return placed, skipped
 
 
@@ -1271,6 +1900,22 @@ def current_board_entries(state: Any) -> list[dict[str, Any]]:
             if isinstance(item, dict)
             and str(item.get("card_type", "item")).lower() != "skill"
             and str(item.get("section", "")).lower() in {"hand", "board"}
+        ]
+    return []
+
+
+def current_skill_entries(state: Any) -> list[dict[str, Any]]:
+    skills = state_value(state, "skills", None)
+    if isinstance(skills, list) and skills:
+        return [item for item in skills if isinstance(item, dict)]
+
+    owned_cards = state_value(state, "owned_cards", None)
+    if isinstance(owned_cards, list):
+        return [
+            item
+            for item in owned_cards
+            if isinstance(item, dict)
+            and str(item.get("card_type") or item.get("type") or "").lower() == "skill"
         ]
     return []
 

@@ -263,6 +263,9 @@ def state_signature_payload(payload: dict[str, Any]) -> dict[str, Any]:
     detailed_options = payload.get("event_options_detailed") or []
     reward_options = payload.get("current_reward_options") or []
     visible_cards = payload.get("visible_cards") or []
+    monster_items = payload.get("monster_items") or []
+    monster_skills = payload.get("monster_skills") or []
+    monster_choices = payload.get("monster_choices") or []
     owned_cards = payload.get("owned_cards")
 
     return {
@@ -298,6 +301,38 @@ def state_signature_payload(payload: dict[str, Any]) -> dict[str, Any]:
             for item in visible_cards
             if item is not None
         ],
+        "monster_items": [
+            signature_card_identity(item)
+            for item in monster_items
+            if item is not None
+        ],
+        "monster_skills": [
+            signature_card_identity(item)
+            for item in monster_skills
+            if item is not None
+        ],
+        "monster_choices": [
+            {
+                "id": item.get("id"),
+                "template_id": item.get("template_id"),
+                "source_id": item.get("source_id"),
+                "name": item.get("name"),
+                "health": item.get("health"),
+                "encounter_ids": stable_cache_value(item.get("encounter_ids", [])),
+                "items": [
+                    signature_card_identity(card)
+                    for card in item.get("items", [])
+                    if card is not None
+                ],
+                "skills": [
+                    signature_card_identity(card)
+                    for card in item.get("skills", [])
+                    if card is not None
+                ],
+            }
+            for item in monster_choices
+            if isinstance(item, dict)
+        ],
         "owned_cards": [
             signature_card_identity(item)
             for item in owned_cards
@@ -307,6 +342,7 @@ def state_signature_payload(payload: dict[str, Any]) -> dict[str, Any]:
         else stable_cache_value(owned_cards or {}),
         "gold": payload.get("gold"),
         "combat_health": payload.get("combat_health", payload.get("health")),
+        "monster_health": payload.get("monster_health"),
         "prestige": payload.get("prestige"),
         "max_prestige": payload.get("max_prestige"),
         "income": payload.get("income"),
@@ -612,11 +648,14 @@ def normalize_payload_for_analysis(
         "board_items",
         "stash_items",
         "skills",
+        "monster_items",
+        "monster_skills",
         "current_reward_options",
     ):
         normalized[field_name] = normalize_card_entries(
             data, normalized.get(field_name)
         )
+    attach_static_monster_choices(data, normalized)
     computed_slots_used = inventory_slots_used(data, normalized)
     if computed_slots_used is not None:
         normalized["inventory_slots_used"] = computed_slots_used
@@ -655,6 +694,187 @@ def normalize_payload_for_analysis(
     normalized.setdefault("source", "runtime")
     normalized.setdefault("event_options", [])
     return normalized
+
+
+def attach_static_monster_choices(
+    data: dict[str, Any],
+    normalized: dict[str, Any],
+) -> None:
+    choices = static_monster_choices_for_payload(data, normalized)
+    normalized["monster_choices"] = choices
+    selected = selected_static_monster_choice(normalized, choices)
+    if selected is None:
+        return
+
+    if normalized.get("monster_health") in (None, ""):
+        normalized["monster_health"] = selected.get("health")
+    if not normalized.get("monster_items"):
+        normalized["monster_items"] = normalize_card_entries(
+            data,
+            selected.get("items") or selected.get("board_items") or [],
+        )
+    if not normalized.get("monster_skills"):
+        normalized["monster_skills"] = normalize_card_entries(
+            data,
+            selected.get("skills") or [],
+        )
+
+
+def selected_static_monster_choice(
+    payload: dict[str, Any],
+    choices: list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    if len(choices) == 1:
+        return choices[0]
+
+    runtime_health = first_optional_int(payload.get("monster_health"))
+    if runtime_health is None:
+        return None
+
+    matches = [
+        choice
+        for choice in choices
+        if first_optional_int(choice.get("health")) == runtime_health
+    ]
+    if len(matches) == 1:
+        return matches[0]
+    return None
+
+
+def static_monster_choices_for_payload(
+    data: dict[str, Any],
+    payload: dict[str, Any],
+) -> list[dict[str, Any]]:
+    monsters = data.get("monsters", {})
+    if not isinstance(monsters, dict) or not monsters:
+        return []
+
+    index = static_monster_index(monsters)
+    choices: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for token in monster_candidate_tokens(payload):
+        monster = index.get(token.strip().lower())
+        if not isinstance(monster, dict):
+            continue
+        identity = str(
+            monster.get("id")
+            or monster.get("template_id")
+            or monster.get("source_id")
+            or monster.get("name")
+        )
+        if not identity or identity in seen:
+            continue
+        seen.add(identity)
+        choices.append(copy_jsonable(monster))
+    return choices
+
+
+def static_monster_index(monsters: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    index: dict[str, dict[str, Any]] = {}
+    for key, monster in monsters.items():
+        if not isinstance(monster, dict):
+            continue
+        for value in (
+            key,
+            monster.get("id"),
+            monster.get("source_id"),
+            monster.get("template_id"),
+            monster.get("internal_name"),
+            monster.get("name"),
+            monster.get("monster_name"),
+        ):
+            add_static_monster_index_value(index, value, monster)
+        for value in monster.get("encounter_ids", []) or []:
+            add_static_monster_index_value(index, value, monster)
+        for value in monster.get("encounter_names", []) or []:
+            add_static_monster_index_value(index, value, monster)
+        for encounter in monster.get("encounters", []) or []:
+            if not isinstance(encounter, dict):
+                continue
+            for value in (
+                encounter.get("id"),
+                encounter.get("source_id"),
+                encounter.get("template_id"),
+                encounter.get("internal_name"),
+                encounter.get("name"),
+            ):
+                add_static_monster_index_value(index, value, monster)
+    return index
+
+
+def add_static_monster_index_value(
+    index: dict[str, dict[str, Any]],
+    value: Any,
+    monster: dict[str, Any],
+) -> None:
+    text = str(value or "").strip()
+    if text:
+        index.setdefault(text.lower(), monster)
+
+
+def monster_candidate_tokens(payload: dict[str, Any]) -> list[str]:
+    tokens: list[str] = []
+
+    for field_name in (
+        "event_options_detailed",
+        "current_events",
+        "selected_encounters",
+    ):
+        values = payload.get(field_name)
+        if isinstance(values, list):
+            for item in values:
+                tokens.extend(monster_tokens_from_value(item))
+
+    for field_name in (
+        "event_option_template_ids",
+        "event_option_ids",
+        "selected_encounter_ids",
+        "event_options",
+    ):
+        values = payload.get(field_name)
+        if isinstance(values, list):
+            for value in values:
+                tokens.extend(monster_tokens_from_value(value))
+
+    return dedupe_text(tokens)
+
+
+def monster_tokens_from_value(value: Any) -> list[str]:
+    if isinstance(value, dict):
+        result: list[str] = []
+        for key in (
+            "template_id",
+            "source_id",
+            "id",
+            "event_id",
+            "encounter_id",
+            "name",
+            "event_name",
+            "monster_name",
+            "internal_name",
+        ):
+            result.extend(monster_tokens_from_value(value.get(key)))
+        return result
+    if value in (None, ""):
+        return []
+    return [str(value)]
+
+
+def dedupe_text(values: list[str]) -> list[str]:
+    result: list[str] = []
+    seen: set[str] = set()
+    for value in values:
+        text = str(value or "").strip()
+        key = text.lower()
+        if not text or key in seen:
+            continue
+        seen.add(key)
+        result.append(text)
+    return result
+
+
+def copy_jsonable(value: Any) -> Any:
+    return json.loads(json.dumps(value, ensure_ascii=False))
 
 
 def attach_effective_shop_price_estimate(
@@ -1584,6 +1804,35 @@ def display_card_entry(data: dict[str, Any], card: dict[str, Any]) -> dict[str, 
         "display_name": zh_name(data, name, template_id),
         "rarity": RARITY_LABELS_ZH.get(str(rarity).lower(), rarity) if rarity else rarity,
         "card_type": display_card_type(data, card),
+    }
+
+
+def display_monster_choice(
+    data: dict[str, Any],
+    monster: dict[str, Any],
+) -> dict[str, Any]:
+    name = monster.get("name") or monster.get("monster_name") or ""
+    template_id = monster.get("template_id") or monster.get("id")
+    items = monster.get("items") or monster.get("board_items") or []
+    skills = monster.get("skills") or []
+    return {
+        **monster,
+        "display_name": zh_name(data, name, template_id),
+        "items": [
+            display_card_entry(data, item)
+            for item in items
+            if isinstance(item, dict)
+        ],
+        "board_items": [
+            display_card_entry(data, item)
+            for item in items
+            if isinstance(item, dict)
+        ],
+        "skills": [
+            display_card_entry(data, skill)
+            for skill in skills
+            if isinstance(skill, dict)
+        ],
     }
 
 
@@ -2572,12 +2821,16 @@ def analyze_payload(
                 "board_items": normalized.get("board_items", []),
                 "stash_items": normalized.get("stash_items", []),
                 "skills": normalized.get("skills", []),
+                "monster_items": normalized.get("monster_items", []),
+                "monster_skills": normalized.get("monster_skills", []),
+                "monster_choices": normalized.get("monster_choices", []),
                 "current_events": normalized.get("current_events", []),
                 "current_shop": normalized.get("current_shop"),
                 "effective_shop": normalized.get("effective_shop"),
                 "current_reward_options": normalized.get("current_reward_options", []),
                 "gold": normalized.get("gold"),
                 "health": normalized.get("combat_health", normalized.get("health")),
+                "monster_health": normalized.get("monster_health"),
                 "prestige": normalized.get("prestige"),
                 "max_prestige": normalized.get("max_prestige"),
                 "income": normalized.get("income"),
@@ -2747,6 +3000,7 @@ def analyze_payload(
             "gold": state.gold,
             "health": state.combat_health,
             "combat_health": state.combat_health,
+            "monster_health": state.monster_health,
             "prestige": state.prestige,
             "max_prestige": state.max_prestige,
             "income": state.income,
@@ -2756,6 +3010,12 @@ def analyze_payload(
             "board_items": state.board_items,
             "stash_items": state.stash_items,
             "skills": state.skills,
+            "monster_items": state.monster_items,
+            "monster_skills": state.monster_skills,
+            "monster_choices": [
+                display_monster_choice(data, monster)
+                for monster in state.monster_choices or []
+            ],
             "current_events": state.current_events,
             "current_shop": (
                 {
@@ -2918,8 +3178,12 @@ def simulate_current_combat_payload(
             "day": state.day,
             "health": state.combat_health,
             "combat_health": state.combat_health,
+            "monster_health": state.monster_health,
             "board_item_count": len(state.board_items or []),
             "owned_item_count": len(state.owned_items or []),
+            "monster_item_count": len(state.monster_items or []),
+            "monster_skill_count": len(state.monster_skills or []),
+            "monster_choice_count": len(state.monster_choices or []),
         },
         "state_signature": state_signature(payload),
     }

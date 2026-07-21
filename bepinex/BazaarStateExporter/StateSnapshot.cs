@@ -24,11 +24,14 @@ namespace BazaarStateExporter
         public List<CardSnapshot> board_items = new List<CardSnapshot>();
         public List<CardSnapshot> stash_items = new List<CardSnapshot>();
         public List<CardSnapshot> skills = new List<CardSnapshot>();
+        public List<CardSnapshot> monster_items = new List<CardSnapshot>();
+        public List<CardSnapshot> monster_skills = new List<CardSnapshot>();
         public List<CardSnapshot> current_reward_options = new List<CardSnapshot>();
         public CurrentShopSnapshot current_shop;
         public int? gold;
         public int? health;
         public int? combat_health;
+        public int? monster_health;
         public int? income;
         public int? level;
         public int? xp;

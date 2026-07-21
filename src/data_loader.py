@@ -224,6 +224,7 @@ def load_all_data(data_dir: str | Path) -> dict[str, Any]:
     cards = merge_cards_with_ratings(official_cards, card_ratings)
 
     encounters = load_json_if_exists(data_dir / "encounters_generated.json")
+    monsters = load_json_if_exists(data_dir / "monsters_generated.json")
     raw_events = load_json(data_dir / "events.json")
     events = flatten_events_list(raw_events)
 
@@ -248,6 +249,7 @@ def load_all_data(data_dir: str | Path) -> dict[str, Any]:
             "events.json",
             "event_overrides.json",
             "merchant_meta.json",
+            "monsters_generated.json",
             "rarity_rules.json",
         ],
     )
@@ -256,6 +258,7 @@ def load_all_data(data_dir: str | Path) -> dict[str, Any]:
         "cards": cards,
         "events": events,
         "encounters": encounters,
+        "monsters": monsters,
         "merchant_profiles": merchant_profiles,
         "merchant_meta": merchant_meta,
         "merchant_meta_warnings": merchant_meta_warnings,

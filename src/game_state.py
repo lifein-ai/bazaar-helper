@@ -21,6 +21,7 @@ class GameState:
     visible_cards: list[str] = field(default_factory=list)
     gold: int | None = None
     combat_health: int | None = None
+    monster_health: int | None = None
     prestige: int | None = None
     max_prestige: int | None = None
     income: int | None = None
@@ -30,6 +31,9 @@ class GameState:
     board_items: list[dict[str, Any]] | None = None
     stash_items: list[dict[str, Any]] | None = None
     skills: list[dict[str, Any]] | None = None
+    monster_items: list[dict[str, Any]] | None = None
+    monster_skills: list[dict[str, Any]] | None = None
+    monster_choices: list[dict[str, Any]] | None = None
     current_events: list[dict[str, Any]] | None = None
     current_shop: dict[str, Any] | None = None
     effective_shop: dict[str, Any] | None = None
@@ -97,6 +101,7 @@ class GameState:
             visible_cards=[str(name) for name in visible_cards if name],
             gold=_optional_int(payload.get("gold")),
             combat_health=_optional_int(payload.get("combat_health", payload.get("health"))),
+            monster_health=_optional_int(payload.get("monster_health")),
             prestige=_optional_int(payload.get("prestige")),
             max_prestige=_optional_int(payload.get("max_prestige")),
             income=_optional_int(payload.get("income")),
@@ -106,6 +111,9 @@ class GameState:
             board_items=_optional_list(payload.get("board_items", _by_section(entries, {"hand", "board"}))),
             stash_items=_optional_list(payload.get("stash_items", _by_section(entries, {"stash"}))),
             skills=_optional_list(payload.get("skills", _by_type(entries, "skill"))),
+            monster_items=_optional_list(payload.get("monster_items")),
+            monster_skills=_optional_list(payload.get("monster_skills")),
+            monster_choices=_optional_list(payload.get("monster_choices")),
             current_events=_optional_list(payload.get("current_events")),
             current_shop=dict(current_shop) if current_shop is not None else None,
             effective_shop=dict(effective_shop) if effective_shop is not None else None,

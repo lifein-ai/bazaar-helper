@@ -201,6 +201,7 @@ def summarize_combat(
         "average_damage": summary.total_damage,
         "total_uses": summary.total_uses,
         "total_shield": summary.total_shield,
+        "total_heal": summary.total_heal,
         "total_burn_applied": summary.total_burn_applied,
         "total_poison_applied": summary.total_poison_applied,
         "total_burn_tick_damage": summary.total_burn_tick_damage,
@@ -223,6 +224,7 @@ def delta_metrics(baseline: dict[str, Any], changed: dict[str, Any]) -> dict[str
         "damage_per_second": numeric_delta(baseline, changed, "damage_per_second"),
         "total_uses": numeric_delta(baseline, changed, "total_uses"),
         "total_shield": numeric_delta(baseline, changed, "total_shield"),
+        "total_heal": numeric_delta(baseline, changed, "total_heal"),
         "total_burn_applied": numeric_delta(baseline, changed, "total_burn_applied"),
         "total_poison_applied": numeric_delta(baseline, changed, "total_poison_applied"),
         "battle_time_sec": (

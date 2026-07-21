@@ -93,11 +93,14 @@ namespace BazaarStateExporter
             json.Property("board_items", snapshot.board_items);
             json.Property("stash_items", snapshot.stash_items);
             json.Property("skills", snapshot.skills);
+            json.Property("monster_items", snapshot.monster_items);
+            json.Property("monster_skills", snapshot.monster_skills);
             json.Property("current_reward_options", snapshot.current_reward_options);
             json.Property("current_shop", snapshot.current_shop);
             json.Property("gold", snapshot.gold);
             json.Property("health", snapshot.health);
             json.Property("combat_health", snapshot.combat_health);
+            json.Property("monster_health", snapshot.monster_health);
             json.Property("income", snapshot.income);
             json.Property("level", snapshot.level);
             json.Property("xp", snapshot.xp);

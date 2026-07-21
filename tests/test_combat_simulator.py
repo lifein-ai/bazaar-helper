@@ -54,6 +54,59 @@ def fired_action(action_type: str, target_mode: str = "Opponent") -> dict:
     }
 
 
+def aura_modify_attribute_skill(
+    name: str,
+    attr_type: str,
+    value: float,
+    *,
+    tag: str = "Weapon",
+) -> dict:
+    return {
+        "id": name.lower(),
+        "template_id": name.lower(),
+        "name": name,
+        "type": "Skill",
+        "size": "Medium",
+        "tags": [],
+        "hidden_tags": [],
+        "tiers": ["Diamond"],
+        "rarity": "Diamond",
+        "raw_effects": {
+            "abilities": {},
+            "auras": {
+                "0": {
+                    "$type": "BazaarGameShared.Domain.Effect.TCardAura",
+                    "Action": {
+                        "$type": "BazaarGameShared.Domain.Effect.AuraActions.TAuraActionCardModifyAttribute",
+                        "AttributeType": attr_type,
+                        "Operation": "Add",
+                        "Value": {
+                            "$type": "BazaarGameShared.Domain.Values.TFixedValue",
+                            "Value": value,
+                        },
+                        "Target": {
+                            "$type": "BazaarGameShared.Domain.Targeting.TTargetCardSection",
+                            "TargetSection": "SelfHand",
+                            "Conditions": {
+                                "$type": "BazaarGameShared.Domain.Prerequisites.Conditionals.TCardConditionalTag",
+                                "Tags": [tag],
+                                "Operator": "Any",
+                            },
+                        },
+                    },
+                }
+            },
+            "tiers_raw": {
+                "Diamond": {
+                    "Attributes": {},
+                    "AbilityIds": [],
+                    "AuraIds": ["0"],
+                }
+            },
+        },
+    }
+
+
 class CombatSimulatorTests(unittest.TestCase):
     def test_reads_current_raw_effect_tier_attributes(self) -> None:
         card = make_card("Weapon", {"DamageAmount": 30, "CooldownMax": 5000}, {"0": fired_action("TActionPlayerDamage")})
@@ -78,6 +131,84 @@ class CombatSimulatorTests(unittest.TestCase):
         self.assertEqual(summary.total_poison_applied, 5)
         self.assertEqual(summary.total_poison_tick_damage, 10)
         self.assertEqual(summary.total_damage, 10)
+
+    def test_simulates_direct_shield_and_heal_from_raw_effects(self) -> None:
+        card = make_card(
+            "Support",
+            {"ShieldApplyAmount": 12, "HealAmount": 8, "CooldownMax": 5000},
+            {
+                "0": fired_action("TActionPlayerShieldApply", target_mode="Player"),
+                "1": fired_action("TActionPlayerHealApply", target_mode="Player"),
+            },
+        )
+
+        summary = simulate_combat([PlacedCard("support", card, tier="Bronze")], duration_sec=11)
+
+        self.assertEqual(summary.total_uses, 2)
+        self.assertEqual(summary.total_shield, 24)
+        self.assertEqual(summary.total_heal, 16)
+        self.assertEqual(summary.by_card_shield["support"], 24)
+        self.assertEqual(summary.by_card_heal["support"], 16)
+        self.assertTrue(any(event["kind"] == "shield" for event in summary.debug_timeline))
+        self.assertTrue(any(event["kind"] == "heal" for event in summary.debug_timeline))
+
+    def test_static_skill_aura_grants_lifesteal(self) -> None:
+        weapon = make_card("Weapon", {"DamageAmount": 30, "CooldownMax": 5000}, {"0": fired_action("TActionPlayerDamage")})
+        weapon["tags"] = ["Weapon"]
+        data = {
+            "cards": {
+                "Weapon": {**weapon, "template_id": "tpl_weapon"},
+                "Lifesteal Skill": {**aura_modify_attribute_skill("Lifesteal Skill", "Lifesteal", 100), "template_id": "tpl_skill"},
+            }
+        }
+        state = {
+            "board_items": [{"id": "itm_1", "template_id": "tpl_weapon", "rarity": "Bronze", "section": "Hand"}],
+            "skills": [{"id": "skill_1", "template_id": "tpl_skill", "rarity": "Diamond"}],
+        }
+
+        placed, skipped = build_current_board_placements(data, state, include_skills=True)
+        summary = simulate_combat(placed, duration_sec=6)
+
+        self.assertEqual(skipped, [])
+        self.assertEqual(summary.total_damage, 30)
+        self.assertEqual(summary.total_heal, 30)
+        self.assertTrue(any(event.get("reason") == "lifesteal" for event in summary.debug_timeline))
+
+    def test_static_skill_aura_adds_expected_crit_damage(self) -> None:
+        weapon = make_card("Weapon", {"DamageAmount": 40, "CooldownMax": 5000}, {"0": fired_action("TActionPlayerDamage")})
+        weapon["tags"] = ["Weapon"]
+        data = {
+            "cards": {
+                "Weapon": {**weapon, "template_id": "tpl_weapon"},
+                "Crit Skill": {**aura_modify_attribute_skill("Crit Skill", "CritChance", 50), "template_id": "tpl_skill"},
+            }
+        }
+        state = {
+            "board_items": [{"id": "itm_1", "template_id": "tpl_weapon", "rarity": "Bronze", "section": "Hand"}],
+            "skills": [{"id": "skill_1", "template_id": "tpl_skill", "rarity": "Diamond"}],
+        }
+
+        placed, skipped = build_current_board_placements(data, state, include_skills=True)
+        summary = simulate_combat(placed, duration_sec=6)
+
+        self.assertEqual(skipped, [])
+        self.assertEqual(summary.total_damage, 60)
+
+    def test_heal_alias_and_regen_are_simulated(self) -> None:
+        card = make_card(
+            "Regenerator",
+            {"HealAmount": 5, "RegenApplyAmount": 3, "CooldownMax": 5000},
+            {
+                "0": fired_action("TActionPlayerHeal", target_mode="Player"),
+                "1": fired_action("TActionPlayerRegenApply", target_mode="Player"),
+            },
+        )
+
+        summary = simulate_combat([PlacedCard("regen", card, tier="Bronze")], duration_sec=7)
+
+        self.assertEqual(summary.total_uses, 1)
+        self.assertEqual(summary.total_heal, 14)
+        self.assertTrue(any(event["kind"] == "regen-apply" for event in summary.debug_timeline))
 
     def test_builds_current_board_with_instance_attribute_overrides(self) -> None:
         card = make_card("Weapon", {"DamageAmount": 10, "CooldownMax": 5000}, {"0": fired_action("TActionPlayerDamage")})

@@ -265,28 +265,41 @@ namespace BazaarStateExporter
         public void ScanVisibleUiCards()
         {
             Type cardControllerType = AccessTools.TypeByName("CardController");
-            if (cardControllerType == null)
+            List<CardSnapshot> visibleCards = new List<CardSnapshot>();
+            HashSet<string> seenIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            if (cardControllerType != null)
             {
-                RuntimeStateCache.SetCurrentVisibleCards(new List<CardSnapshot>());
-                return;
+                UnityEngine.Object[] controllers = Resources.FindObjectsOfTypeAll(cardControllerType);
+                foreach (UnityEngine.Object controller in controllers)
+                {
+                    MonoBehaviour behaviour = controller as MonoBehaviour;
+                    if (behaviour == null || !behaviour.gameObject.activeInHierarchy)
+                    {
+                        continue;
+                    }
+
+                    AddVisibleUiCard(visibleCards, seenIds, behaviour, "visible_scan");
+                }
             }
 
-            List<CardSnapshot> visibleCards = new List<CardSnapshot>();
-            UnityEngine.Object[] controllers = Resources.FindObjectsOfTypeAll(cardControllerType);
-            foreach (UnityEngine.Object controller in controllers)
+            foreach (MonoBehaviour behaviour in Resources.FindObjectsOfTypeAll<MonoBehaviour>())
             {
-                MonoBehaviour behaviour = controller as MonoBehaviour;
-                if (behaviour == null || !behaviour.gameObject.activeInHierarchy)
+                if (behaviour == null
+                    || behaviour.gameObject == null
+                    || !behaviour.gameObject.activeInHierarchy
+                    || (cardControllerType != null && cardControllerType.IsInstanceOfType(behaviour)))
                 {
                     continue;
                 }
 
-                CardSnapshot card = UiCardCapture.TryBuildSnapshot(behaviour, "visible_scan");
-                if (card != null && !string.IsNullOrEmpty(card.id))
+                string hierarchy = GetHierarchyPath(behaviour.transform);
+                if (!LooksLikeMonsterBoardContext(hierarchy)
+                    || GetProperty(behaviour, "CardData") == null)
                 {
-                    visibleCards.Add(card);
-                    RuntimeStateCache.RecordUiCard(card);
+                    continue;
                 }
+
+                AddVisibleUiCard(visibleCards, seenIds, behaviour, "monster_board_visible_scan");
             }
 
             RuntimeStateCache.SetCurrentVisibleCards(visibleCards);
@@ -303,6 +316,39 @@ namespace BazaarStateExporter
                     RuntimeStateCache.ScreenModeEvents,
                     "visible_scan");
             }
+        }
+
+        private static void AddVisibleUiCard(
+            List<CardSnapshot> visibleCards,
+            HashSet<string> seenIds,
+            MonoBehaviour behaviour,
+            string source)
+        {
+            CardSnapshot card = UiCardCapture.TryBuildSnapshot(behaviour, source);
+            if (card == null || string.IsNullOrEmpty(card.id))
+            {
+                return;
+            }
+
+            string key = card.id + "|" + (card.ui_context ?? "");
+            if (seenIds.Add(key))
+            {
+                visibleCards.Add(card);
+            }
+            RuntimeStateCache.RecordUiCard(card);
+        }
+
+        private static bool LooksLikeMonsterBoardContext(string hierarchy)
+        {
+            if (string.IsNullOrEmpty(hierarchy))
+            {
+                return false;
+            }
+
+            return hierarchy.IndexOf("Tooltip_MonsterBoard", StringComparison.OrdinalIgnoreCase) >= 0
+                || hierarchy.IndexOf("MonsterBoard", StringComparison.OrdinalIgnoreCase) >= 0
+                || hierarchy.IndexOf("Monster_Board", StringComparison.OrdinalIgnoreCase) >= 0
+                || hierarchy.IndexOf("OpponentBoardAnchor", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         public void ScanUiResources()
@@ -763,6 +809,8 @@ namespace BazaarStateExporter
                 snapshot.health = RuntimeStateCache.LatestHealth;
                 snapshot.combat_health = RuntimeStateCache.LatestHealth;
             }
+            snapshot.monster_health = TryReadOpponentUiHealth();
+            FillMonsterCards(snapshot, screenModeIsShop, screenModeIsEvents);
 
             if (snapshot.event_option_ids.Count > 0 || snapshot.owned_cards.Count > 0)
             {
@@ -1013,6 +1061,113 @@ namespace BazaarStateExporter
         {
             return string.Equals(cardType, "Item", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(cardType, "Skill", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static void FillMonsterCards(
+            GameStateSnapshot snapshot,
+            bool screenModeIsShop,
+            bool screenModeIsEvents)
+        {
+            if (snapshot == null)
+            {
+                return;
+            }
+
+            List<CardSnapshot> capturedCards = RuntimeStateCache.GetCapturedUiCards(30f);
+            bool hasMonsterTooltipCards = capturedCards.Any(IsMonsterTooltipCard);
+
+            HashSet<string> seenItems = new HashSet<string>();
+            foreach (CardSnapshot card in RuntimeStateCache.GetLatestOpponentItemSocketCards(30f))
+            {
+                if (!IsOpponentItemCard(card, hasMonsterTooltipCards))
+                {
+                    continue;
+                }
+                AddUniqueCard(snapshot.monster_items, seenItems, card);
+            }
+            foreach (CardSnapshot card in capturedCards)
+            {
+                if (!IsOpponentItemCard(card, hasMonsterTooltipCards))
+                {
+                    continue;
+                }
+                AddUniqueCard(snapshot.monster_items, seenItems, card);
+            }
+
+            HashSet<string> seenSkills = new HashSet<string>();
+            foreach (CardSnapshot card in capturedCards)
+            {
+                if (!IsOpponentSkillCard(card, hasMonsterTooltipCards))
+                {
+                    continue;
+                }
+                AddUniqueCard(snapshot.monster_skills, seenSkills, card);
+            }
+        }
+
+        private static bool IsOpponentSkillCard(
+            CardSnapshot card,
+            bool requireMonsterTooltip)
+        {
+            if (card == null)
+            {
+                return false;
+            }
+            string cardType = card.card_type ?? "";
+            if (!string.Equals(cardType, "Skill", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+            string context = (card.ui_context ?? "").ToLowerInvariant();
+            bool monsterTooltip = context.Contains("tooltip_monsterboard");
+            if (requireMonsterTooltip && !monsterTooltip)
+            {
+                return false;
+            }
+            return (monsterTooltip
+                    || context.Contains("opponentboardanchor")
+                    || context.Contains("enemy")
+                    || context.Contains("monster"))
+                && !context.Contains("merchant")
+                && !context.Contains("shop")
+                && !context.Contains("playeritemsocket")
+                && !context.Contains("playerstoragesocket");
+        }
+
+        private static bool IsOpponentItemCard(
+            CardSnapshot card,
+            bool requireMonsterTooltip)
+        {
+            if (card == null)
+            {
+                return false;
+            }
+            string cardType = card.card_type ?? "";
+            if (!string.Equals(cardType, "Item", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+            string context = (card.ui_context ?? "").ToLowerInvariant();
+            bool monsterTooltip = context.Contains("tooltip_monsterboard");
+            if (requireMonsterTooltip && !monsterTooltip)
+            {
+                return false;
+            }
+            return (context.Contains("opponentitemsocket_")
+                    || context.Contains("opponentboardanchor")
+                    || monsterTooltip)
+                && !context.Contains("merchant")
+                && !context.Contains("shop")
+                && !context.Contains("playeritemsocket")
+                && !context.Contains("playerstoragesocket");
+        }
+
+        private static bool IsMonsterTooltipCard(CardSnapshot card)
+        {
+            return card != null
+                && (card.ui_context ?? "").IndexOf(
+                    "Tooltip_MonsterBoard",
+                    StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private static bool IsCurrentEventOptionCard(CardSnapshot card)
@@ -1288,8 +1443,7 @@ namespace BazaarStateExporter
             foreach (MonoBehaviour component in components)
             {
                 if (component == null
-                    || component.gameObject == null
-                    || !component.gameObject.activeInHierarchy)
+                    || component.gameObject == null)
                 {
                     continue;
                 }
@@ -1355,6 +1509,91 @@ namespace BazaarStateExporter
                 lastLoggedUiDay = bestDay;
             }
             return bestDay;
+        }
+
+        private int? TryReadOpponentUiHealth()
+        {
+            int bestScore = int.MinValue;
+            int? bestHealth = null;
+            MonoBehaviour[] components = Resources.FindObjectsOfTypeAll<MonoBehaviour>();
+            foreach (MonoBehaviour component in components)
+            {
+                if (component == null
+                    || component.gameObject == null)
+                {
+                    continue;
+                }
+
+                string typeName = component.GetType().FullName ?? component.GetType().Name;
+                if (typeName.IndexOf("Text", StringComparison.OrdinalIgnoreCase) < 0)
+                {
+                    continue;
+                }
+
+                GameObject gameObject = component.gameObject;
+                string objectName = (gameObject.name ?? "").ToLowerInvariant();
+                string hierarchy = GetHierarchyPath(gameObject.transform).ToLowerInvariant();
+                bool monsterBoardContext = hierarchy.Contains("tooltip_monsterboard")
+                    || hierarchy.Contains("monsterboard")
+                    || hierarchy.Contains("monster_board");
+                bool opponentContext = monsterBoardContext
+                    || hierarchy.Contains("opponenthealth")
+                    || hierarchy.Contains("opponent_health")
+                    || hierarchy.Contains("enemyhealth")
+                    || hierarchy.Contains("enemy_health");
+                bool healthContext = objectName.Contains("hp")
+                    || objectName.Contains("health")
+                    || hierarchy.Contains("hpnumber")
+                    || hierarchy.Contains("hp_number")
+                    || hierarchy.Contains("healthnumber")
+                    || hierarchy.Contains("health_number")
+                    || hierarchy.Contains("currenthealth")
+                    || hierarchy.Contains("current_health");
+                if (!opponentContext
+                    || !healthContext
+                    || hierarchy.Contains("reward")
+                    || hierarchy.Contains("regen"))
+                {
+                    continue;
+                }
+
+                int parsed;
+                List<string> diagnostics = new List<string>();
+                if (!TryReadIntegerFromComponent(component, out parsed, diagnostics)
+                    || parsed <= 0
+                    || parsed > 999999)
+                {
+                    continue;
+                }
+
+                int score = ScoreUiResourceObject(gameObject);
+                if (monsterBoardContext)
+                {
+                    score += 1000;
+                }
+                if (objectName.Contains("hpnumber")
+                    || objectName.Contains("hp_number")
+                    || objectName.Contains("healthnumber")
+                    || objectName.Contains("health_number")
+                    || objectName.Contains("health_value")
+                    || objectName.Contains("currenthealth")
+                    || objectName.Contains("current_health"))
+                {
+                    score += 500;
+                }
+                else if (objectName.Contains("hp") || objectName.Contains("health"))
+                {
+                    score += 300;
+                }
+
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    bestHealth = parsed;
+                }
+            }
+
+            return bestScore >= 500 ? bestHealth : null;
         }
 
         private static bool TryReadIntegerFromComponents(

@@ -421,6 +421,102 @@ class WebAppResilienceTests(unittest.TestCase):
         self.assertEqual(normalized["inventory_slots_used"], 6)
         self.assertEqual(normalized["inventory_slots_total"], 20)
 
+    def test_monster_runtime_fields_are_normalized_and_signed(self) -> None:
+        data = {
+            "events": {},
+            "translations": {},
+            "cards": {
+                "Monster Claw": {
+                    "id": "monster-claw-template",
+                    "type": "Item",
+                    "size": "Small",
+                },
+                "Monster Skill": {
+                    "id": "monster-skill-template",
+                    "type": "Skill",
+                },
+            },
+            "builds": {"VanessaTest": {"hero": "Vanessa"}},
+            "rarity_rules": {},
+        }
+        payload = {
+            "hero": "Vanessa",
+            "build": "VanessaTest",
+            "day": 5,
+            "event_options": [],
+            "owned_cards": [],
+            "visible_cards": [],
+            "monster_health": 120,
+            "monster_items": [{"template_id": "monster-claw-template"}],
+            "monster_skills": [{"template_id": "monster-skill-template"}],
+        }
+
+        normalized = web_app.normalize_payload_for_analysis(data, payload)
+        response = web_app.analyze_payload(data, payload)
+        changed = {**payload, "monster_health": 90}
+
+        self.assertEqual(normalized["monster_items"][0]["name"], "Monster Claw")
+        self.assertEqual(normalized["monster_skills"][0]["name"], "Monster Skill")
+        self.assertEqual(response["state"]["monster_health"], 120)
+        self.assertEqual(response["state"]["monster_items"][0]["name"], "Monster Claw")
+        self.assertNotEqual(web_app.state_signature(payload), web_app.state_signature(changed))
+
+    def test_static_monster_choices_are_matched_from_combat_options(self) -> None:
+        data = {
+            "events": {},
+            "translations": {},
+            "cards": {
+                "Claws": {"id": "claws-template", "type": "Item", "size": "Small"},
+                "Seafaring": {"id": "seafaring-template", "type": "Skill"},
+            },
+            "monsters": {
+                "calico-monster": {
+                    "id": "calico-monster",
+                    "template_id": "calico-monster",
+                    "name": "Calico",
+                    "health": 450,
+                    "items": [{"template_id": "claws-template", "rarity": "Silver"}],
+                    "skills": [{"template_id": "seafaring-template", "rarity": "Diamond"}],
+                    "encounter_ids": ["calico-encounter"],
+                    "encounters": [
+                        {
+                            "id": "calico-encounter",
+                            "template_id": "calico-encounter",
+                            "name": "Calico",
+                        }
+                    ],
+                }
+            },
+            "builds": {"VanessaTest": {"hero": "Vanessa"}},
+            "rarity_rules": {},
+        }
+        payload = {
+            "hero": "Vanessa",
+            "build": "VanessaTest",
+            "day": 5,
+            "event_options": [],
+            "owned_cards": [],
+            "visible_cards": [],
+            "event_options_detailed": [
+                {
+                    "id": "com_runtime",
+                    "template_id": "calico-encounter",
+                    "kind": "combat",
+                    "card_type": "CombatEncounter",
+                    "name": "Calico",
+                }
+            ],
+        }
+
+        normalized = web_app.normalize_payload_for_analysis(data, payload)
+        response = web_app.analyze_payload(data, payload)
+
+        self.assertEqual(normalized["monster_health"], 450)
+        self.assertEqual(normalized["monster_items"][0]["name"], "Claws")
+        self.assertEqual(normalized["monster_skills"][0]["name"], "Seafaring")
+        self.assertEqual(normalized["monster_choices"][0]["name"], "Calico")
+        self.assertEqual(response["state"]["monster_choices"][0]["health"], 450)
+
     def test_card_entries_map_template_and_source_ids_to_names(self) -> None:
         data = {
             "events": {},

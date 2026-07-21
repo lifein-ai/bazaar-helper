@@ -147,39 +147,6 @@
     "event_priorities": [],
     "avoid_events": []
   },
-  "luzi": {
-    "hero": "Pygmalien",
-    "display_name": "养炉子（前）",
-    "applicable_stages": [
-      "early"
-    ],
-    "day_range": [
-      1,
-      null
-    ],
-    "build_summary": "养炉子，早早的养",
-    "match_notes": [],
-    "pilot_tips": [],
-    "core_cards": [
-      "Money Furnace",
-      "Luxury Kiuas",
-      "Money Tree",
-      "Cash Register",
-      "Pitchfork",
-      "Abacus"
-    ],
-    "transition_cards": [],
-    "optional_cards": [
-      "Premium Piggles",
-      "Matchbox",
-      "Heirlooms",
-      "Signet Ring",
-      "Briefcase"
-    ],
-    "wanted_tags": [],
-    "event_priorities": [],
-    "avoid_events": []
-  },
   "luzizhongqi": {
     "hero": "Pygmalien",
     "display_name": "养炉子（中）",
@@ -237,6 +204,42 @@
       "Cash Cannon",
       "Private Hot Springs",
       "Luxury Tents"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "huokaizhuqianqi": {
+    "hero": "Pygmalien",
+    "display_name": "小火开",
+    "applicable_stages": [
+      "early"
+    ],
+    "day_range": [
+      1,
+      null
+    ],
+    "build_summary": "小火开",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Money Furnace",
+      "Luxury Kiuas",
+      "Money Tree",
+      "Cash Register",
+      "Premium Piggles",
+      "Pitchfork",
+      "Abacus",
+      "Steam Ladle"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Matchbox",
+      "Heirlooms",
+      "Signet Ring",
+      "Briefcase",
+      "Hot Stones",
+      "Pepper Spray"
     ],
     "wanted_tags": [],
     "event_priorities": [],
@@ -508,10 +511,7 @@
     "core_cards": [
       "Spear",
       "Flying Squirrel",
-      "Hunting Hawk",
-      "Shelter Shelby's Package",
-      "Aila's Package",
-      "Ande's Package"
+      "Hunting Hawk"
     ],
     "transition_cards": [
       "Bat",
@@ -603,10 +603,7 @@
     "pilot_tips": [],
     "core_cards": [
       "Chains",
-      "Waystones",
-      "Shelter Shelby's Package",
-      "Aila's Package",
-      "Ande's Package"
+      "Waystones"
     ],
     "transition_cards": [
       "Boa Constrictor",
@@ -635,10 +632,7 @@
       "Lifting Stones",
       "Bladed Armor",
       "Waterskin",
-      "Hunting Knife",
-      "Shelter Shelby's Package",
-      "Aila's Package",
-      "Ande's Package"
+      "Hunting Knife"
     ],
     "transition_cards": [
       "Caracal",
@@ -666,7 +660,6 @@
     "pilot_tips": [],
     "core_cards": [
       "Sharkclaws",
-      "Aila's Package",
       "Wetware",
       "Pet Rock"
     ],
@@ -1506,97 +1499,6 @@
     "event_priorities": [],
     "avoid_events": []
   },
-  "ruodian": {
-    "hero": "Dooley",
-    "display_name": "弱点",
-    "applicable_stages": [
-      "mid"
-    ],
-    "day_range": [
-      4,
-      null
-    ],
-    "build_summary": "弱点",
-    "match_notes": [],
-    "pilot_tips": [],
-    "core_cards": [
-      "Weakpoint Detector",
-      "Duct Tape",
-      "Plasma Grenade",
-      "The Core",
-      "Cool LEDs"
-    ],
-    "transition_cards": [],
-    "optional_cards": [
-      "Barbed Wire",
-      "Hammlet",
-      "Critical Core"
-    ],
-    "wanted_tags": [],
-    "event_priorities": [],
-    "avoid_events": []
-  },
-  "dagong": {
-    "hero": "Dooley",
-    "display_name": "前期打工（第一二天专用）",
-    "applicable_stages": [
-      "early"
-    ],
-    "day_range": [
-      1,
-      null
-    ],
-    "build_summary": "前期打工（第一二天专用）",
-    "match_notes": [],
-    "pilot_tips": [],
-    "core_cards": [
-      "Sat-Comm",
-      "Duct Tape",
-      "Micro Dave"
-    ],
-    "transition_cards": [],
-    "optional_cards": [
-      "Temporal Navigator",
-      "Tesla Coil",
-      "Soldering Gun",
-      "Char Cole",
-      "Power Drill",
-      "Pulse Rifle",
-      "Weakpoint Detector"
-    ],
-    "wanted_tags": [],
-    "event_priorities": [],
-    "avoid_events": []
-  },
-  "konglongan": {
-    "hero": "Dooley",
-    "display_name": "恐龙鞍",
-    "applicable_stages": [
-      "late"
-    ],
-    "day_range": [
-      7,
-      null
-    ],
-    "build_summary": "恐龙鞍",
-    "match_notes": [],
-    "pilot_tips": [],
-    "core_cards": [
-      "Dino Saddle",
-      "Micro Mach",
-      "Fiber Optics",
-      "Thrusters"
-    ],
-    "transition_cards": [],
-    "optional_cards": [
-      "Charging Station",
-      "The Core",
-      "Weaponized Core"
-    ],
-    "wanted_tags": [],
-    "event_priorities": [],
-    "avoid_events": []
-  },
   "feiheqianqi": {
     "hero": "Dooley",
     "display_name": "飞核（前）当前最强",
@@ -1604,7 +1506,7 @@
       "early"
     ],
     "day_range": [
-      7,
+      1,
       null
     ],
     "build_summary": "飞核（前）当前最强",
@@ -1686,7 +1588,7 @@
       "late"
     ],
     "day_range": [
-      1,
+      7,
       null
     ],
     "build_summary": "飞核（后期）当前最强",
@@ -1773,6 +1675,97 @@
       "Soul of the District",
       "Fiber Optics",
       "3D Printer"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "ruodian": {
+    "hero": "Dooley",
+    "display_name": "弱点",
+    "applicable_stages": [
+      "mid"
+    ],
+    "day_range": [
+      4,
+      null
+    ],
+    "build_summary": "弱点",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Weakpoint Detector",
+      "Duct Tape",
+      "Plasma Grenade",
+      "The Core",
+      "Cool LEDs"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Barbed Wire",
+      "Hammlet",
+      "Critical Core"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "dagong": {
+    "hero": "Dooley",
+    "display_name": "前期打工（第一二天专用）",
+    "applicable_stages": [
+      "early"
+    ],
+    "day_range": [
+      1,
+      null
+    ],
+    "build_summary": "前期打工（第一二天专用）",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Sat-Comm",
+      "Duct Tape",
+      "Micro Dave"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Temporal Navigator",
+      "Tesla Coil",
+      "Soldering Gun",
+      "Char Cole",
+      "Power Drill",
+      "Pulse Rifle",
+      "Weakpoint Detector"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "konglongan": {
+    "hero": "Dooley",
+    "display_name": "恐龙鞍",
+    "applicable_stages": [
+      "late"
+    ],
+    "day_range": [
+      7,
+      null
+    ],
+    "build_summary": "恐龙鞍",
+    "match_notes": [],
+    "pilot_tips": [],
+    "core_cards": [
+      "Dino Saddle",
+      "Micro Mach",
+      "Fiber Optics",
+      "Thrusters"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Charging Station",
+      "The Core",
+      "Weaponized Core"
     ],
     "wanted_tags": [],
     "event_priorities": [],
@@ -2242,7 +2235,7 @@
   },
   "shayudaodan": {
     "hero": "Stelle",
-    "display_name": "鲨鱼导弹",
+    "display_name": "鲨鱼导弹（已失效）",
     "applicable_stages": [
       "late"
     ],
@@ -2252,7 +2245,9 @@
     ],
     "build_summary": "鲨鱼导弹",
     "match_notes": [],
-    "pilot_tips": [],
+    "pilot_tips": [
+      "鲨鱼导弹这版本机制大砍，已彻底报废，别玩"
+    ],
     "core_cards": [
       "Buster",
       "Freefall Simulator",
@@ -2704,6 +2699,429 @@
     "optional_cards": [
       "Caviar",
       "Pasta"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "zihuan": {
+    "hero": "Stelle",
+    "display_name": "自缓（前中期速跑）",
+    "applicable_stages": [
+      "early",
+      "mid"
+    ],
+    "day_range": [
+      3,
+      null
+    ],
+    "build_summary": "消防栓 游轮",
+    "match_notes": [],
+    "pilot_tips": [
+      "多进工具店，多找成长技能，核心组件都是白银，理论三天可初步成型，早来核心之一可考虑往这个阵容靠，不胡牌理论上限最高的是雷达穹顶那套，野怪一定要打巨龙和恶蚊赌龙心蚊子嘴，减速加攻技搏上限，构筑阵容分为输出成长和减速来源三个部分，都具备即可"
+    ],
+    "core_cards": [
+      "Inertial Dampener",
+      "Cruise Ship",
+      "Dragon Heart"
+    ],
+    "transition_cards": [
+      "Sky Anchor",
+      "Steam Hose"
+    ],
+    "optional_cards": [
+      "Fire Hose",
+      "Sirens",
+      "Radar Dome",
+      "Weather Machine",
+      "Tugboat",
+      "Multitool",
+      "Flare Gun",
+      "Ni-Kola"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "tianwentai": {
+    "hero": "Stelle",
+    "display_name": "天文台公式",
+    "applicable_stages": [
+      "mid",
+      "late"
+    ],
+    "day_range": [
+      7,
+      null
+    ],
+    "build_summary": "天文台，警报喇叭",
+    "match_notes": [],
+    "pilot_tips": [
+      "前期能抓到警报喇叭天文台，即可考虑留牌后期转型，黑妹北伐强力阵容之一，依靠喇叭天文台互冲玩成运转带动终场手段，可多找起飞技能，喇叭升到黄金之后不要继续升级，阵容从左到右排序为扑翼机，喇叭，天文台，输出端，输出端核心通常选轨道炮湮灭炮，都没有时可以利用喇叭的加减速特效配上西瓜虫和水管做输出端"
+    ],
+    "core_cards": [
+      "Ornithopter",
+      "Sirens",
+      "Observatory",
+      "Space Laser",
+      "Oblivion Cannon"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Pillbuggy",
+      "Steam Hose",
+      "Dragon Heart",
+      "Darts",
+      "Goggles",
+      "Crane"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "jiku": {
+    "hero": "Stelle",
+    "display_name": "机库/星辉凤碟",
+    "applicable_stages": [
+      "mid",
+      "late"
+    ],
+    "day_range": [
+      6,
+      null
+    ],
+    "build_summary": "机库/星辉凤碟",
+    "match_notes": [],
+    "pilot_tips": [
+      "可由前期永飞武器丝滑转型，互踩型阵容，可多考虑加速附魔，可以靠喇叭扑翼机的经典combo进行运转，也可以纯靠如加特林作战无人机的高频率武器叠伤害"
+    ],
+    "core_cards": [
+      "Hangar",
+      "Stellar Swallowtail",
+      "Sirens"
+    ],
+    "transition_cards": [
+      "Battle Drone",
+      "Gatling Gun"
+    ],
+    "optional_cards": [
+      "Altimeter",
+      "Ornithopter",
+      "Pilot's Wings",
+      "Darts",
+      "Targeting Drone",
+      "Goggles",
+      "Binoculars"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "xiaoji": {
+    "hero": "Stelle",
+    "display_name": "小鸡炮（狗运来区魂后期最强）",
+    "applicable_stages": [
+      "late"
+    ],
+    "day_range": [
+      10,
+      null
+    ],
+    "build_summary": "小鸡炮/区魂",
+    "match_notes": [],
+    "pilot_tips": [
+      "不会还有黑妹没有玩过区魂小鸡炮吧，打野找到区魂一定要体验三秒区魂的爽感！补上煤气罐甚至可以1.5秒启动秒人，有能力给区魂盾附魔"
+    ],
+    "core_cards": [
+      "Chicken Cannon",
+      "Soul of the District",
+      "Hydrogen Tank"
+    ],
+    "transition_cards": [],
+    "optional_cards": [],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "bangbangtang": {
+    "hero": "Jules",
+    "display_name": "棒棒糖（后期）",
+    "applicable_stages": [
+      "mid",
+      "late"
+    ],
+    "day_range": [
+      7,
+      null
+    ],
+    "build_summary": "棒棒糖，洗碗机",
+    "match_notes": [],
+    "pilot_tips": [
+      "可由缓速火或餐车丝滑过渡，厨师最强单武器终端之一，拿到棒棒糖记得打野怪时下掉输出端做任务，大致分 炒锅黑胡椒/餐车运转和洗碗机纯叠伤害两种思路，多拿暴击技能，海小妹的斗篷配合餐车是很强的运转端，前期拿到可以考虑留"
+    ],
+    "core_cards": [
+      "Giant Lollipop",
+      "Dishwasher",
+      "Jumbo Wok",
+      "Black Pepper",
+      "Food Truck",
+      "Shadowed Cloak"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Meat Tenderizer",
+      "Pizza Cutter",
+      "Bread Knife",
+      "Laurel's Bouncy Ball",
+      "Spatula",
+      "Caviar"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "chushi huansuhuo": {
+    "hero": "Jules",
+    "display_name": "厨师缓速火（前中期）",
+    "applicable_stages": [
+      "early",
+      "mid"
+    ],
+    "day_range": [
+      3,
+      null
+    ],
+    "build_summary": "加热箱",
+    "match_notes": [],
+    "pilot_tips": [
+      "厨师前期强力过渡阵容，第三天来烤箱南瓜可考虑，烤箱提供火焰数值成长，跑跑腿地板/南瓜等提供减速，咖喱提供运转，如果来火成长技能可下烤箱，来使用食物触发减速技能可用剥蒜套替换咖喱，野宴能来火附魔贴南瓜或配合蛋糕糊也是不错的选择，该阵容适合速跑，后期建议留牌转棒棒糖"
+    ],
+    "core_cards": [
+      "Curry",
+      "Bubblegum Floor",
+      "Hot Box",
+      "Imu"
+    ],
+    "transition_cards": [
+      "Pumpkin",
+      "Boar Roast",
+      "Grater",
+      "Honeycomb"
+    ],
+    "optional_cards": [
+      "Cake Batter",
+      "Luau",
+      "Jambalaya",
+      "Black Pepper",
+      "Zarlic"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "tiaoliaojiahou": {
+    "hero": "Jules",
+    "display_name": "调料架（中后期）",
+    "applicable_stages": [
+      "early",
+      "mid",
+      "late"
+    ],
+    "day_range": [
+      5,
+      null
+    ],
+    "build_summary": "调料架",
+    "match_notes": [],
+    "pilot_tips": [
+      "很看重技能的阵容，多加爆技能上限很高（看到加速加爆/灼烧加爆必拿），前期可以靠龙排提供大量暴击，乱炖/披萨提供运转，后期靠剥蒜套配合托盘/储粮柜运转，该阵容后期刚需防御附魔"
+    ],
+    "core_cards": [
+      "Spice Rack",
+      "Zarlic",
+      "Poke",
+      "Pantry",
+      "Serving Platter"
+    ],
+    "transition_cards": [
+      "Pizza",
+      "Pizza Cutter",
+      "Azakan Stew",
+      "Dragon Steak",
+      "Santoku",
+      "Banu Leaves",
+      "Meat Tenderizer",
+      "Black Pepper",
+      "Universal Sauce",
+      "Strawberries"
+    ],
+    "optional_cards": [
+      "Sorbet",
+      "Hot Sauce",
+      "Spatula",
+      "Salt"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "nailaolun": {
+    "hero": "Jules",
+    "display_name": "奶酪轮（大后期）",
+    "applicable_stages": [
+      "late"
+    ],
+    "day_range": [
+      10,
+      null
+    ],
+    "build_summary": "奶酪轮",
+    "match_notes": [],
+    "pilot_tips": [
+      "大后期阵容，有点玩具，慎玩，奶酪轮的翻倍数值含金量无需多言，靠番红花/蛋糕糊给奶酪轮提供数值，餐车储粮柜烤箱等提供运转，附魔建议给治疗或火，最佳组合是砂锅肉锤黑胡椒奶酪轮互冲"
+    ],
+    "core_cards": [
+      "Cheese Wheel",
+      "Meat Tenderizer",
+      "Oven",
+      "Pantry"
+    ],
+    "transition_cards": [],
+    "optional_cards": [
+      "Oven Mitts",
+      "Cake Batter",
+      "Saffron",
+      "Jumbo Wok",
+      "Black Pepper",
+      "Food Truck",
+      "Butter",
+      "Bread Knife"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "zhazhiji": {
+    "hero": "Jules",
+    "display_name": "榨汁机（前中期）",
+    "applicable_stages": [
+      "early",
+      "mid",
+      "late"
+    ],
+    "day_range": [
+      3,
+      null
+    ],
+    "build_summary": "榨汁机",
+    "match_notes": [],
+    "pilot_tips": [
+      "前期来榨汁机可无脑玩，上榨汁机挂加速端和高频率食物前期可少进店划水的同时拥有不错战斗力，后面需要配洗碗机和植物园提供数值才有一战之力，第六天票拿到摧毁光线是巨大提升，后期也可留意黑妹商店拿摧毁牌，大后期伤害乏力建议转型，技能多拿暴击，最好能有工具多重释放"
+    ],
+    "core_cards": [
+      "Fruit Press",
+      "Dishwasher",
+      "Veggie Garden",
+      "Coffee"
+    ],
+    "transition_cards": [
+      "Knife Sharpener",
+      "Cookie Cutters",
+      "Cookies",
+      "Slushee",
+      "LauLau",
+      "Banu Leaves",
+      "Instant Noodles",
+      "Santoku"
+    ],
+    "optional_cards": [
+      "Eggs",
+      "Caviar",
+      "Black Pepper",
+      "Ice Cubes",
+      "Sorbet"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "jiangbingwu": {
+    "hero": "Jules",
+    "display_name": "姜饼屋（中后期）",
+    "applicable_stages": [
+      "mid",
+      "late"
+    ],
+    "day_range": [
+      6,
+      null
+    ],
+    "build_summary": "姜饼屋",
+    "match_notes": [],
+    "pilot_tips": [
+      "可由蛋糕糊转型或在瓜治听牌时转型，思路大致分两种，分别是由开瓶器配瓜打的一波流和蛋糕糊配工具的成长流，后者强度更高，前者记得留冰位，番红花，烤箱手套是体系内优质配，一定要留意拿"
+    ],
+    "core_cards": [
+      "Gingerbread House"
+    ],
+    "transition_cards": [
+      "Butter",
+      "Hot Sauce",
+      "Gingerbread Man"
+    ],
+    "optional_cards": [
+      "Dragonmelon",
+      "Cake Batter",
+      "Oven Mitts",
+      "Corkscrew",
+      "Saffron",
+      "Meat Tenderizer",
+      "Pizza Cutter",
+      "Herb Shears",
+      "Black Pepper",
+      "Bread Knife",
+      "Whisk"
+    ],
+    "wanted_tags": [],
+    "event_priorities": [],
+    "avoid_events": []
+  },
+  "juxingcaidao": {
+    "hero": "Jules",
+    "display_name": "巨型菜刀（中后期）",
+    "applicable_stages": [
+      "mid",
+      "late"
+    ],
+    "day_range": [
+      6,
+      null
+    ],
+    "build_summary": "巨型菜刀",
+    "match_notes": [],
+    "pilot_tips": [
+      "刚需大量基础暴击和运转，后期北伐阵容之一，前面可以靠巨龙排鱼子酱提供暴击数值，后面把火位换冰位靠剥蒜套加寿司船运转"
+    ],
+    "core_cards": [
+      "Massive Cleaver",
+      "Sushi Boat",
+      "Zarlic",
+      "Poke",
+      "Serving Platter"
+    ],
+    "transition_cards": [
+      "Caviar",
+      "Dragon Steak",
+      "Santoku",
+      "Universal Sauce"
+    ],
+    "optional_cards": [
+      "Meat Tenderizer",
+      "Salt",
+      "Hot Sauce",
+      "Instant Noodles",
+      "Eggs",
+      "Sorbet"
     ],
     "wanted_tags": [],
     "event_priorities": [],
