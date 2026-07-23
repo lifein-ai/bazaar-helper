@@ -936,10 +936,10 @@ namespace BazaarStateExporter
                 return;
             }
 
-            HashSet<string> seenIds = new HashSet<string>(
-                ownedCards
-                    .Where(card => card != null && !string.IsNullOrEmpty(card.id))
-                    .Select(card => card.id));
+            Dictionary<string, CardSnapshot> cardsById = ownedCards
+                .Where(card => card != null && !string.IsNullOrEmpty(card.id))
+                .GroupBy(card => card.id)
+                .ToDictionary(group => group.Key, group => group.First());
 
             List<CardSnapshot> candidates = RuntimeStateCache.GetCurrentVisibleCards();
             foreach (CardSnapshot recentCard in RuntimeStateCache.GetCapturedUiCards(8f))
@@ -961,11 +961,94 @@ namespace BazaarStateExporter
                 {
                     continue;
                 }
-                if (seenIds.Add(card.id))
+                CardSnapshot existing;
+                if (cardsById.TryGetValue(card.id, out existing))
+                {
+                    MergeCapturedOwnedCard(existing, card);
+                }
+                else
                 {
                     ownedCards.Add(card);
+                    cardsById[card.id] = card;
                 }
             }
+        }
+
+        private static void MergeCapturedOwnedCard(
+            CardSnapshot existing,
+            CardSnapshot captured)
+        {
+            string latestSection = CapturedOwnedSection(captured);
+            if (!string.IsNullOrEmpty(latestSection))
+            {
+                existing.section = latestSection;
+            }
+            if (!string.IsNullOrEmpty(captured.template_id))
+            {
+                existing.template_id = captured.template_id;
+            }
+            if (!string.IsNullOrEmpty(captured.name))
+            {
+                existing.name = captured.name;
+            }
+            if (!string.IsNullOrEmpty(captured.rarity))
+            {
+                existing.rarity = captured.rarity;
+            }
+            if (!string.IsNullOrEmpty(captured.card_type))
+            {
+                existing.card_type = captured.card_type;
+            }
+            if (!string.IsNullOrEmpty(captured.source))
+            {
+                existing.source = captured.source;
+            }
+            if (!string.IsNullOrEmpty(captured.ui_context))
+            {
+                existing.ui_context = captured.ui_context;
+            }
+            if (captured.price.HasValue)
+            {
+                existing.price = captured.price;
+            }
+            if (!string.IsNullOrEmpty(captured.runtime_type))
+            {
+                existing.runtime_type = captured.runtime_type;
+            }
+            if (captured.enchantments.Count > 0)
+            {
+                existing.enchantments.Clear();
+                existing.enchantments.AddRange(captured.enchantments);
+            }
+            foreach (string source in captured.runtime_sources)
+            {
+                if (!existing.runtime_sources.Contains(source))
+                {
+                    existing.runtime_sources.Add(source);
+                }
+            }
+            CopyObjectDictionary(captured.runtime_values, existing.runtime_values);
+            CopyObjectDictionary(captured.current_attributes, existing.current_attributes);
+            CopyObjectDictionary(captured.base_attributes, existing.base_attributes);
+            CopyObjectDictionary(captured.attribute_modifiers, existing.attribute_modifiers);
+        }
+
+        private static string CapturedOwnedSection(CardSnapshot card)
+        {
+            string context = card.ui_context ?? "";
+            if (context.IndexOf(
+                    "PlayerStorageSocket_",
+                    StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return "Stash";
+            }
+            if (context.IndexOf(
+                    "PlayerItemSocket_",
+                    StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return "Hand";
+            }
+            return IsOwnedItemSection(card.section) ? card.section : "";
         }
 
         private static bool IsCapturedOwnedItemCard(CardSnapshot card)
