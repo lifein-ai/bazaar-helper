@@ -696,15 +696,16 @@ namespace BazaarStateExporter
                 RuntimeStateCache.GetLatestOpponentItemSocketCards(30f, shopCaptureMinSeenAt);
             CardSnapshot latestMerchant =
                 RuntimeStateCache.GetLatestMerchantCard(30f, shopCaptureMinSeenAt);
-            bool merchantScreen = recentlyCapturedCards.Any(card =>
+            bool hasMerchantPortrait = recentlyCapturedCards.Any(card =>
                 (card.ui_context ?? "").IndexOf(
                     "OpponentPortraitSocketMerchant",
                     StringComparison.OrdinalIgnoreCase) >= 0);
-            merchantScreen = screenModeIsShop
+            bool merchantScreen = screenModeIsShop
+                || (hasMerchantPortrait && latestSocketOffers.Count > 0)
                 || (!screenModeIsEvents
                 && !selectionSetHasEncounters
                 && (
-                    merchantScreen
+                    hasMerchantPortrait
                     || RuntimeStateCache.ShopRefreshAvailable.HasValue
                     || RuntimeStateCache.ShopRefreshCost.HasValue
                     || RuntimeStateCache.ShopRefreshesRemaining.HasValue
@@ -753,7 +754,7 @@ namespace BazaarStateExporter
                 {
                     snapshot.current_shop.merchant_id = latestMerchant.id;
                     snapshot.current_shop.merchant_template_id = latestMerchant.template_id;
-                    snapshot.current_shop.merchant_name = latestMerchant.name;
+                    snapshot.current_shop.merchant_name = MerchantName(latestMerchant);
                 }
                 snapshot.current_shop.visible_items.AddRange(shopCards);
                 snapshot.current_shop.refresh_available =
@@ -846,6 +847,20 @@ namespace BazaarStateExporter
             }
 
             return snapshot;
+        }
+
+        private static string MerchantName(CardSnapshot merchant)
+        {
+            if (!string.IsNullOrWhiteSpace(merchant.name))
+            {
+                return merchant.name;
+            }
+
+            string context = merchant.ui_context ?? "";
+            int slashIndex = context.IndexOf('/');
+            return slashIndex > 0
+                ? context.Substring(0, slashIndex).Trim()
+                : "";
         }
 
         private GameStateSnapshot CreateNewRunTransitionSnapshot()
