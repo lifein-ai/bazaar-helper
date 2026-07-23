@@ -108,6 +108,148 @@ def make_heal_card(name: str, template_id: str, *, heal: float, cooldown_ms: int
     return card
 
 
+def make_skill(
+    name: str,
+    template_id: str,
+    *,
+    trigger_type: str,
+    action_type: str,
+    amount_attr: str,
+    amount: float,
+    trigger_attribute: str = "",
+    trigger_change: str = "",
+    trigger_mode: str = "Opponent",
+    action_target_mode: str = "Opponent",
+) -> dict:
+    trigger = {
+        "$type": f"BazaarGameShared.Domain.Effect.Trigger.{trigger_type}",
+        "Subject": {
+            "$type": "BazaarGameShared.Domain.Targeting.TTargetPlayerRelative",
+            "TargetMode": trigger_mode,
+        },
+    }
+    if trigger_attribute:
+        trigger["AttributeType"] = trigger_attribute
+    if trigger_change:
+        trigger["ChangeType"] = trigger_change
+    return {
+        "id": template_id,
+        "template_id": template_id,
+        "name": name,
+        "type": "Skill",
+        "size": "Medium",
+        "tags": [],
+        "hidden_tags": [],
+        "tiers": ["Bronze"],
+        "rarity": "Bronze",
+        "raw_effects": {
+            "abilities": {
+                "0": {
+                    "$type": "BazaarGameShared.Domain.Effect.TCardAbility",
+                    "Trigger": trigger,
+                    "Action": {
+                        "$type": f"BazaarGameShared.Domain.Effect.Actions.{action_type}",
+                        "Target": {
+                            "$type": "BazaarGameShared.Domain.Targeting.TTargetPlayerRelative",
+                            "TargetMode": action_target_mode,
+                        },
+                    },
+                }
+            },
+            "auras": {},
+            "tiers_raw": {
+                "Bronze": {
+                    "Attributes": {amount_attr: amount},
+                    "AbilityIds": ["0"],
+                    "AuraIds": [],
+                }
+            },
+        },
+    }
+
+
+def make_damage_aura_skill(name: str, template_id: str, amount: float) -> dict:
+    return {
+        "id": template_id,
+        "template_id": template_id,
+        "name": name,
+        "type": "Skill",
+        "size": "Medium",
+        "tags": [],
+        "hidden_tags": [],
+        "tiers": ["Bronze"],
+        "rarity": "Bronze",
+        "raw_effects": {
+            "abilities": {},
+            "auras": {
+                "0": {
+                    "$type": "BazaarGameShared.Domain.Effect.TCardAura",
+                    "Action": {
+                        "$type": "BazaarGameShared.Domain.Effect.Actions.TAuraActionCardModifyAttribute",
+                        "AttributeType": "DamageAmount",
+                        "Operation": "Add",
+                        "Value": {
+                            "$type": "BazaarGameShared.Domain.Values.TFixedValue",
+                            "Value": amount,
+                        },
+                        "Target": {
+                            "$type": "BazaarGameShared.Domain.Targeting.TTargetCardSection",
+                            "TargetSection": "SelfBoard",
+                        },
+                    },
+                }
+            },
+            "tiers_raw": {
+                "Bronze": {
+                    "Attributes": {},
+                    "AbilityIds": [],
+                    "AuraIds": ["0"],
+                }
+            },
+        },
+    }
+
+
+def make_fight_started_enchant_skill(name: str, template_id: str, enchantment: str) -> dict:
+    return {
+        "id": template_id,
+        "template_id": template_id,
+        "name": name,
+        "type": "Skill",
+        "size": "Medium",
+        "tags": [],
+        "hidden_tags": [],
+        "tiers": ["Bronze"],
+        "rarity": "Bronze",
+        "raw_effects": {
+            "abilities": {
+                "0": {
+                    "$type": "BazaarGameShared.Domain.Effect.TCardAbility",
+                    "Trigger": {
+                        "$type": "BazaarGameShared.Domain.Effect.Trigger.TTriggerOnFightStarted",
+                    },
+                    "Action": {
+                        "$type": "BazaarGameShared.Domain.Effect.Actions.TActionCardEnchant",
+                        "Enchantment": enchantment,
+                        "Target": {
+                            "$type": "BazaarGameShared.Domain.Targeting.TTargetCardSection",
+                            "TargetSection": "SelfHand",
+                        },
+                    },
+                }
+            },
+            "auras": {},
+            "tiers_raw": {
+                "Bronze": {
+                    "Attributes": {},
+                    "AbilityIds": ["0"],
+                    "AuraIds": [],
+                }
+            },
+        },
+    }
+
+
 def make_transform_destroyed_card(
     name: str,
     template_id: str,
@@ -1033,6 +1175,113 @@ class MonsterBattleEvaluatorTests(unittest.TestCase):
         ]
         self.assertEqual(times[:3], [1.0, 1.25, 1.5])
 
+    def test_skill_static_aura_modifies_board_items(self) -> None:
+        weapon = make_card("Weapon", "tpl_weapon", damage=10, cooldown_ms=1000)
+        aura = make_damage_aura_skill("Battle Focus", "tpl_focus", 15)
+        monster = make_card("Monster", "tpl_monster", damage=0, cooldown_ms=10000)
+
+        outcome = _simulate_two_sided_battle(
+            player_cards=[
+                PlacedCard("weapon", weapon, tier="Bronze"),
+                PlacedCard("focus", aura, tier="Bronze"),
+            ],
+            monster_cards=[PlacedCard("monster", monster, tier="Bronze")],
+            player_health=100,
+            monster_health=100,
+            duration_sec=1.2,
+            rng=None,
+        )
+
+        uses = [event for event in outcome.timeline if event["kind"] == "use" and event["source"] == "Weapon"]
+        self.assertEqual(uses[0]["value"], 25)
+
+    def test_fight_started_skill_can_enchant_board_item(self) -> None:
+        weapon = make_card("Weapon", "tpl_weapon", damage=10, cooldown_ms=1000)
+        skill = make_fight_started_enchant_skill("Playing with Fire", "tpl_playing_with_fire", "Fiery")
+        monster = make_card("Monster", "tpl_monster", damage=0, cooldown_ms=10000)
+
+        outcome = _simulate_two_sided_battle(
+            player_cards=[
+                PlacedCard("weapon", weapon, tier="Bronze"),
+                PlacedCard("skill", skill, tier="Bronze"),
+            ],
+            monster_cards=[PlacedCard("monster", monster, tier="Bronze")],
+            player_health=100,
+            monster_health=100,
+            duration_sec=1.2,
+            rng=None,
+        )
+
+        self.assertTrue(
+            any(
+                event["kind"] == "enchant"
+                and event["source"] == "Playing with Fire"
+                and event["target"] == "Weapon"
+                and event["enchantment"] == "fiery"
+                for event in outcome.timeline
+            )
+        )
+
+    def test_skill_triggers_on_opponent_health_loss(self) -> None:
+        weapon = make_card("Weapon", "tpl_weapon", damage=60, cooldown_ms=1000)
+        skill = make_skill(
+            "Burst",
+            "tpl_burst",
+            trigger_type="TTriggerOnPlayerAttributeChanged",
+            trigger_attribute="Health",
+            trigger_change="Loss",
+            action_type="TActionPlayerBurnApply",
+            amount_attr="BurnApplyAmount",
+            amount=15,
+        )
+        monster = make_card("Monster", "tpl_monster", damage=0, cooldown_ms=10000)
+
+        outcome = _simulate_two_sided_battle(
+            player_cards=[
+                PlacedCard("weapon", weapon, tier="Bronze"),
+                PlacedCard("burst", skill, tier="Bronze"),
+            ],
+            monster_cards=[PlacedCard("monster", monster, tier="Bronze")],
+            player_health=100,
+            monster_health=100,
+            duration_sec=1.2,
+            rng=None,
+        )
+
+        self.assertTrue(any(event["kind"] == "player-attribute-triggered" and event["source"] == "Burst" for event in outcome.timeline))
+        self.assertTrue(any(event["kind"] == "burn-apply" and event["source"] == "Burst" and event["value"] == 15 for event in outcome.timeline))
+
+    def test_skill_triggers_on_opponent_burn_gain(self) -> None:
+        burner = make_card("Burner", "tpl_burner", damage=5, cooldown_ms=1000, action_type="TActionPlayerBurnApply")
+        burner["raw_effects"]["tiers_raw"]["Bronze"]["Attributes"]["BurnApplyAmount"] = 5
+        skill = make_skill(
+            "Cauterize",
+            "tpl_cauterize",
+            trigger_type="TTriggerOnPlayerAttributeChanged",
+            trigger_attribute="Burn",
+            trigger_change="Gain",
+            action_type="TActionPlayerRegenApply",
+            amount_attr="RegenApplyAmount",
+            amount=3,
+            action_target_mode="Player",
+        )
+        monster = make_card("Monster", "tpl_monster", damage=0, cooldown_ms=10000)
+
+        outcome = _simulate_two_sided_battle(
+            player_cards=[
+                PlacedCard("burner", burner, tier="Bronze"),
+                PlacedCard("cauterize", skill, tier="Bronze"),
+            ],
+            monster_cards=[PlacedCard("monster", monster, tier="Bronze")],
+            player_health=100,
+            monster_health=100,
+            duration_sec=1.2,
+            rng=None,
+        )
+
+        self.assertTrue(any(event["kind"] == "player-attribute-triggered" and event["source"] == "Cauterize" for event in outcome.timeline))
+        self.assertTrue(any(event["kind"] == "regen-apply" and event["source"] == "Cauterize" and event["value"] == 3 for event in outcome.timeline))
+
     def test_charge_cannot_bypass_item_use_icd(self) -> None:
         target = make_card("Target", "tpl_target", damage=0, cooldown_ms=10000)
         monster = make_card("Monster", "tpl_monster", damage=0, cooldown_ms=10000)
@@ -1696,6 +1945,31 @@ class MonsterBattleEvaluatorTests(unittest.TestCase):
         self.assertEqual(len([event for event in timeline if event["kind"] == "card-destroyed"]), 1)
         self.assertEqual(len([event for event in timeline if event["kind"] == "shield"]), 1)
         self.assertTrue(any(event["kind"] == "card-destroy-ignored" for event in timeline))
+
+    def test_performed_destruction_skill_triggers_from_destroying_card(self) -> None:
+        target = make_card("Target", "tpl_target", damage=0)
+        destroyer = make_card("Destroyer", "tpl_destroyer", action_type="TActionCardDisable")
+        observer = make_card("Observer", "tpl_observer", damage=0, action_type="TActionPlayerShieldApply", trigger_type="TTriggerOnCardPerformedDestruction")
+        observer["type"] = "Skill"
+        observer["raw_effects"]["abilities"]["0"]["Trigger"]["Subject"] = {
+            "$type": "BazaarGameShared.Domain.Targeting.TTargetCardSection",
+            "TargetSection": "SelfHand",
+        }
+        observer["raw_effects"]["abilities"]["0"]["Action"]["Target"]["TargetMode"] = "Player"
+        observer["raw_effects"]["tiers_raw"]["Bronze"]["Attributes"]["ShieldApplyAmount"] = 6
+        player = _make_battle_side(
+            "player",
+            [PlacedCard("destroyer", destroyer, tier="Bronze"), PlacedCard("observer", observer, start=100, tier="Bronze")],
+            100,
+            10,
+        )
+        monster = _make_battle_side("monster", [PlacedCard("target", target, tier="Bronze")], 100, 10)
+        timeline: list[dict] = []
+        rules = {card.placement_id: read_rules(card) for card in [*player.cards, *monster.cards]}
+
+        destroy_card(player, monster, BattleCardRef(monster, monster.active[0]), player, player.active[0], rules, BattleEventScheduler(timeline), 1.0, timeline, None, 10)
+
+        self.assertTrue(any(event["kind"] == "shield" and event["source"] == "Observer" and event["value"] == 6 for event in timeline))
 
     def test_destroyed_card_cooldown_pauses_and_repair_preserves_instance(self) -> None:
         card = make_card("Weapon", "tpl_weapon", damage=10, cooldown_ms=10000)
@@ -3039,6 +3313,64 @@ class MonsterBattleEvaluatorTests(unittest.TestCase):
 
         self.assertTrue(any(event["kind"] == "would-die" for event in timeline))
         self.assertTrue(any(event["kind"] == "player-died" for event in timeline))
+
+    def test_player_died_skill_trigger_executes(self) -> None:
+        dummy = make_card("Dummy", "tpl_dummy", damage=0, cooldown_ms=10000)
+        monster = make_card("Monster", "tpl_monster", damage=200, cooldown_ms=1000)
+        skill = make_skill(
+            "Death Growth",
+            "tpl_death_growth",
+            trigger_type="TTriggerOnPlayerDied",
+            action_type="TActionPlayerModifyAttribute",
+            amount_attr="HealthMax",
+            amount=25,
+            trigger_mode="Self",
+            action_target_mode="Self",
+        )
+        skill["raw_effects"]["abilities"]["0"]["Action"]["AttributeType"] = "HealthMax"
+
+        outcome = _simulate_two_sided_battle(
+            player_cards=[PlacedCard("dummy", dummy, tier="Bronze"), PlacedCard("death_growth", skill, tier="Bronze")],
+            monster_cards=[PlacedCard("monster", monster, tier="Bronze")],
+            player_health=100,
+            monster_health=100,
+            duration_sec=1.2,
+            rng=None,
+            sandstorm_config=SandstormConfig(enabled=False),
+        )
+
+        self.assertTrue(any(event["kind"] == "player-died-triggered" and event["source"] == "Death Growth" for event in outcome.timeline))
+        self.assertTrue(any(event["kind"] == "max-health-changed" and event["source"] == "Death Growth" for event in outcome.timeline))
+
+    def test_noncombat_skill_spawn_action_is_not_reported_as_battle_unsupported(self) -> None:
+        player = make_card("Player", "tpl_player", damage=10)
+        monster = make_card("Monster", "tpl_monster", damage=1)
+        scavenger = make_skill(
+            "Scavenger",
+            "tpl_scavenger",
+            trigger_type="TTriggerOnPlayerAttributeChanged",
+            trigger_attribute="Level",
+            trigger_change="Gain",
+            action_type="TActionGameSpawnCards",
+            amount_attr="Custom_0",
+            amount=0,
+            trigger_mode="Player",
+            action_target_mode="Player",
+        )
+        data = {"cards": {"Player": player, "Monster": monster, "Scavenger": scavenger}}
+
+        result = evaluate_monster_choices(
+            data=data,
+            player_state={
+                **state_with("tpl_player", health=100),
+                "skills": [{"id": "skill_1", "template_id": "tpl_scavenger", "rarity": "Bronze"}],
+            },
+            monster_choices=[{**state_with("tpl_monster", health=100), "name": "Monster"}],
+            simulations=1,
+            duration_sec=2,
+        )["results"][0]
+
+        self.assertFalse(any(item.get("card") == "Scavenger" for item in result["unsupported_effects"]))
 
     def test_player_stable_win(self) -> None:
         data = {

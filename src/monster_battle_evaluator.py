@@ -31,6 +31,7 @@ from combat_simulator import (
     apply_attribute_operation,
     build_current_board_placements,
     card_attr_with_bonus,
+    card_enchantment,
     card_width,
     card_label,
     card_tags,
@@ -53,6 +54,7 @@ from combat_simulator import (
     is_skill_card,
     item_timing_config,
     matches_card,
+    normalize_enchantment,
     normalize_tag,
     normalize_offense_attr,
     pick_x_most,
@@ -79,6 +81,8 @@ SUPPORTED_RULE_ACTIONS = {
     "TActionCardDisable",
     "TActionCardTransform",
     "TActionCardTransformDestroyed",
+    "TActionCardEnchant",
+    "TActionCardEnchantRandom",
     "TActionCardFlyingStart",
     "TActionCardFlyingStop",
     "TActionCardFlyingToggle",
@@ -130,6 +134,8 @@ TWO_SIDED_RULE_ACTIONS = {
     "TActionCardDisable",
     "TActionCardTransform",
     "TActionCardTransformDestroyed",
+    "TActionCardEnchant",
+    "TActionCardEnchantRandom",
     "TActionCardFlyingStart",
     "TActionCardFlyingStop",
     "TActionCardFlyingToggle",
@@ -150,6 +156,7 @@ TWO_SIDED_RULE_ACTIONS = {
     "TActionPlayerRegenApply",
     "TActionPlayerRageApply",
     "TActionPlayerModifyAttribute",
+    "TActionPlayerReviveHeal",
     "TActionCardModifyAttribute",
 }
 AMOUNTLESS_RULE_ACTIONS = {
@@ -164,6 +171,9 @@ AMOUNTLESS_RULE_ACTIONS = {
     "TActionCardTransform",
     "TActionCardRepair",
     "TActionCardTransformDestroyed",
+    "TActionCardEnchant",
+    "TActionCardEnchantRandom",
+    "TActionPlayerReviveHeal",
 }
 RUNTIME_CARD_STATES = {"flying", "heated", "chilled"}
 RUNTIME_SIDE_STATES = {"enraged"}
@@ -249,6 +259,7 @@ NONCOMBAT_UNSUPPORTED_TRIGGERS = {
     "TTriggerOnFightEnded",
     "TTriggerOnHourStarted",
 }
+NONCOMBAT_UNSUPPORTED_ACTIONS = {"TActionGameSpawnCards", "TActionCardUpgrade"}
 NONCOMBAT_UNSUPPORTED_ATTRIBUTES = {"BuyPrice", "SellPrice"}
 MAX_TRIGGER_DEPTH = 8
 TAG_AURA_SOURCE_PREFIX = "tag-aura:"
@@ -746,6 +757,18 @@ def _simulate_two_sided_battle(
     _initialize_runtime_state_auras(player, monster, timeline, rng, duration_sec)
     _refresh_runtime_state_auras(player, monster, scheduler, 0.0, timeline, rng)
     _run_fight_started_actions(player, monster, rules_by_source, scheduler, timeline, rng, duration_sec, card_index)
+    _run_player_attribute_changed_rules_for_events(
+        player,
+        monster,
+        rules_by_source,
+        scheduler,
+        0,
+        0.0,
+        timeline,
+        rng,
+        duration_sec=duration_sec,
+        card_index=card_index,
+    )
     _refresh_runtime_state_auras(player, monster, scheduler, 0.0, timeline, rng)
     if _battle_winner(player, monster):
         return _battle_outcome(player, monster, 0.0, timeline)
@@ -810,16 +833,43 @@ def _simulate_two_sided_battle(
         _refresh_runtime_state_auras(player, monster, scheduler, now, timeline, rng)
 
         if now + epsilon >= next_burn_tick:
+            event_cursor = len(timeline)
             _process_burn_tick(player, monster, now, timeline)
+            _run_player_attribute_changed_rules_for_events(
+                player,
+                monster,
+                rules_by_source,
+                scheduler,
+                event_cursor,
+                now,
+                timeline,
+                rng,
+                duration_sec=duration_sec,
+                card_index=card_index,
+            )
             next_burn_tick += 0.5
         if now + epsilon >= next_second_tick:
+            event_cursor = len(timeline)
             _process_second_tick(player, monster, now, timeline)
+            _run_player_attribute_changed_rules_for_events(
+                player,
+                monster,
+                rules_by_source,
+                scheduler,
+                event_cursor,
+                now,
+                timeline,
+                rng,
+                duration_sec=duration_sec,
+                card_index=card_index,
+            )
             next_second_tick += 1.0
         _refresh_runtime_state_auras(player, monster, scheduler, now, timeline, rng)
         if _battle_winner(player, monster):
             break
 
         if now + epsilon >= sandstorm_time:
+            event_cursor = len(timeline)
             if _process_sandstorm_time(
                 player,
                 monster,
@@ -834,6 +884,18 @@ def _simulate_two_sided_battle(
                 card_index=card_index,
             ):
                 end_reason = "sandstorm"
+            _run_player_attribute_changed_rules_for_events(
+                player,
+                monster,
+                rules_by_source,
+                scheduler,
+                event_cursor,
+                now,
+                timeline,
+                rng,
+                duration_sec=duration_sec,
+                card_index=card_index,
+            )
             _refresh_runtime_state_auras(player, monster, scheduler, now, timeline, rng)
             if _battle_winner(player, monster):
                 break
@@ -852,6 +914,7 @@ def _simulate_two_sided_battle(
             elif event.kind == "COOLDOWN_MODIFIER_EXPIRED":
                 _expire_cooldown_modifier(event, scheduler, now, timeline)
             elif event.kind == "ITEM_USED" and event.ref is not None:
+                event_cursor = len(timeline)
                 _fire_battle_card(
                     event.ref,
                     player,
@@ -864,6 +927,18 @@ def _simulate_two_sided_battle(
                     forced=event.forced,
                     cast_index=event.cast_index,
                     requested_time=event.requested_time,
+                    card_index=card_index,
+                )
+                _run_player_attribute_changed_rules_for_events(
+                    player,
+                    monster,
+                    rules_by_source,
+                    scheduler,
+                    event_cursor,
+                    now,
+                    timeline,
+                    rng,
+                    duration_sec=duration_sec,
                     card_index=card_index,
                 )
             _refresh_runtime_state_auras(player, monster, scheduler, now, timeline, rng)
@@ -1387,6 +1462,77 @@ def _add_runtime_tags(
     timeline: list[dict[str, Any]],
 ) -> bool:
     return _set_runtime_tags_from_source(target, source_id, tags, source_side, source, now, timeline)
+
+
+def _pick_enchantment_for_rule(rule: Any, rng: Callable[[], float] | None) -> str:
+    if rule.action_type == "TActionCardEnchant":
+        return normalize_enchantment(get_field(rule.raw_action, "Enchantment", default=""))
+    entries = get_field(rule.raw_action, "Enchantments", default=[]) or []
+    weighted: list[tuple[str, float]] = []
+    for entry in entries:
+        enchantment = normalize_enchantment(get_field(entry, "Enchantment", default=""))
+        if not enchantment:
+            continue
+        try:
+            weight = float(get_field(entry, "Weight", default=1) or 1)
+        except (TypeError, ValueError):
+            weight = 1.0
+        if weight > 0:
+            weighted.append((enchantment, weight))
+    if not weighted:
+        return ""
+    total = sum(weight for _, weight in weighted)
+    roll = 0.0 if rng is None else max(0.0, min(total, rng() * total))
+    running = 0.0
+    for enchantment, weight in weighted:
+        running += weight
+        if roll <= running:
+            return enchantment
+    return weighted[-1][0]
+
+
+def _apply_card_enchantment(
+    target: BattleCardRef,
+    source_side: BattleSide,
+    source: PlacedCard,
+    enchantment: str,
+    rule: Any,
+    now: float,
+    timeline: list[dict[str, Any]],
+) -> bool:
+    if not enchantment:
+        return False
+    existing = card_enchantment(target.card)
+    if existing and bool(get_field(rule.raw_action, "PreventOverride", default=False)):
+        timeline.append(
+            _battle_event(
+                now,
+                source_side.name,
+                target.side.name,
+                "enchant-ignored",
+                card_label(source),
+                0.0,
+                target=card_label(target.card),
+                enchantment=enchantment,
+                existing_enchantment=existing,
+            )
+        )
+        return False
+    target.card.card["enchantment"] = enchantment
+    timeline.append(
+        _battle_event(
+            now,
+            source_side.name,
+            target.side.name,
+            "enchant",
+            card_label(source),
+            1.0,
+            target=card_label(target.card),
+            enchantment=enchantment,
+            previous_enchantment=existing or None,
+        )
+    )
+    return True
 
 
 def _set_runtime_tags_from_source(
@@ -2375,6 +2521,282 @@ def _run_card_attribute_changed_rules(
                     trigger_depth=trigger_depth + 1,
                     card_index=card_index,
                 )
+
+
+def _run_player_attribute_changed_rules_for_events(
+    player: BattleSide,
+    monster: BattleSide,
+    rules_by_source: dict[str, list[Any]],
+    scheduler: BattleEventScheduler,
+    start_index: int,
+    now: float,
+    timeline: list[dict[str, Any]],
+    rng: Callable[[], float] | None,
+    *,
+    duration_sec: float,
+    trigger_depth: int = 0,
+    card_index: dict[str, dict[str, Any]] | None = None,
+) -> None:
+    cursor = max(0, int(start_index))
+    guard = 0
+    while cursor < len(timeline) and guard < 240:
+        guard += 1
+        event = timeline[cursor]
+        cursor += 1
+        if str(event.get("kind") or "") == "player-died":
+            died_side = _side_by_name(player, monster, str(event.get("target_side") or event.get("side") or ""))
+            if died_side is None:
+                continue
+            trigger_card = _first_event_card(died_side)
+            if trigger_card is None:
+                continue
+            _run_player_died_triggered_rules(
+                player,
+                monster,
+                rules_by_source,
+                scheduler,
+                now,
+                timeline,
+                rng,
+                died_side=died_side,
+                trigger_card=trigger_card,
+                duration_sec=duration_sec,
+                trigger_depth=trigger_depth + 1,
+                card_index=card_index,
+            )
+            continue
+        before = event.get("before_health")
+        after = event.get("after_health")
+        attribute = "Health"
+        if before is None or after is None:
+            kind = str(event.get("kind") or "")
+            if kind not in {"burn-apply", "poison-apply", "burn-cleansed", "poison-cleansed"}:
+                continue
+            try:
+                value = float(event.get("value") or 0.0)
+            except (TypeError, ValueError):
+                continue
+            if value <= 0:
+                continue
+            attribute = "Burn" if "burn" in kind else "Poison"
+            if "cleansed" in kind:
+                old_value = value
+                new_value = 0.0
+            else:
+                old_value = 0.0
+                new_value = value
+        else:
+            try:
+                old_value = float(before)
+                new_value = float(after)
+            except (TypeError, ValueError):
+                continue
+        if abs(new_value - old_value) <= 1e-9:
+            continue
+        changed_side = _side_by_name(player, monster, str(event.get("target_side") or event.get("side") or ""))
+        if changed_side is None:
+            continue
+        trigger_card = _first_event_card(changed_side)
+        if trigger_card is None:
+            continue
+        _run_player_attribute_changed_rules(
+            player,
+            monster,
+            rules_by_source,
+            scheduler,
+            now,
+            timeline,
+            rng,
+            changed_side=changed_side,
+            trigger_card=trigger_card,
+            attribute=attribute,
+            old_value=old_value,
+            new_value=new_value,
+            duration_sec=duration_sec,
+            trigger_depth=trigger_depth + 1,
+            card_index=card_index,
+        )
+
+
+def _run_player_attribute_changed_rules(
+    player: BattleSide,
+    monster: BattleSide,
+    rules_by_source: dict[str, list[Any]],
+    scheduler: BattleEventScheduler,
+    now: float,
+    timeline: list[dict[str, Any]],
+    rng: Callable[[], float] | None,
+    *,
+    changed_side: BattleSide,
+    trigger_card: PlacedCard,
+    attribute: str,
+    old_value: float,
+    new_value: float,
+    duration_sec: float,
+    trigger_depth: int = 0,
+    card_index: dict[str, dict[str, Any]] | None = None,
+) -> None:
+    if trigger_depth >= MAX_TRIGGER_DEPTH:
+        timeline.append(
+            _battle_event(
+                now,
+                changed_side.name,
+                changed_side.name,
+                "trigger-depth-limited",
+                attribute,
+                trigger_depth,
+                trigger="TTriggerOnPlayerAttributeChanged",
+            )
+        )
+        return
+    delta = float(new_value) - float(old_value)
+    if abs(delta) <= 1e-9:
+        return
+    performed = {
+        "player_attribute_changed": 1,
+        "attribute_delta": delta,
+        "damage": 1 if delta < 0 else 0,
+        "heal": 1 if delta > 0 else 0,
+    }
+    fired_ref = BattleCardRef(changed_side, trigger_card)
+    for source_side, other_side in ((player, monster), (monster, player)):
+        for source in source_side.cards:
+            if is_card_destroyed(source_side, source) or not _is_current_card_instance(source_side, source):
+                continue
+            for rule in rules_by_source.get(source.placement_id, []):
+                if "playerattributechanged" not in str(rule.trigger_type or "").lower():
+                    continue
+                if str(rule.trigger_attribute_changed or "").lower() != str(attribute or "").lower():
+                    continue
+                if not _attribute_change_type_matches(rule.trigger_change_type, delta):
+                    continue
+                if not _trigger_side_matches(source_side, changed_side, rule):
+                    continue
+                if not _consume_trigger_count(source_side, source, rule, fired_ref, now, timeline):
+                    continue
+                amount = max(0.0, _battle_rule_amount(source_side, other_side, source, rule, performed))
+                preview_amount = _effective_rule_amount(source_side, source, rule, amount, 1)
+                if preview_amount <= 0 and rule.action_type not in AMOUNTLESS_RULE_ACTIONS:
+                    continue
+                timeline.append(
+                    _battle_event(
+                        now,
+                        source_side.name,
+                        changed_side.name,
+                        "player-attribute-triggered",
+                        card_label(source),
+                        delta,
+                        attribute=attribute,
+                        old_value=old_value,
+                        new_value=new_value,
+                        trigger_change_type=str(rule.trigger_change_type or ""),
+                    )
+                )
+                _apply_battle_rule(
+                    player,
+                    monster,
+                    source_side,
+                    other_side,
+                    source,
+                    trigger_card,
+                    rule,
+                    amount,
+                    1,
+                    scheduler,
+                    now,
+                    timeline,
+                    rng,
+                    rules_by_source,
+                    duration_sec,
+                    dict(performed),
+                    trigger_depth=trigger_depth + 1,
+                    card_index=card_index,
+                )
+
+
+def _run_player_died_triggered_rules(
+    player: BattleSide,
+    monster: BattleSide,
+    rules_by_source: dict[str, list[Any]],
+    scheduler: BattleEventScheduler,
+    now: float,
+    timeline: list[dict[str, Any]],
+    rng: Callable[[], float] | None,
+    *,
+    died_side: BattleSide,
+    trigger_card: PlacedCard,
+    duration_sec: float,
+    trigger_depth: int = 0,
+    card_index: dict[str, dict[str, Any]] | None = None,
+) -> None:
+    if trigger_depth >= MAX_TRIGGER_DEPTH:
+        timeline.append(
+            _battle_event(
+                now,
+                died_side.name,
+                died_side.name,
+                "trigger-depth-limited",
+                "player-died",
+                trigger_depth,
+                trigger="TTriggerOnPlayerDied",
+            )
+        )
+        return
+    performed = {"player_died": 1}
+    fired_ref = BattleCardRef(died_side, trigger_card)
+    for source_side, other_side in ((player, monster), (monster, player)):
+        for source in source_side.cards:
+            if is_card_destroyed(source_side, source) or not _is_current_card_instance(source_side, source):
+                continue
+            for rule in rules_by_source.get(source.placement_id, []):
+                if "playerdied" not in str(rule.trigger_type or "").lower():
+                    continue
+                if not _trigger_side_matches(source_side, died_side, rule):
+                    continue
+                if not _consume_trigger_count(source_side, source, rule, fired_ref, now, timeline):
+                    continue
+                amount = max(0.0, _battle_rule_amount(source_side, other_side, source, rule, performed))
+                preview_amount = _effective_rule_amount(source_side, source, rule, amount, 1)
+                if preview_amount <= 0 and rule.action_type not in AMOUNTLESS_RULE_ACTIONS:
+                    continue
+                timeline.append(
+                    _battle_event(
+                        now,
+                        source_side.name,
+                        died_side.name,
+                        "player-died-triggered",
+                        card_label(source),
+                        amount,
+                    )
+                )
+                _apply_battle_rule(
+                    player,
+                    monster,
+                    source_side,
+                    other_side,
+                    source,
+                    trigger_card,
+                    rule,
+                    amount,
+                    1,
+                    scheduler,
+                    now,
+                    timeline,
+                    rng,
+                    rules_by_source,
+                    duration_sec,
+                    dict(performed),
+                    trigger_depth=trigger_depth + 1,
+                    card_index=card_index,
+                )
+
+
+def _side_by_name(player: BattleSide, monster: BattleSide, name: str) -> BattleSide | None:
+    if name == player.name:
+        return player
+    if name == monster.name:
+        return monster
+    return None
 
 
 def _run_overheal_triggered_rules(
@@ -3870,6 +4292,13 @@ def _apply_battle_rule(
                     trigger_depth=trigger_depth + 1,
                     card_index=card_index,
                 )
+    elif rule.action_type in {"TActionCardEnchant", "TActionCardEnchantRandom"}:
+        enchanted = 0
+        for target in targets:
+            enchantment = _pick_enchantment_for_rule(rule, rng)
+            if _apply_card_enchantment(target, source_side, source, enchantment, rule, now, timeline):
+                enchanted += 1
+        performed["enchant"] = performed.get("enchant", 0) + enchanted
     elif rule.action_type in {"TActionCardAddTagsList", "TActionCardAddTagsRandom", "TActionCardAddTagsBySource"}:
         added = 0
         for target in targets:
@@ -4287,6 +4716,22 @@ def _apply_player_action(
             trigger_depth=trigger_depth + 1,
             card_index=card_index,
         )
+    elif rule.action_type == "TActionPlayerReviveHeal":
+        if target_side.health <= 0:
+            revived = amount if amount > 0 else target_side.max_health * 0.5
+            target_side.health = min(target_side.max_health, max(1.0, revived))
+            target_side.shield = 0.0
+            timeline.append(
+                _battle_event(
+                    now,
+                    source_side.name,
+                    target_side.name,
+                    "revive",
+                    card_label(source),
+                    target_side.health,
+                    revive_consumed=True,
+                )
+            )
     elif rule.action_type == "TActionPlayerRegenApply":
         target_side.regen_stack += amount
         timeline.append(_battle_event(now, source_side.name, target_side.name, "regen-apply", card_label(source), amount))
@@ -4574,6 +5019,7 @@ def _battle_trigger_matches(
         "performedoverheal": "overheal",
         "performedregen": "regen",
         "performedreload": "reload",
+        "performeddestruction": "destruction",
         "cardcritted": "crit",
         "critted": "crit",
     }
@@ -4716,6 +5162,20 @@ def destroy_card(
             target=target,
             performed={"destroyed": 1},
             duration_sec=duration_sec,
+            trigger_depth=trigger_depth + 1,
+            card_index=card_index,
+        )
+        _run_state_triggered_rules(
+            player,
+            monster,
+            rules_by_source,
+            scheduler,
+            now,
+            timeline,
+            rng,
+            event_side=source_side,
+            event_card=source,
+            performed={"destruction": 1},
             trigger_depth=trigger_depth + 1,
             card_index=card_index,
         )
@@ -6547,6 +7007,8 @@ def _unsupported_effects_for_cards(cards: list[PlacedCard], side: str) -> list[d
                 continue
             for action_path, action_node in action_nodes:
                 action_type = type_name(action_node)
+                if action_type in NONCOMBAT_UNSUPPORTED_ACTIONS:
+                    continue
                 if action_type and action_type not in SUPPORTED_ACTIONS:
                     unsupported.append(
                         {
