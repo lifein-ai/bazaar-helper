@@ -33,6 +33,7 @@ namespace BazaarStateExporter
         private static readonly object CapturedCardsLock = new object();
         private static readonly Dictionary<string, CapturedCardEntry> CapturedCardsByInstanceId = new Dictionary<string, CapturedCardEntry>();
         private static List<CardSnapshot> CurrentVisibleCards = new List<CardSnapshot>();
+        private static float CurrentVisibleCardsSeenAt;
 
         public static void UpdateResources(int? gold, int? health, string source)
         {
@@ -102,9 +103,31 @@ namespace BazaarStateExporter
             {
                 CapturedCardsByInstanceId.Clear();
                 CurrentVisibleCards.Clear();
+                CurrentVisibleCardsSeenAt = 0f;
             }
 
             Logger?.LogInfo("Cleared runtime resource and UI card caches for new run.");
+        }
+
+        public static void ClearTransientUiState(string reason)
+        {
+            ClearShopRefresh();
+            lock (ResourcesLock)
+            {
+                CurrentScreenMode = null;
+                LastScreenModeAt = 0f;
+            }
+
+            lock (CapturedCardsLock)
+            {
+                CapturedCardsByInstanceId.Clear();
+                CurrentVisibleCards.Clear();
+                CurrentVisibleCardsSeenAt = 0f;
+            }
+
+            Logger?.LogInfo(
+                "Cleared transient UI card caches"
+                + (string.IsNullOrEmpty(reason) ? "." : ": " + reason));
         }
 
         public static void UpdateShopRefresh(
@@ -115,7 +138,11 @@ namespace BazaarStateExporter
             ShopRefreshAvailable = available;
             ShopRefreshCost = cost;
             ShopRefreshesRemaining = remaining;
-            if (available.HasValue || cost.HasValue || remaining.HasValue)
+            bool usableShopRefreshState =
+                available == true
+                || (cost.HasValue && cost.Value >= 0)
+                || remaining.HasValue;
+            if (usableShopRefreshState)
             {
                 SetScreenMode(ScreenModeShop, "reroll_state");
             }
@@ -335,13 +362,28 @@ namespace BazaarStateExporter
                 CurrentVisibleCards = cards == null
                     ? new List<CardSnapshot>()
                     : new List<CardSnapshot>(cards);
+                CurrentVisibleCardsSeenAt = Time.unscaledTime;
             }
         }
 
         public static List<CardSnapshot> GetCurrentVisibleCards()
         {
+            return GetCurrentVisibleCards(30f, 0f);
+        }
+
+        public static List<CardSnapshot> GetCurrentVisibleCards(
+            float maxAgeSeconds,
+            float minSeenAt)
+        {
             lock (CapturedCardsLock)
             {
+                float now = Time.unscaledTime;
+                if (CurrentVisibleCardsSeenAt <= 0f
+                    || now - CurrentVisibleCardsSeenAt > maxAgeSeconds
+                    || CurrentVisibleCardsSeenAt < minSeenAt)
+                {
+                    return new List<CardSnapshot>();
+                }
                 return new List<CardSnapshot>(CurrentVisibleCards);
             }
         }

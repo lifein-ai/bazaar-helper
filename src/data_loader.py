@@ -182,6 +182,11 @@ def apply_event_overrides(
         if not isinstance(override_data, dict):
             continue
 
+        override_data = {
+            key: value
+            for key, value in override_data.items()
+            if key != "followup_options"
+        }
         base_event = result.get(event_name, {})
         if not isinstance(base_event, dict):
             base_event = {}
@@ -195,6 +200,14 @@ def apply_event_overrides(
 
         result[event_name] = merged
 
+    return result
+
+
+def remove_generated_followup_options(events: dict[str, Any]) -> dict[str, Any]:
+    result = deepcopy(events)
+    for event_data in result.values():
+        if isinstance(event_data, dict):
+            event_data.pop("followup_options", None)
     return result
 
 
@@ -227,6 +240,7 @@ def load_all_data(data_dir: str | Path) -> dict[str, Any]:
     monsters = load_json_if_exists(data_dir / "monsters_generated.json")
     raw_events = load_json(data_dir / "events.json")
     events = flatten_events_list(raw_events)
+    events = remove_generated_followup_options(events)
 
     event_overrides = load_json_if_exists(data_dir / "event_overrides.json")
     events = apply_event_overrides(events, event_overrides)

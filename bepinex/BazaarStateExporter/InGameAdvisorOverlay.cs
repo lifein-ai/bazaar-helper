@@ -76,8 +76,12 @@ namespace BazaarStateExporter
         private Vector2 buildScrollPosition;
         private OverlayAnalysis latest = OverlayAnalysis.Waiting("正在等待 BazaarHelper...");
         private OverlayCombatSimulation latestCombat = OverlayCombatSimulation.Waiting("");
+        private OverlayCombatSimulation latestTrainingDummy = OverlayCombatSimulation.Waiting("");
         private OverlayUpdateState updateState = new OverlayUpdateState();
         private string selectedBuildOverride = "";
+        private readonly Dictionary<string, OverlayCombatSimulation> latestMonsterSimulations = new Dictionary<string, OverlayCombatSimulation>();
+        private float trainingDummyDurationSeconds = 10f;
+        private string trainingDummyDurationText = "10";
         private GUIStyle windowStyle;
         private GUIStyle titleStyle;
         private GUIStyle itemStyle;
@@ -522,6 +526,8 @@ namespace BazaarStateExporter
                 GUILayout.EndVertical();
             }
 
+            DrawMonsterChoicesSection();
+
             foreach (OverlayShopCandidate candidate in latest.ShopCandidates)
             {
                 GUILayout.BeginVertical(itemStyle);
@@ -594,11 +600,43 @@ namespace BazaarStateExporter
                 RequestCombatSimulation();
             }
             GUI.enabled = true;
+            GUILayout.BeginVertical(itemStyle);
+            GUILayout.Label("训练假人时长：" + Mathf.RoundToInt(trainingDummyDurationSeconds) + "秒", mutedStyle);
+            GUILayout.BeginHorizontal();
+            GUI.enabled = !simulationRequestInFlight;
+            float selectedDummyDuration = GUILayout.HorizontalSlider(trainingDummyDurationSeconds, 0f, 30f, GUILayout.MinWidth(150f));
+            int roundedDummyDuration = Mathf.Clamp(Mathf.RoundToInt(selectedDummyDuration), 0, 30);
+            if (roundedDummyDuration != Mathf.RoundToInt(trainingDummyDurationSeconds))
+            {
+                trainingDummyDurationSeconds = roundedDummyDuration;
+                trainingDummyDurationText = roundedDummyDuration.ToString();
+            }
+            string editedDurationText = GUILayout.TextField(trainingDummyDurationText, GUILayout.Width(48f));
+            if (editedDurationText != trainingDummyDurationText)
+            {
+                trainingDummyDurationText = editedDurationText;
+                int parsedDuration;
+                if (int.TryParse(editedDurationText, out parsedDuration))
+                {
+                    parsedDuration = Mathf.Clamp(parsedDuration, 0, 30);
+                    trainingDummyDurationSeconds = parsedDuration;
+                    trainingDummyDurationText = parsedDuration.ToString();
+                }
+            }
+            if (GUILayout.Button("模拟假人", GUILayout.Width(88f), GUILayout.MinHeight(24f)))
+            {
+                RequestTrainingDummySimulation(Mathf.Clamp(Mathf.RoundToInt(trainingDummyDurationSeconds), 0, 30));
+            }
+            GUI.enabled = true;
+            GUILayout.EndHorizontal();
+            GUILayout.EndVertical();
 
             buildScrollPosition = GUILayout.BeginScrollView(buildScrollPosition, false, true);
             DrawAiAnalysisSection();
             GUILayout.Space(6f);
             DrawCombatSimulationSection();
+            GUILayout.Space(6f);
+            DrawTrainingDummySection();
             GUILayout.Space(6f);
             if (false && latest.BuildOptions.Count > 0)
             {
@@ -839,9 +877,11 @@ namespace BazaarStateExporter
             }
             if (combat.HasResult)
             {
-                GUILayout.Label("总伤害：" + combat.TotalDamage + "  DPS：" + combat.DamagePerSecond, reasonStyle);
-                GUILayout.Label("直接伤害：" + combat.DirectDamage + "  护盾：" + combat.TotalShield, mutedStyle);
-                GUILayout.Label("燃烧跳伤：" + combat.BurnTickDamage + "  毒跳伤：" + combat.PoisonTickDamage, mutedStyle);
+                GUILayout.Label("总伤害：" + combat.TotalDamage + "  秒伤：" + combat.DamagePerSecond, reasonStyle);
+                GUILayout.Label("直接伤害：" + combat.DirectDamage + "  护盾：" + combat.TotalShield + "  剩余盾：" + combat.EndingShield, mutedStyle);
+                GUILayout.Label("回血：" + combat.EffectiveHeal + "  再生：" + combat.RegenApplied + "  溢出：" + combat.Overheal, mutedStyle);
+                GUILayout.Label("燃烧：" + combat.BurnApplied + " / 跳伤 " + combat.BurnTickDamage + "  毒：" + combat.PoisonApplied + " / 跳伤 " + combat.PoisonTickDamage, mutedStyle);
+                GUILayout.Label("减速：" + combat.SlowDuration + "秒  冰冻：" + combat.FreezeDuration + "秒  加速：" + combat.HasteDuration + "秒  充能：" + combat.ChargeSeconds + "秒", mutedStyle);
                 GUILayout.Label("击杀时间：" + combat.KillTime + "  模拟卡数：" + combat.SimulatedCardCount, mutedStyle);
                 if (combat.SkippedCardCount > 0)
                 {
@@ -849,6 +889,111 @@ namespace BazaarStateExporter
                 }
             }
             GUILayout.EndVertical();
+        }
+
+        private void DrawTrainingDummySection()
+        {
+            OverlayCombatSimulation combat = latestTrainingDummy;
+            if (combat == null || (string.IsNullOrEmpty(combat.Status) && !combat.HasResult))
+            {
+                return;
+            }
+
+            GUILayout.BeginVertical(itemStyle);
+            GUILayout.Label("训练假人", titleStyle);
+            if (!string.IsNullOrEmpty(combat.Status))
+            {
+                GUILayout.Label(combat.Status, combat.HasResult ? mutedStyle : reasonStyle);
+            }
+            if (combat.HasResult)
+            {
+                GUILayout.Label("总伤害：" + combat.TotalDamage + "  秒伤：" + combat.DamagePerSecond, reasonStyle);
+                GUILayout.Label("直接伤害：" + combat.DirectDamage + "  护盾：" + combat.TotalShield + "  剩余盾：" + combat.EndingShield, mutedStyle);
+                GUILayout.Label("回血：" + combat.EffectiveHeal + "  再生：" + combat.RegenApplied + "  溢出：" + combat.Overheal, mutedStyle);
+                GUILayout.Label("燃烧：" + combat.BurnApplied + " / 跳伤 " + combat.BurnTickDamage + "  毒：" + combat.PoisonApplied + " / 跳伤 " + combat.PoisonTickDamage, mutedStyle);
+                GUILayout.Label("减速：" + combat.SlowDuration + "秒  冰冻：" + combat.FreezeDuration + "秒  加速：" + combat.HasteDuration + "秒  充能：" + combat.ChargeSeconds + "秒", mutedStyle);
+                GUILayout.Label("击杀时间：" + combat.KillTime + "  使用次数：" + combat.SimulatedCardCount, mutedStyle);
+            }
+            GUILayout.EndVertical();
+        }
+
+        private void DrawMonsterChoicesSection()
+        {
+            if (latest.MonsterChoices.Count == 0)
+            {
+                return;
+            }
+
+            GUILayout.BeginVertical(itemStyle);
+            GUILayout.Label("怪物战斗模拟", titleStyle);
+            for (int i = 0; i < latest.MonsterChoices.Count; i++)
+            {
+                OverlayMonsterChoice choice = latest.MonsterChoices[i];
+                GUILayout.BeginHorizontal();
+                GUILayout.Label(choice.Name, reasonStyle);
+                GUILayout.FlexibleSpace();
+                GUI.enabled = !simulationRequestInFlight;
+                if (GUILayout.Button("模拟", GUILayout.Width(86f), GUILayout.MinHeight(24f)))
+                {
+                    RequestSelectedMonsterSimulation(choice);
+                }
+                GUI.enabled = true;
+                GUILayout.EndHorizontal();
+
+                OverlayCombatSimulation simulation;
+                if (latestMonsterSimulations.TryGetValue(choice.Id, out simulation) && simulation != null)
+                {
+                    if (!string.IsNullOrEmpty(simulation.Status))
+                    {
+                        GUILayout.Label(simulation.Status, simulation.HasResult ? mutedStyle : reasonStyle);
+                    }
+                    if (simulation.HasResult)
+                    {
+                        GUILayout.Label(
+                            "胜率：" + simulation.DamagePerSecond
+                            + "  平均时长：" + simulation.KillTime
+                            + "  平均剩余血量：" + simulation.TotalShield,
+                            mutedStyle);
+                        DrawUnsupportedSimulationLines(simulation);
+                    }
+                }
+            }
+            GUILayout.EndVertical();
+        }
+
+        private void DrawUnsupportedSimulationLines(OverlayCombatSimulation simulation)
+        {
+            if (simulation.UnsupportedItems.Count > 0)
+            {
+                GUILayout.Label("未模拟物品：" + FormatLimitedList(simulation.UnsupportedItems, 3), reasonStyle);
+            }
+            if (simulation.UnsupportedSkills.Count > 0)
+            {
+                GUILayout.Label("未模拟技能：" + FormatLimitedList(simulation.UnsupportedSkills, 3), reasonStyle);
+            }
+            if (simulation.UnsupportedEffects.Count > 0
+                && simulation.UnsupportedItems.Count == 0
+                && simulation.UnsupportedSkills.Count == 0)
+            {
+                GUILayout.Label("未模拟效果：" + FormatLimitedList(simulation.UnsupportedEffects, 3), reasonStyle);
+            }
+        }
+
+        private static string FormatLimitedList(List<string> values, int limit)
+        {
+            if (values == null || values.Count == 0)
+            {
+                return "";
+            }
+
+            int count = Math.Min(Math.Max(1, limit), values.Count);
+            List<string> shown = new List<string>();
+            for (int i = 0; i < count; i++)
+            {
+                shown.Add(values[i]);
+            }
+            string suffix = values.Count > count ? " 等 " + values.Count + " 项" : "";
+            return string.Join("、", shown.ToArray()) + suffix;
         }
 
         private void DrawBuildMatchSection()
@@ -1245,6 +1390,114 @@ namespace BazaarStateExporter
                     lock (this)
                     {
                         latestCombat = OverlayCombatSimulation.Waiting("模拟失败：" + ex.Message);
+                    }
+                    LogAnalysisFailure(ex);
+                }
+                finally
+                {
+                    simulationRequestInFlight = false;
+                }
+            });
+        }
+
+        private void RequestTrainingDummySimulation(int durationSeconds)
+        {
+            if (simulationRequestInFlight)
+            {
+                latestTrainingDummy = OverlayCombatSimulation.Waiting("模拟正在运行...");
+                return;
+            }
+
+            simulationRequestInFlight = true;
+            latestTrainingDummy = OverlayCombatSimulation.Waiting("正在模拟训练假人...");
+            ManualExportResult exportResult = Plugin.RequestManualExport();
+            if (exportResult == null || !exportResult.SnapshotAvailable)
+            {
+                latestTrainingDummy = OverlayCombatSimulation.Waiting("当前没有可用于训练假人的实时阵容。");
+                simulationRequestInFlight = false;
+                return;
+            }
+
+            ThreadPool.QueueUserWorkItem(_ =>
+            {
+                try
+                {
+                    EnsureHelperServiceStarted();
+                    string url = GetHelperBaseUrl().TrimEnd('/') + "/api/battle-simulation/training-dummy";
+                    string body = "{\"duration_seconds\":" + durationSeconds + "}";
+                    using (TimeoutWebClient client = new TimeoutWebClient(8000))
+                    {
+                        client.Encoding = Encoding.UTF8;
+                        client.Headers[HttpRequestHeader.ContentType] = "application/json; charset=utf-8";
+                        string json = client.UploadString(url, "POST", body);
+                        OverlayCombatSimulation parsed = OverlayAnalysisParser.ParseTrainingDummySimulation(json);
+                        lock (this)
+                        {
+                            latestTrainingDummy = parsed;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    lock (this)
+                    {
+                        latestTrainingDummy = OverlayCombatSimulation.Waiting("训练假人模拟失败：" + ex.Message);
+                    }
+                    LogAnalysisFailure(ex);
+                }
+                finally
+                {
+                    simulationRequestInFlight = false;
+                }
+            });
+        }
+
+        private void RequestSelectedMonsterSimulation(OverlayMonsterChoice choice)
+        {
+            if (choice == null || string.IsNullOrEmpty(choice.Id))
+            {
+                return;
+            }
+            if (simulationRequestInFlight)
+            {
+                latestMonsterSimulations[choice.Id] = OverlayCombatSimulation.Waiting("模拟正在运行...");
+                return;
+            }
+
+            simulationRequestInFlight = true;
+            latestMonsterSimulations[choice.Id] = OverlayCombatSimulation.Waiting("正在模拟：" + choice.Name + "...");
+            ManualExportResult exportResult = Plugin.RequestManualExport();
+            if (exportResult == null || !exportResult.SnapshotAvailable)
+            {
+                latestMonsterSimulations[choice.Id] = OverlayCombatSimulation.Waiting("当前没有可用于怪物模拟的实时阵容。");
+                simulationRequestInFlight = false;
+                return;
+            }
+
+            ThreadPool.QueueUserWorkItem(_ =>
+            {
+                try
+                {
+                    EnsureHelperServiceStarted();
+                    string url = GetHelperBaseUrl().TrimEnd('/') + "/api/battle-simulation/monster";
+                    string body = "{\"monster_id\":\"" + EscapeJson(choice.Id) + "\",\"simulation_count\":10}";
+                    using (TimeoutWebClient client = new TimeoutWebClient(8000))
+                    {
+                        client.Encoding = Encoding.UTF8;
+                        client.Headers[HttpRequestHeader.ContentType] = "application/json; charset=utf-8";
+                        string json = client.UploadString(url, "POST", body);
+                        OverlayCombatSimulation parsed = OverlayAnalysisParser.ParseMonsterBattleSimulation(json);
+                        lock (this)
+                        {
+                            latestMonsterSimulations[choice.Id] = parsed;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    lock (this)
+                    {
+                        latestMonsterSimulations[choice.Id] = OverlayCombatSimulation.Waiting("怪物模拟失败：" + ex.Message);
                     }
                     LogAnalysisFailure(ex);
                 }
@@ -1886,6 +2139,7 @@ namespace BazaarStateExporter
         public readonly OverlayBuildDetail BuildDetail = new OverlayBuildDetail();
         public readonly List<OverlayBuildOption> BuildOptions = new List<OverlayBuildOption>();
         public readonly List<OverlayBuildMatch> BuildMatches = new List<OverlayBuildMatch>();
+        public readonly List<OverlayMonsterChoice> MonsterChoices = new List<OverlayMonsterChoice>();
         public readonly List<string> ShopVisibleItems = new List<string>();
         public readonly List<OverlayShopCandidate> ShopCandidates = new List<OverlayShopCandidate>();
         public readonly List<OverlayRecommendation> Items = new List<OverlayRecommendation>();
@@ -1919,11 +2173,24 @@ namespace BazaarStateExporter
         public string DamagePerSecond;
         public string DirectDamage;
         public string TotalShield;
+        public string EndingShield;
+        public string EffectiveHeal;
+        public string Overheal;
+        public string RegenApplied;
+        public string BurnApplied;
+        public string PoisonApplied;
         public string BurnTickDamage;
         public string PoisonTickDamage;
+        public string SlowDuration;
+        public string FreezeDuration;
+        public string HasteDuration;
+        public string ChargeSeconds;
         public string KillTime;
         public int SimulatedCardCount;
         public int SkippedCardCount;
+        public readonly List<string> UnsupportedItems = new List<string>();
+        public readonly List<string> UnsupportedSkills = new List<string>();
+        public readonly List<string> UnsupportedEffects = new List<string>();
 
         public static OverlayCombatSimulation Waiting(string status)
         {
@@ -1973,6 +2240,12 @@ namespace BazaarStateExporter
         public string Name;
     }
 
+    internal sealed class OverlayMonsterChoice
+    {
+        public string Id;
+        public string Name;
+    }
+
     internal sealed class OverlayBuildMatch
     {
         public string BuildId;
@@ -2016,12 +2289,92 @@ namespace BazaarStateExporter
             result.DamagePerSecond = FormatNumber(FindNumberProperty(combatObject, "damage_per_second"));
             result.DirectDamage = FormatNumber(FindNumberProperty(combatObject, "direct_damage"));
             result.TotalShield = FormatNumber(FindNumberProperty(combatObject, "total_shield"));
+            result.EndingShield = FormatNumber("0");
+            result.EffectiveHeal = FormatNumber(FindNumberProperty(combatObject, "total_heal"));
+            result.Overheal = FormatNumber("0");
+            result.RegenApplied = FormatNumber("0");
+            result.BurnApplied = FormatNumber("0");
+            result.PoisonApplied = FormatNumber("0");
             result.BurnTickDamage = FormatNumber(FindNumberProperty(combatObject, "total_burn_tick_damage"));
             result.PoisonTickDamage = FormatNumber(FindNumberProperty(combatObject, "total_poison_tick_damage"));
+            result.SlowDuration = FormatNumber("0");
+            result.FreezeDuration = FormatNumber("0");
+            result.HasteDuration = FormatNumber("0");
+            result.ChargeSeconds = FormatNumber("0");
             string killTime = FindNumberProperty(combatObject, "kill_time_sec");
             result.KillTime = string.IsNullOrEmpty(killTime) ? "未击杀" : FormatNumber(killTime) + " 秒";
             result.SimulatedCardCount = ParseInt(FindNumberProperty(combatObject, "simulated_card_count"));
             result.SkippedCardCount = CountJsonObjects(FindArrayProperty(combatObject, "skipped_cards"));
+            return result;
+        }
+
+        public static OverlayCombatSimulation ParseTrainingDummySimulation(string json)
+        {
+            string error = FirstNonEmpty(FindStringProperty(json, "error"), FindStringProperty(json, "message"));
+            if (!string.IsNullOrEmpty(error))
+            {
+                return OverlayCombatSimulation.Waiting(error);
+            }
+
+            string summaryObject = FindObjectProperty(json, "summary");
+            if (string.IsNullOrEmpty(summaryObject))
+            {
+                return OverlayCombatSimulation.Waiting("没有训练假人模拟结果。");
+            }
+
+            OverlayCombatSimulation result = new OverlayCombatSimulation();
+            result.HasResult = true;
+            result.Status = "训练假人模拟完成。";
+            result.TotalDamage = FormatNumber(FindNumberProperty(summaryObject, "total_damage"));
+            result.DamagePerSecond = FormatNumber(FindNumberProperty(summaryObject, "damage_per_second"));
+            result.DirectDamage = FormatNumber(FindNumberProperty(summaryObject, "direct_damage"));
+            result.TotalShield = FormatNumber(FindNumberProperty(summaryObject, "shield_generated"));
+            result.EndingShield = FormatNumber(FindNumberProperty(summaryObject, "ending_player_shield"));
+            result.EffectiveHeal = FormatNumber(FindNumberProperty(summaryObject, "effective_heal"));
+            result.Overheal = FormatNumber(FindNumberProperty(summaryObject, "overheal"));
+            result.RegenApplied = FormatNumber(FindNumberProperty(summaryObject, "regen_applied"));
+            result.BurnApplied = FormatNumber(FindNumberProperty(summaryObject, "burn_applied"));
+            result.PoisonApplied = FormatNumber(FindNumberProperty(summaryObject, "poison_applied"));
+            result.BurnTickDamage = FormatNumber(FindNumberProperty(summaryObject, "burn_damage"));
+            result.PoisonTickDamage = FormatNumber(FindNumberProperty(summaryObject, "poison_damage"));
+            result.SlowDuration = FormatNumber(FindNumberProperty(summaryObject, "slow_duration"));
+            result.FreezeDuration = FormatNumber(FindNumberProperty(summaryObject, "freeze_duration"));
+            result.HasteDuration = FormatNumber(FindNumberProperty(summaryObject, "haste_duration"));
+            result.ChargeSeconds = FormatNumber(FindNumberProperty(summaryObject, "charge_seconds"));
+            string killTime = FindNumberProperty(summaryObject, "kill_time_seconds");
+            result.KillTime = string.IsNullOrEmpty(killTime) ? "未击杀" : FormatNumber(killTime) + "秒";
+            result.SimulatedCardCount = ParseInt(FindNumberProperty(summaryObject, "card_uses"));
+            return result;
+        }
+
+        public static OverlayCombatSimulation ParseMonsterBattleSimulation(string json)
+        {
+            string error = FirstNonEmpty(FindStringProperty(json, "error"), FindStringProperty(json, "message"));
+            if (!string.IsNullOrEmpty(error))
+            {
+                return OverlayCombatSimulation.Waiting(error);
+            }
+
+            string summaryObject = FindObjectProperty(json, "summary");
+            if (string.IsNullOrEmpty(summaryObject))
+            {
+                return OverlayCombatSimulation.Waiting("没有怪物模拟结果。");
+            }
+
+            OverlayCombatSimulation result = new OverlayCombatSimulation();
+            result.HasResult = true;
+            string completed = FindNumberProperty(summaryObject, "simulations_completed");
+            string requested = FindNumberProperty(summaryObject, "simulation_count");
+            result.Status = "已模拟 " + FirstNonEmpty(completed, "0") + "/" + FirstNonEmpty(requested, "0") + " 场。";
+            result.DamagePerSecond = FormatProbability(FindNumberProperty(summaryObject, "win_rate"));
+            result.KillTime = FormatNumber(FindNumberProperty(summaryObject, "average_battle_duration")) + "秒";
+            result.TotalShield = FormatNumber(FindNumberProperty(summaryObject, "average_remaining_health"));
+            result.TotalDamage = FormatNumber(FindNumberProperty(summaryObject, "average_damage_dealt"));
+            result.DirectDamage = FormatNumber(FindNumberProperty(summaryObject, "average_damage_taken"));
+            result.SkippedCardCount = ParseInt(FindNumberProperty(summaryObject, "failures"));
+            result.UnsupportedItems.AddRange(FindStringArrayProperty(summaryObject, "unsupported_items"));
+            result.UnsupportedSkills.AddRange(FindStringArrayProperty(summaryObject, "unsupported_skills"));
+            result.UnsupportedEffects.AddRange(FindStringArrayProperty(summaryObject, "unsupported_effects"));
             return result;
         }
 
@@ -2070,6 +2423,33 @@ namespace BazaarStateExporter
                     {
                         Id = id,
                         Name = FirstNonEmpty(FindStringProperty(optionObject, "name"), id),
+                    });
+                }
+
+                string monsterChoices = FindArrayProperty(stateObject, "monster_choices");
+                foreach (string monsterObject in SplitTopLevelObjects(monsterChoices))
+                {
+                    string id = FirstNonEmpty(
+                        FirstNonEmpty(
+                            FindStringProperty(monsterObject, "monster_id"),
+                            FindStringProperty(monsterObject, "id")),
+                        FirstNonEmpty(
+                            FindStringProperty(monsterObject, "source_id"),
+                            FirstNonEmpty(
+                                FindStringProperty(monsterObject, "template_id"),
+                                FindStringProperty(monsterObject, "name"))));
+                    if (string.IsNullOrEmpty(id))
+                    {
+                        continue;
+                    }
+                    result.MonsterChoices.Add(new OverlayMonsterChoice
+                    {
+                        Id = id,
+                        Name = FirstNonEmpty(
+                            FirstNonEmpty(
+                                FindStringProperty(monsterObject, "display_name"),
+                                FindStringProperty(monsterObject, "monster_name")),
+                            FirstNonEmpty(FindStringProperty(monsterObject, "name"), id)),
                     });
                 }
 

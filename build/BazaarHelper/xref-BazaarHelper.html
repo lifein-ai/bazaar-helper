@@ -62,6 +62,7 @@ imports:
  &#8226;   <a href="#ai_advisor">ai_advisor</a>
  &#8226;   <a href="#app_paths">app_paths</a>
  &#8226;   <a href="#argparse">argparse</a>
+ &#8226;   <a href="#battle_simulation_service">battle_simulation_service</a>
  &#8226;   <a href="#build_simulation_evaluator">build_simulation_evaluator</a>
  &#8226;   <a href="#build_strategy">build_strategy</a>
  &#8226;   <a href="#codecs">codecs</a>
@@ -207,6 +208,7 @@ imports:
  &#8226;   <a href="#keyword">keyword</a>
  &#8226;   <a href="#linecache">linecache</a>
  &#8226;   <a href="#locale">locale</a>
+ &#8226;   <a href="#monster_battle_evaluator">monster_battle_evaluator</a>
  &#8226;   <a href="#ntpath">ntpath</a>
  &#8226;   <a href="#operator">operator</a>
  &#8226;   <a href="#os">os</a>
@@ -272,6 +274,7 @@ imported by:
     <a href="#advisor">advisor</a>
  &#8226;   <a href="#ai_advisor">ai_advisor</a>
  &#8226;   <a href="#app_paths">app_paths</a>
+ &#8226;   <a href="#battle_simulation_service">battle_simulation_service</a>
  &#8226;   <a href="#build_simulation_evaluator">build_simulation_evaluator</a>
  &#8226;   <a href="#build_strategy">build_strategy</a>
  &#8226;   <a href="#codeop">codeop</a>
@@ -283,6 +286,7 @@ imported by:
  &#8226;   <a href="#importlib.metadata">importlib.metadata</a>
  &#8226;   <a href="#importlib.metadata._meta">importlib.metadata._meta</a>
  &#8226;   <a href="#importlib.resources.readers">importlib.resources.readers</a>
+ &#8226;   <a href="#monster_battle_evaluator">monster_battle_evaluator</a>
  &#8226;   <a href="#recommender">recommender</a>
  &#8226;   <a href="#shop_pool_cache">shop_pool_cache</a>
  &#8226;   <a href="#shop_state">shop_state</a>
@@ -1501,6 +1505,30 @@ imported by:
 </div>
 
 <div class="node">
+  <a name="battle_simulation_service"></a>
+  <a target="code" href="///D:/bazzarhelp/src/battle_simulation_service.py" type="text/plain"><tt>battle_simulation_service</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#__future__">__future__</a>
+ &#8226;   <a href="#combat_simulator">combat_simulator</a>
+ &#8226;   <a href="#dataclasses">dataclasses</a>
+ &#8226;   <a href="#hashlib">hashlib</a>
+ &#8226;   <a href="#json">json</a>
+ &#8226;   <a href="#monster_battle_evaluator">monster_battle_evaluator</a>
+ &#8226;   <a href="#random">random</a>
+ &#8226;   <a href="#time">time</a>
+ &#8226;   <a href="#typing">typing</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#web_app.py">web_app.py</a>
+
+  </div>
+
+</div>
+
+<div class="node">
   <a name="binascii"></a>
   <tt>binascii</tt> <span class="moduletype"><i>(builtin module)</i></span>  <div class="import">
 imported by:
@@ -1881,7 +1909,9 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#build_simulation_evaluator">build_simulation_evaluator</a>
+    <a href="#battle_simulation_service">battle_simulation_service</a>
+ &#8226;   <a href="#build_simulation_evaluator">build_simulation_evaluator</a>
+ &#8226;   <a href="#monster_battle_evaluator">monster_battle_evaluator</a>
  &#8226;   <a href="#web_app.py">web_app.py</a>
 
   </div>
@@ -2070,6 +2100,7 @@ imported by:
  &#8226;   <a href="#gettext">gettext</a>
  &#8226;   <a href="#http.cookiejar">http.cookiejar</a>
  &#8226;   <a href="#http.server">http.server</a>
+ &#8226;   <a href="#monster_battle_evaluator">monster_battle_evaluator</a>
  &#8226;   <a href="#tarfile">tarfile</a>
  &#8226;   <a href="#weakref">weakref</a>
  &#8226;   <a href="#webbrowser">webbrowser</a>
@@ -2224,10 +2255,12 @@ imports:
 imported by:
     <a href="#_colorize">_colorize</a>
  &#8226;   <a href="#advisor">advisor</a>
+ &#8226;   <a href="#battle_simulation_service">battle_simulation_service</a>
  &#8226;   <a href="#build_simulation_evaluator">build_simulation_evaluator</a>
  &#8226;   <a href="#combat_simulator">combat_simulator</a>
  &#8226;   <a href="#game_state">game_state</a>
  &#8226;   <a href="#guide_retriever">guide_retriever</a>
+ &#8226;   <a href="#monster_battle_evaluator">monster_battle_evaluator</a>
  &#8226;   <a href="#pprint">pprint</a>
  &#8226;   <a href="#update_manager">update_manager</a>
 
@@ -5718,7 +5751,9 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#random">random</a>
+    <a href="#battle_simulation_service">battle_simulation_service</a>
+ &#8226;   <a href="#monster_battle_evaluator">monster_battle_evaluator</a>
+ &#8226;   <a href="#random">random</a>
  &#8226;   <a href="#update_manager">update_manager</a>
  &#8226;   <a href="#urllib.request">urllib.request</a>
  &#8226;   <a href="#web_app.py">web_app.py</a>
@@ -5739,6 +5774,7 @@ imports:
 imported by:
     <a href="#collections">collections</a>
  &#8226;   <a href="#difflib">difflib</a>
+ &#8226;   <a href="#monster_battle_evaluator">monster_battle_evaluator</a>
  &#8226;   <a href="#web_app.py">web_app.py</a>
 
   </div>
@@ -6581,11 +6617,13 @@ imports:
   <div class="import">
 imported by:
     <a href="#ai_advisor">ai_advisor</a>
+ &#8226;   <a href="#battle_simulation_service">battle_simulation_service</a>
  &#8226;   <a href="#data_loader">data_loader</a>
  &#8226;   <a href="#importlib.metadata">importlib.metadata</a>
  &#8226;   <a href="#json.decoder">json.decoder</a>
  &#8226;   <a href="#json.encoder">json.encoder</a>
  &#8226;   <a href="#json.scanner">json.scanner</a>
+ &#8226;   <a href="#monster_battle_evaluator">monster_battle_evaluator</a>
  &#8226;   <a href="#shop_pool_cache">shop_pool_cache</a>
  &#8226;   <a href="#update_manager">update_manager</a>
  &#8226;   <a href="#web_app.py">web_app.py</a>
@@ -6791,6 +6829,7 @@ imported by:
  &#8226;   <a href="#_pydecimal">_pydecimal</a>
  &#8226;   <a href="#combat_simulator">combat_simulator</a>
  &#8226;   <a href="#fractions">fractions</a>
+ &#8226;   <a href="#monster_battle_evaluator">monster_battle_evaluator</a>
  &#8226;   <a href="#random">random</a>
  &#8226;   <a href="#reprlib">reprlib</a>
  &#8226;   <a href="#selectors">selectors</a>
@@ -6820,6 +6859,33 @@ imports:
 imported by:
     <a href="#http.server">http.server</a>
  &#8226;   <a href="#urllib.request">urllib.request</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="monster_battle_evaluator"></a>
+  <a target="code" href="///D:/bazzarhelp/src/monster_battle_evaluator.py" type="text/plain"><tt>monster_battle_evaluator</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#__future__">__future__</a>
+ &#8226;   <a href="#combat_simulator">combat_simulator</a>
+ &#8226;   <a href="#copy">copy</a>
+ &#8226;   <a href="#dataclasses">dataclasses</a>
+ &#8226;   <a href="#hashlib">hashlib</a>
+ &#8226;   <a href="#heapq">heapq</a>
+ &#8226;   <a href="#json">json</a>
+ &#8226;   <a href="#math">math</a>
+ &#8226;   <a href="#random">random</a>
+ &#8226;   <a href="#time">time</a>
+ &#8226;   <a href="#typing">typing</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#battle_simulation_service">battle_simulation_service</a>
+ &#8226;   <a href="#web_app.py">web_app.py</a>
 
   </div>
 
@@ -7316,9 +7382,11 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#combat_simulator">combat_simulator</a>
+    <a href="#battle_simulation_service">battle_simulation_service</a>
+ &#8226;   <a href="#combat_simulator">combat_simulator</a>
  &#8226;   <a href="#email.generator">email.generator</a>
  &#8226;   <a href="#email.utils">email.utils</a>
+ &#8226;   <a href="#monster_battle_evaluator">monster_battle_evaluator</a>
  &#8226;   <a href="#statistics">statistics</a>
  &#8226;   <a href="#tempfile">tempfile</a>
 
@@ -8269,6 +8337,7 @@ imported by:
     <a href="#_datetime">_datetime</a>
  &#8226;   <a href="#_pydatetime">_pydatetime</a>
  &#8226;   <a href="#_strptime">_strptime</a>
+ &#8226;   <a href="#battle_simulation_service">battle_simulation_service</a>
  &#8226;   <a href="#datetime">datetime</a>
  &#8226;   <a href="#email._parseaddr">email._parseaddr</a>
  &#8226;   <a href="#email.generator">email.generator</a>
@@ -8278,6 +8347,7 @@ imported by:
  &#8226;   <a href="#http.cookiejar">http.cookiejar</a>
  &#8226;   <a href="#http.server">http.server</a>
  &#8226;   <a href="#logging">logging</a>
+ &#8226;   <a href="#monster_battle_evaluator">monster_battle_evaluator</a>
  &#8226;   <a href="#random">random</a>
  &#8226;   <a href="#socketserver">socketserver</a>
  &#8226;   <a href="#ssl">ssl</a>
@@ -8609,6 +8679,7 @@ imported by:
     <a href="#_colorize">_colorize</a>
  &#8226;   <a href="#ai_advisor">ai_advisor</a>
  &#8226;   <a href="#annotationlib">annotationlib</a>
+ &#8226;   <a href="#battle_simulation_service">battle_simulation_service</a>
  &#8226;   <a href="#build_simulation_evaluator">build_simulation_evaluator</a>
  &#8226;   <a href="#build_strategy">build_strategy</a>
  &#8226;   <a href="#combat_simulator">combat_simulator</a>
@@ -8623,6 +8694,7 @@ imported by:
  &#8226;   <a href="#importlib.metadata._meta">importlib.metadata._meta</a>
  &#8226;   <a href="#importlib.resources._common">importlib.resources._common</a>
  &#8226;   <a href="#importlib.resources.abc">importlib.resources.abc</a>
+ &#8226;   <a href="#monster_battle_evaluator">monster_battle_evaluator</a>
  &#8226;   <a href="#recommender">recommender</a>
  &#8226;   <a href="#shop_pool_cache">shop_pool_cache</a>
  &#8226;   <a href="#shop_state">shop_state</a>

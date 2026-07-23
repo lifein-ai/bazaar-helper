@@ -1986,13 +1986,13 @@ def decide_recommendation(
 
 def format_resource_rewards(resource_rewards: dict[str, int]) -> str:
     labels = {
-        "exp": "exp",
-        "gold": "gold",
-        "health": "health",
-        "income": "income",
-        "regen": "regen",
-        "speed": "speed",
-        "toughness": "toughness",
+        "exp": "\u7ecf\u9a8c",
+        "gold": "\u91d1\u5e01",
+        "health": "\u751f\u547d",
+        "income": "\u6536\u5165",
+        "regen": "\u518d\u751f",
+        "speed": "\u901f\u5ea6",
+        "toughness": "\u575a\u97e7",
     }
     parts = [
         f"{labels.get(name, name)} +{value}"
@@ -2000,7 +2000,7 @@ def format_resource_rewards(resource_rewards: dict[str, int]) -> str:
         if value > 0
     ]
 
-    return ", ".join(parts) if parts else "none"
+    return "\uff0c".join(parts) if parts else "\u65e0"
 
 
 def format_rarity_filter(rarity_filter: dict[str, str] | None) -> str:

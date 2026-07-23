@@ -8,6 +8,8 @@ a = Analysis(
     datas=[],
     hiddenimports=[
         'combat_simulator',
+        'monster_battle_evaluator',
+        'battle_simulation_service',
         'build_simulation_evaluator',
         'tkinter',
         'tkinter.filedialog',

@@ -9,6 +9,13 @@ from typing import Any, Callable
 
 
 TIER_ORDER = ["Bronze", "Silver", "Gold", "Diamond", "Legendary"]
+CRIT_BONUS_ATTR_BY_AMOUNT_ATTR = {
+    "DamageAmount": "DamageCrit",
+    "BurnApplyAmount": "BurnCrit",
+    "PoisonApplyAmount": "PoisonCrit",
+    "ShieldApplyAmount": "ShieldCrit",
+    "HealAmount": "HealCrit",
+}
 TIME_LIKE_ATTRIBUTES = {
     "ChargeAmount",
     "HasteAmount",
@@ -27,6 +34,29 @@ TIME_LIKE_ATTRIBUTES = {
 }
 ITEM_USE_ICD_SEC = 0.25
 CHARGE_PORT_ICD_SEC = 0.25
+ENCHANTMENT_TAGS = {
+    "fiery": {"burn"},
+    "flame": {"burn"},
+    "burn": {"burn"},
+    "toxic": {"poison"},
+    "poison": {"poison"},
+    "icy": {"freeze"},
+    "freeze": {"freeze"},
+    "shielded": {"shield"},
+    "shield": {"shield"},
+    "restorative": {"heal"},
+    "heal": {"heal"},
+    "turbo": {"haste"},
+    "haste": {"haste"},
+    "deadly": {"crit"},
+    "crit": {"crit"},
+    "shiny": {"value"},
+    "golden": {"gold"},
+    "heavy": {"damage"},
+    "obsidian": {"damage"},
+    "radiant": {"radiant"},
+    "mossy": {"regen"},
+}
 
 
 @dataclass
@@ -74,7 +104,7 @@ DEFAULT_OVERHEAL_CONFIG = OverhealConfig()
 @dataclass(frozen=True)
 class BurnConfig:
     shield_damage_multiplier: float = 0.5
-    decay_per_tick: int = 1
+    decay_ratio: float = 0.03
     tick_interval: float = 0.5
     rounding: str = "ceil"
 
@@ -105,6 +135,10 @@ class PlacedCard:
     tier: str | None = None
     cooldown_override_sec: float | None = None
     shield_enchanted: bool = False
+    enchantment: str | None = None
+
+
+SNAPSHOT_ATTRIBUTES_KEY = "_runtime_snapshot_attributes"
 
 
 @dataclass
@@ -116,6 +150,10 @@ class RuleCondition:
     attr_conditions: list[dict[str, Any]] = field(default_factory=list)
     require_cooldown: bool = False
     not_trigger_source: bool = False
+    require_any_enchantment: bool = False
+    exclude_any_enchantment: bool = False
+    include_enchantments: list[str] = field(default_factory=list)
+    exclude_enchantments: list[str] = field(default_factory=list)
     mode: str = "and"
 
 
@@ -138,6 +176,7 @@ class EffectRule:
     target_condition: RuleCondition = field(default_factory=RuleCondition)
     trigger_subject_type: str = ""
     trigger_subject_mode: str = ""
+    trigger_subject_section: str = ""
     trigger_condition: RuleCondition = field(default_factory=RuleCondition)
     trigger_exclude_self: bool = False
     trigger_attribute_changed: str = ""
@@ -255,6 +294,28 @@ def normalize_tag(value: Any) -> str:
     return str(value or "").strip().lower()
 
 
+def normalize_enchantment(value: Any) -> str:
+    return re.sub(r"[^a-z0-9]+", "", str(value or "").strip().lower())
+
+
+def card_enchantment(card: PlacedCard) -> str:
+    if card.enchantment:
+        return normalize_enchantment(card.enchantment)
+    raw = card.card.get("enchantment")
+    if raw:
+        return normalize_enchantment(raw)
+    raw_list = card.card.get("enchantments") or []
+    if raw_list:
+        return normalize_enchantment(raw_list[0])
+    if card.shield_enchanted:
+        return "shielded"
+    return ""
+
+
+def is_card_enchanted(card: PlacedCard) -> bool:
+    return bool(card_enchantment(card))
+
+
 def normalize_size(value: Any) -> str:
     text = str(value or "").strip().lower()
     if "small" in text:
@@ -300,6 +361,7 @@ def coerce_placed_cards(cards: list[PlacedCard | dict[str, Any]]) -> list[Placed
                     tier=item.tier,
                     cooldown_override_sec=item.cooldown_override_sec,
                     shield_enchanted=item.shield_enchanted,
+                    enchantment=item.enchantment,
                 )
             )
             continue
@@ -316,6 +378,7 @@ def coerce_placed_cards(cards: list[PlacedCard | dict[str, Any]]) -> list[Placed
                 tier=item.get("tier"),
                 cooldown_override_sec=item.get("cooldown_override_sec") or item.get("cooldownOverrideSec"),
                 shield_enchanted=bool(item.get("shield_enchanted") or item.get("shieldEnchanted")),
+                enchantment=first_enchantment(item),
             )
         )
         cursor = max(cursor, start + width)
@@ -436,6 +499,8 @@ def default_attribute_for_action(action_type: str) -> str:
         "TActionPlayerDamage": "DamageAmount",
         "TActionPlayerBurnApply": "BurnApplyAmount",
         "TActionPlayerPoisonApply": "PoisonApplyAmount",
+        "TActionPlayerBurnRemove": "BurnRemoveAmount",
+        "TActionPlayerPoisonRemove": "PoisonRemoveAmount",
         "TActionPlayerShieldApply": "ShieldApplyAmount",
         "TActionPlayerHealApply": "HealAmount",
         "TActionPlayerHeal": "HealAmount",
@@ -454,8 +519,11 @@ def card_tags(card: PlacedCard, aura_tags: dict[str, set[str]] | None = None) ->
     for key in ("tags", "hidden_tags", "visible_tags"):
         for value in card.card.get(key, []) or []:
             tags.add(normalize_tag(value))
-    if card.shield_enchanted:
-        tags.add("shield")
+    enchantment = card_enchantment(card)
+    if enchantment:
+        tags.add("enchanted")
+        tags.add(enchantment)
+        tags.update(ENCHANTMENT_TAGS.get(enchantment, set()))
     if aura_tags and card.placement_id in aura_tags:
         tags.update(aura_tags[card.placement_id])
     return tags
@@ -523,6 +591,18 @@ def extract_condition_meta(node: Any) -> RuleCondition:
         if attr.lower().startswith("cooldown") and normalize_comparator(op) == "gt" and value >= 0:
             meta.require_cooldown = True
 
+    if "hasenchantment" in lower_type:
+        enchantment = normalize_enchantment(get_field(node, "Enchantment", default=""))
+        if enchantment:
+            if is_not:
+                meta.exclude_enchantments.append(enchantment)
+            else:
+                meta.include_enchantments.append(enchantment)
+        elif is_not:
+            meta.require_any_enchantment = True
+        else:
+            meta.exclude_any_enchantment = True
+
     if "triggersource" in lower_type and is_not:
         meta.not_trigger_source = True
 
@@ -542,6 +622,10 @@ def extract_condition_meta(node: Any) -> RuleCondition:
         meta.attr_conditions.extend(nested.attr_conditions)
         meta.require_cooldown = meta.require_cooldown or nested.require_cooldown
         meta.not_trigger_source = meta.not_trigger_source or nested.not_trigger_source
+        meta.require_any_enchantment = meta.require_any_enchantment or nested.require_any_enchantment
+        meta.exclude_any_enchantment = meta.exclude_any_enchantment or nested.exclude_any_enchantment
+        meta.include_enchantments.extend(nested.include_enchantments)
+        meta.exclude_enchantments.extend(nested.exclude_enchantments)
         if nested.mode == "or":
             meta.mode = "or"
 
@@ -549,6 +633,8 @@ def extract_condition_meta(node: Any) -> RuleCondition:
     meta.exclude_tags = sorted(set(meta.exclude_tags))
     meta.include_sizes = sorted(set(meta.include_sizes))
     meta.exclude_sizes = sorted(set(meta.exclude_sizes))
+    meta.include_enchantments = sorted(set(meta.include_enchantments))
+    meta.exclude_enchantments = sorted(set(meta.exclude_enchantments))
     return meta
 
 
@@ -595,6 +681,8 @@ def resolve_card_attribute(card: PlacedCard, attr_name: str, cards: list[PlacedC
         return float(get_card_ammo_max(card))
     if lower == "flying":
         return 1.0 if "flying" in card_tags(card, aura_tags) else 0.0
+    if lower in {"heated", "chilled"}:
+        return 0.0
     return get_attr_value_by_tier(card.card, attr_name, effective_tier(card))
 
 
@@ -605,6 +693,17 @@ def matches_card(
     aura_tags: dict[str, set[str]] | None = None,
 ) -> bool:
     if condition.require_cooldown and get_card_cooldown_sec(card, cards) <= 0:
+        return False
+    enchantment = card_enchantment(card)
+    if condition.require_any_enchantment and not enchantment:
+        return False
+    if condition.exclude_any_enchantment and enchantment:
+        return False
+    include_enchantments = {normalize_enchantment(x) for x in condition.include_enchantments if normalize_enchantment(x)}
+    exclude_enchantments = {normalize_enchantment(x) for x in condition.exclude_enchantments if normalize_enchantment(x)}
+    if include_enchantments and enchantment not in include_enchantments:
+        return False
+    if exclude_enchantments and enchantment in exclude_enchantments:
         return False
     tags = card_tags(card, aura_tags)
     include_tags = {normalize_tag(x) for x in condition.include_tags if normalize_tag(x)}
@@ -702,9 +801,10 @@ def read_rules(card: PlacedCard, action_types: set[str] | None = None) -> list[E
                         target_condition=target_condition,
                         trigger_subject_type=type_name(subject),
                         trigger_subject_mode=str(get_field(subject, "TargetMode", default="")),
+                        trigger_subject_section=str(get_field(subject, "TargetSection", default="")),
                         trigger_condition=trigger_condition,
                         trigger_exclude_self=bool(get_field(subject, "ExcludeSelf", default=False)),
-                        trigger_attribute_changed=str(get_field(raw_trigger, "AttributeChanged", default="")),
+                        trigger_attribute_changed=str(get_field(raw_trigger, "AttributeChanged", "AttributeType", default="")),
                         trigger_change_type=str(get_field(raw_trigger, "ChangeType", default="")),
                         max_triggers_per_combat=trigger_limit,
                         trigger_limit_scope=str(
@@ -963,6 +1063,7 @@ def clone_placed_cards(cards: list[PlacedCard]) -> list[PlacedCard]:
             tier=card.tier,
             cooldown_override_sec=card.cooldown_override_sec,
             shield_enchanted=card.shield_enchanted,
+            enchantment=card.enchantment,
         )
         for card in cards
     ]
@@ -1027,6 +1128,8 @@ def apply_static_card_auras(cards: list[PlacedCard], rng: Callable[[], float] | 
             for target in resolve_targets(adjusted, source, source, rule, rng):
                 if is_skill_card(target):
                     continue
+                if has_runtime_snapshot_attribute(target.card, rule.attribute_type):
+                    continue
                 tier = effective_tier(target)
                 current = get_attr_value_by_tier(target.card, rule.attribute_type, tier)
                 updated = apply_attribute_operation(current, rule.amount, rule.operation)
@@ -1090,17 +1193,37 @@ def crit_multiplier_for_casts(
     bonus: dict[str, dict[str, float]],
     casts: int,
     rng: Callable[[], float] | None,
+    crit_bonus_attr: str = "",
 ) -> tuple[float, float]:
     chance = max(0.0, min(100.0, card_attr_with_bonus(card, cards, "CritChance", bonus))) / 100.0
     if chance <= 0:
         return 1.0, 0.0
     if rng is None:
-        return 1.0 + chance, casts * chance
+        crits = max(1, int(casts)) * chance
+        return crit_multiplier_from_crits(card, cards, bonus, casts, crits, crit_bonus_attr), crits
     crits = 0
     for _ in range(max(1, int(casts))):
         if rng() < chance:
             crits += 1
-    return 1.0 + (crits / max(1, int(casts))), float(crits)
+    return crit_multiplier_from_crits(card, cards, bonus, casts, float(crits), crit_bonus_attr), float(crits)
+
+
+def crit_multiplier_from_crits(
+    card: PlacedCard,
+    cards: list[PlacedCard],
+    bonus: dict[str, dict[str, float]],
+    casts: int,
+    crits: float,
+    crit_bonus_attr: str = "",
+) -> float:
+    if crits <= 0:
+        return 1.0
+    crit_bonus = (
+        max(0.0, card_attr_with_bonus(card, cards, crit_bonus_attr, bonus)) / 100.0
+        if crit_bonus_attr
+        else 0.0
+    )
+    return 1.0 + (float(crits) / max(1, int(casts))) * (1.0 + crit_bonus)
 
 
 def build_damage_curve(events: list[dict[str, float]], duration_sec: float) -> list[float]:
@@ -1159,6 +1282,8 @@ def simulate_combat(
         "TActionPlayerHealApply",
         "TActionPlayerHeal",
         "TActionPlayerPoisonApply",
+        "TActionPlayerBurnRemove",
+        "TActionPlayerPoisonRemove",
         "TActionPlayerRegenApply",
         "TActionPlayerModifyAttribute",
         "TActionCardModifyAttribute",
@@ -1186,6 +1311,11 @@ def simulate_combat(
         "HealAmount": {card.placement_id: 0.0 for card in active},
         "RegenApplyAmount": {card.placement_id: 0.0 for card in active},
         "CritChance": {card.placement_id: 0.0 for card in active},
+        "DamageCrit": {card.placement_id: 0.0 for card in active},
+        "BurnCrit": {card.placement_id: 0.0 for card in active},
+        "PoisonCrit": {card.placement_id: 0.0 for card in active},
+        "ShieldCrit": {card.placement_id: 0.0 for card in active},
+        "HealCrit": {card.placement_id: 0.0 for card in active},
         "Lifesteal": {card.placement_id: 0.0 for card in active},
     }
 
@@ -1317,11 +1447,16 @@ def simulate_combat(
             )
             base_regen = base_on_use_amount(fired, "TActionPlayerRegenApply")
             crit_multiplier, crits = crit_multiplier_for_casts(fired, cards, bonus, casts, crit_rng)
-            dealt = max(0.0, base_damage + bonus["DamageAmount"].get(fired.placement_id, 0.0)) * casts * crit_multiplier
-            burn = max(0.0, base_burn + bonus["BurnApplyAmount"].get(fired.placement_id, 0.0)) * casts * crit_multiplier
-            poison = max(0.0, base_poison + bonus["PoisonApplyAmount"].get(fired.placement_id, 0.0)) * casts * crit_multiplier
-            shield = max(0.0, base_shield + bonus["ShieldApplyAmount"].get(fired.placement_id, 0.0)) * casts * crit_multiplier
-            heal = max(0.0, base_heal + bonus["HealAmount"].get(fired.placement_id, 0.0)) * casts * crit_multiplier
+            damage_crit_multiplier = crit_multiplier_from_crits(fired, cards, bonus, casts, crits, "DamageCrit")
+            burn_crit_multiplier = crit_multiplier_from_crits(fired, cards, bonus, casts, crits, "BurnCrit")
+            poison_crit_multiplier = crit_multiplier_from_crits(fired, cards, bonus, casts, crits, "PoisonCrit")
+            shield_crit_multiplier = crit_multiplier_from_crits(fired, cards, bonus, casts, crits, "ShieldCrit")
+            heal_crit_multiplier = crit_multiplier_from_crits(fired, cards, bonus, casts, crits, "HealCrit")
+            dealt = max(0.0, base_damage + bonus["DamageAmount"].get(fired.placement_id, 0.0)) * casts * damage_crit_multiplier
+            burn = max(0.0, base_burn + bonus["BurnApplyAmount"].get(fired.placement_id, 0.0)) * casts * burn_crit_multiplier
+            poison = max(0.0, base_poison + bonus["PoisonApplyAmount"].get(fired.placement_id, 0.0)) * casts * poison_crit_multiplier
+            shield = max(0.0, base_shield + bonus["ShieldApplyAmount"].get(fired.placement_id, 0.0)) * casts * shield_crit_multiplier
+            heal = max(0.0, base_heal + bonus["HealAmount"].get(fired.placement_id, 0.0)) * casts * heal_crit_multiplier
             regen = max(0.0, base_regen + bonus["RegenApplyAmount"].get(fired.placement_id, 0.0)) * casts * crit_multiplier
             lifesteal = max(0.0, card_attr_with_bonus(fired, cards, "Lifesteal", bonus)) / 100.0
             lifesteal_heal = dealt * lifesteal if dealt > 0 and lifesteal > 0 else 0.0
@@ -1528,13 +1663,16 @@ def action_performed_key(action_type: str) -> str:
         "TActionPlayerDamage": "damage",
         "TActionPlayerBurnApply": "burn",
         "TActionPlayerPoisonApply": "poison",
+        "TActionPlayerBurnRemove": "burn_cleanse",
+        "TActionPlayerPoisonRemove": "poison_cleanse",
         "TActionPlayerShieldApply": "shield",
         "TActionPlayerHealApply": "heal",
         "TActionPlayerHeal": "heal",
         "TActionPlayerRegenApply": "regen",
         "TActionPlayerRageApply": "rage",
         "TActionCardDestroy": "destruction",
-        "TActionCardTransformDestroyed": "destruction",
+        "TActionCardTransform": "transform",
+        "TActionCardTransformDestroyed": "transform",
     }.get(action_type, "")
 
 
@@ -1555,6 +1693,16 @@ def normalize_offense_attr(attribute_type: str) -> str:
         return "RageApplyAmount"
     if attribute_type == "CritChance":
         return "CritChance"
+    if attribute_type == "DamageCrit":
+        return "DamageCrit"
+    if attribute_type == "BurnCrit":
+        return "BurnCrit"
+    if attribute_type == "PoisonCrit":
+        return "PoisonCrit"
+    if attribute_type == "ShieldCrit":
+        return "ShieldCrit"
+    if attribute_type == "HealCrit":
+        return "HealCrit"
     if attribute_type == "Lifesteal":
         return "Lifesteal"
     return ""
@@ -1586,14 +1734,15 @@ def calculate_burn_ticks(
     duration_sec: float,
     damage_events: list[dict[str, float]],
     timeline: list[dict[str, Any]],
+    config: BurnConfig = DEFAULT_BURN_CONFIG,
 ) -> float:
     ordered = sorted(events, key=lambda item: item["time"])
     index = 0
     stack = 0.0
     total = 0.0
-    ticks = max(1, int(math.floor(duration_sec / 0.5)))
+    ticks = max(1, int(math.floor(duration_sec / config.tick_interval)))
     for i in range(1, ticks + 1):
-        tick = i * 0.5
+        tick = i * config.tick_interval
         while index < len(ordered) and ordered[index]["time"] <= tick + 1e-6:
             stack += float(ordered[index]["amount"])
             index += 1
@@ -1601,8 +1750,14 @@ def calculate_burn_ticks(
             total += stack
             damage_events.append({"time": tick, "amount": stack})
             timeline.append({"time": tick, "kind": "burn-tick", "source": "burn", "value": stack})
-            stack = max(0.0, math.ceil(stack - max(1, math.ceil(stack * 0.03))))
+            stack = max(0.0, stack - burn_decay_amount(stack, config))
     return total
+
+
+def burn_decay_amount(stack: float, config: BurnConfig = DEFAULT_BURN_CONFIG) -> float:
+    if stack <= 0:
+        return 0.0
+    return float(max(1, math.floor(stack * config.decay_ratio)))
 
 
 def calculate_regen_ticks(
@@ -1832,6 +1987,7 @@ def build_current_board_placements(
                 width=width,
                 tier=str(entry.get("rarity") or entry.get("tier") or card.get("rarity") or ""),
                 shield_enchanted=has_enchantment(entry, "shield"),
+                enchantment=first_enchantment(entry),
             )
         )
     if include_skills:
@@ -1865,6 +2021,7 @@ def build_current_board_placements(
                     width=1,
                     tier=str(entry.get("rarity") or entry.get("tier") or card.get("rarity") or ""),
                     shield_enchanted=has_enchantment(entry, "shield"),
+                    enchantment=first_enchantment(entry),
                 )
             )
     return placed, skipped
@@ -1949,6 +2106,150 @@ def find_card_template(
     return None
 
 
+def _numeric_snapshot_attr(attrs: dict[str, Any], attr_name: str) -> float:
+    lower = attr_name.lower()
+    for key, value in attrs.items():
+        if str(key).lower() != lower:
+            continue
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return 0.0
+    return 0.0
+
+
+def _inactive_snapshot_condition_lines(card: dict[str, Any], attrs: dict[str, Any]) -> list[str]:
+    inactive_prefixes: list[str] = []
+    if _numeric_snapshot_attr(attrs, "Heated") <= 0:
+        inactive_prefixes.append("heated:")
+    if _numeric_snapshot_attr(attrs, "Chilled") <= 0:
+        inactive_prefixes.append("chilled:")
+    if not inactive_prefixes:
+        return []
+
+    description = str(card.get("description") or "")
+    lines = []
+    for line in description.splitlines():
+        stripped = line.strip().lower()
+        if any(stripped.startswith(prefix) for prefix in inactive_prefixes):
+            lines.append(stripped)
+    return lines
+
+
+def _inactive_conditional_snapshot_attrs(card: dict[str, Any], attrs: dict[str, Any]) -> set[str]:
+    lines = _inactive_snapshot_condition_lines(card, attrs)
+    if not lines:
+        return set()
+
+    mappings = [
+        (("burn",), {"burnapplyamount", "burnamount", "burncrit"}),
+        (("poison",), {"poisonapplyamount", "poisonamount", "poisoncrit"}),
+        (("damage",), {"damageamount", "damagecrit"}),
+        (("shield",), {"shieldapplyamount", "shieldamount", "shieldcrit"}),
+        (("regen",), {"regenapplyamount"}),
+        (("heal",), {"healamount", "healcrit"}),
+        (("freeze",), {"freezeamount"}),
+        (("slow",), {"slowamount"}),
+        (("haste",), {"hasteamount"}),
+        (("crit",), {"critchance", "burncrit", "damagecrit", "healcrit", "poisoncrit", "shieldcrit"}),
+        (("multicast",), {"multicast"}),
+        (("cooldown",), {"cooldownmax", "cooldown", "flatcooldownreduction", "percentcooldownreduction"}),
+        (("ammo",), {"ammomax"}),
+    ]
+    blocked: set[str] = set()
+    for line in lines:
+        for needles, attr_names in mappings:
+            if any(needle in line for needle in needles):
+                blocked.update(attr_names)
+                break
+    return blocked
+
+
+def _card_has_action(card: dict[str, Any], action_type: str) -> bool:
+    needle = action_type.lower()
+    for _, row in effect_rows_with_ids(card):
+        action = get_field(row, "Action", default={}) or {}
+        for _, expanded_action in expand_action_nodes(action):
+            if type_name(expanded_action).lower() == needle:
+                return True
+    return False
+
+
+def _add_on_fire_player_action(card: dict[str, Any], action_type: str, *, target_mode: str = "Opponent") -> None:
+    raw = card.setdefault("raw_effects", {})
+    abilities = raw.setdefault("abilities", {})
+    effect_id = f"snapshot:{action_type}"
+    if effect_id in abilities:
+        return
+    abilities[effect_id] = {
+        "$type": "BazaarGameShared.Domain.Effect.TCardAbility",
+        "Id": effect_id,
+        "Trigger": {
+            "$type": "BazaarGameShared.Domain.Effect.Trigger.TTriggerOnCardFired",
+        },
+        "Action": {
+            "$type": f"BazaarGameShared.Domain.Effect.Actions.{action_type}",
+            "Target": {
+                "$type": "BazaarGameShared.Domain.Targeting.TTargetPlayerRelative",
+                "TargetMode": target_mode,
+            },
+        },
+        "Priority": "Medium",
+        "InternalName": effect_id,
+    }
+
+
+SNAPSHOT_COMBAT_ACTIONS_BY_ATTR = {
+    "DamageAmount": ("TActionPlayerDamage", "Opponent"),
+    "BurnApplyAmount": ("TActionPlayerBurnApply", "Opponent"),
+    "PoisonApplyAmount": ("TActionPlayerPoisonApply", "Opponent"),
+    "ShieldApplyAmount": ("TActionPlayerShieldApply", "Player"),
+    "HealAmount": ("TActionPlayerHeal", "Player"),
+    "RegenApplyAmount": ("TActionPlayerRegenApply", "Player"),
+}
+
+ENCHANTMENT_DERIVED_SNAPSHOT_ATTRS = {
+    "restorative": {"HealAmount": ("RegenApplyAmount", 5.0)},
+}
+
+
+def _snapshot_tier_attrs(card: dict[str, Any], entry: dict[str, Any]) -> dict[str, Any]:
+    raw = card.setdefault("raw_effects", {})
+    tiers_raw = raw.setdefault("tiers_raw", {})
+    tier = normalize_tier(entry.get("rarity") or entry.get("tier") or card.get("rarity"))
+    tier_raw = tiers_raw.setdefault(tier, {})
+    return tier_raw.setdefault("Attributes", {})
+
+
+def _apply_snapshot_enchantment_actions(card: dict[str, Any], entry: dict[str, Any], attrs: dict[str, Any]) -> None:
+    enchantment = normalize_enchantment(first_enchantment(entry))
+    if not enchantment:
+        return
+    tier_attrs = _snapshot_tier_attrs(card, entry)
+    for target_attr, (source_attr, multiplier) in ENCHANTMENT_DERIVED_SNAPSHOT_ATTRS.get(enchantment, {}).items():
+        if _numeric_snapshot_attr(tier_attrs, target_attr) > 0:
+            continue
+        derived = _numeric_snapshot_attr(attrs, source_attr) * multiplier
+        if derived > 0:
+            tier_attrs[target_attr] = derived
+    for attr_name, (action_type, target_mode) in SNAPSHOT_COMBAT_ACTIONS_BY_ATTR.items():
+        if _numeric_snapshot_attr(tier_attrs, attr_name) <= 0:
+            continue
+        if not _card_has_action(card, action_type):
+            _add_on_fire_player_action(card, action_type, target_mode=target_mode)
+
+
+def runtime_snapshot_attributes(card: dict[str, Any]) -> set[str]:
+    values = card.get(SNAPSHOT_ATTRIBUTES_KEY)
+    if not isinstance(values, list):
+        return set()
+    return {str(value).lower() for value in values}
+
+
+def has_runtime_snapshot_attribute(card: dict[str, Any], attr_type: str) -> bool:
+    return str(attr_type or "").lower() in runtime_snapshot_attributes(card)
+
+
 def apply_instance_snapshot(template: dict[str, Any], entry: dict[str, Any]) -> dict[str, Any]:
     card = deepcopy(template)
     if entry.get("name"):
@@ -1956,12 +2257,20 @@ def apply_instance_snapshot(template: dict[str, Any], entry: dict[str, Any]) -> 
     tier = normalize_tier(entry.get("rarity") or entry.get("tier") or card.get("rarity"))
     attrs = entry.get("current_attributes")
     if isinstance(attrs, dict) and attrs:
+        blocked_attrs = _inactive_conditional_snapshot_attrs(card, attrs)
+        snapshot_attrs = set(runtime_snapshot_attributes(card))
         raw = card.setdefault("raw_effects", {})
         tiers_raw = raw.setdefault("tiers_raw", {})
         tier_raw = tiers_raw.setdefault(tier, {})
         tier_attrs = tier_raw.setdefault("Attributes", {})
         for key, value in attrs.items():
+            normalized_key = str(key).lower()
+            if normalized_key in blocked_attrs:
+                continue
             tier_attrs[str(key)] = value
+            snapshot_attrs.add(normalized_key)
+        card[SNAPSHOT_ATTRIBUTES_KEY] = sorted(snapshot_attrs)
+        _apply_snapshot_enchantment_actions(card, entry, attrs)
     runtime_values = entry.get("runtime_values")
     if isinstance(runtime_values, dict):
         size = runtime_values.get("Size") or runtime_values.get("size")
@@ -2020,6 +2329,15 @@ def has_enchantment(entry: dict[str, Any], name: str) -> bool:
     if entry.get("enchantment"):
         values = [entry["enchantment"], *values]
     return any(needle in str(value).lower() for value in values)
+
+
+def first_enchantment(entry: dict[str, Any]) -> str | None:
+    if entry.get("enchantment"):
+        return str(entry["enchantment"])
+    values = entry.get("enchantments") or []
+    if values:
+        return str(values[0])
+    return None
 
 
 def damage_timeline(summary: CombatSummary) -> list[dict[str, Any]]:

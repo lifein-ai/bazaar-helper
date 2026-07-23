@@ -49,33 +49,58 @@ def table_exists(connection: sqlite3.Connection, table: str) -> bool:
     return row is not None
 
 
-def localized_title(record: dict[str, Any], translations: dict[str, str]) -> str | None:
-    title = (record.get("Localization") or {}).get("Title") or {}
-    key = title.get("Key") or record.get("TranslationKey")
+def localized_text(record: dict[str, Any], translations: dict[str, str], field: str) -> str | None:
+    localization = record.get("Localization") or {}
+    field_data = localization.get(field) or {}
+    key = field_data.get("Key")
+    if field == "Title" and not key:
+        key = record.get("TranslationKey")
     if not key:
         return None
     return translations.get(str(key))
 
 
+def english_text(record: dict[str, Any], field: str) -> str | None:
+    localization = record.get("Localization") or {}
+    field_data = localization.get(field) or {}
+    if isinstance(field_data, dict) and field_data.get("Text"):
+        return field_data.get("Text")
+    if field == "Title":
+        return record.get("InternalName")
+    if field == "Description":
+        return record.get("InternalDescription")
+    return None
+
+
+def localized_title(record: dict[str, Any], translations: dict[str, str]) -> str | None:
+    return localized_text(record, translations, "Title")
+
+
 def english_title(record: dict[str, Any]) -> str | None:
-    title = (record.get("Localization") or {}).get("Title") or {}
-    return title.get("Text") or record.get("InternalName")
+    return english_text(record, "Title")
 
 
 def build_translation_payload(game_db: Path, translation_db: Path) -> dict[str, Any]:
     translations = load_translation_table(translation_db)
     by_name: dict[str, str] = {}
     by_id: dict[str, str] = {}
+    description_by_text: dict[str, str] = {}
+    description_by_id: dict[str, str] = {}
 
     for record_id, record in iter_game_records(game_db):
         zh_name = localized_title(record, translations)
         en_name = english_title(record)
-        if not zh_name:
-            continue
+        if zh_name:
+            by_id[record_id] = zh_name
+            if en_name:
+                by_name[en_name] = zh_name
 
-        by_id[record_id] = zh_name
-        if en_name:
-            by_name[en_name] = zh_name
+        zh_description = localized_text(record, translations, "Description")
+        en_description = english_text(record, "Description")
+        if zh_description:
+            description_by_id[record_id] = zh_description
+            if en_description:
+                description_by_text[en_description] = zh_description
 
     return {
         "source_game_db": str(game_db),
@@ -83,6 +108,8 @@ def build_translation_payload(game_db: Path, translation_db: Path) -> dict[str, 
         "locale": "zh-CN",
         "by_name": dict(sorted(by_name.items())),
         "by_id": dict(sorted(by_id.items())),
+        "description_by_text": dict(sorted(description_by_text.items())),
+        "description_by_id": dict(sorted(description_by_id.items())),
     }
 
 
@@ -105,6 +132,7 @@ def main() -> None:
     print(f"Wrote {args.output}")
     print(f"Names: {len(payload['by_name'])}")
     print(f"Ids: {len(payload['by_id'])}")
+    print(f"Descriptions: {len(payload['description_by_id'])}")
 
 
 if __name__ == "__main__":

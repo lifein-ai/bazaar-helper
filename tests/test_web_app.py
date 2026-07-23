@@ -352,7 +352,7 @@ class WebAppResilienceTests(unittest.TestCase):
     def test_owned_items_and_skills_are_displayed_separately(self) -> None:
         data = {
             "events": {},
-            "translations": {},
+            "translations": {"by_name": {"Calico": "三花"}},
             "cards": {
                 "Test Item": {"type": "Item"},
                 "Test Skill": {"type": "Skill"},
@@ -390,7 +390,7 @@ class WebAppResilienceTests(unittest.TestCase):
     def test_inventory_space_counts_all_items_against_board_plus_stash_capacity(self) -> None:
         data = {
             "events": {},
-            "translations": {},
+            "translations": {"by_name": {"Calico": "三花"}, "by_id": {}},
             "cards": {
                 "Small Item": {"type": "Item", "size": "Small"},
                 "Medium Item": {"type": "Item", "size": "Medium"},
@@ -464,7 +464,7 @@ class WebAppResilienceTests(unittest.TestCase):
     def test_static_monster_choices_are_matched_from_combat_options(self) -> None:
         data = {
             "events": {},
-            "translations": {},
+            "translations": {"by_name": {"Calico": "三花"}, "by_id": {}},
             "cards": {
                 "Claws": {"id": "claws-template", "type": "Item", "size": "Small"},
                 "Seafaring": {"id": "seafaring-template", "type": "Skill"},
@@ -516,6 +516,14 @@ class WebAppResilienceTests(unittest.TestCase):
         self.assertEqual(normalized["monster_skills"][0]["name"], "Seafaring")
         self.assertEqual(normalized["monster_choices"][0]["name"], "Calico")
         self.assertEqual(response["state"]["monster_choices"][0]["health"], 450)
+        self.assertEqual(response["state"]["monster_choices"][0]["display_name"], "三花")
+
+    def test_monster_display_name_strips_runtime_suffix_before_translation(self) -> None:
+        data = {"translations": {"by_name": {"Coconut Crab": "椰子蟹", "Calico": "三花"}, "by_id": {}}}
+
+        self.assertEqual(web_app.zh_monster_name(data, "Coconut Crab Monster"), "椰子蟹")
+        self.assertEqual(web_app.zh_monster_name(data, "Coconut Crab 2"), "椰子蟹")
+        self.assertEqual(web_app.zh_monster_name(data, "Calico (monster)"), "三花")
 
     def test_card_entries_map_template_and_source_ids_to_names(self) -> None:
         data = {
@@ -1006,6 +1014,53 @@ class WebAppResilienceTests(unittest.TestCase):
             web_app.translate_common_game_text(data, "(if you have a Friend) Choose a Skill"),
             "\uff08\u5982\u679c\u4f60\u62e5\u6709\u670b\u53cb\uff09\u9009\u62e9\u4e00\u4e2a\u6280\u80fd",
         )
+        self.assertEqual(
+            web_app.translate_common_game_text(data, "(if you are Mak) Get a Small Silver-tier Potion"),
+            "\uff08\u5982\u679c\u4f60\u662f\u9a6c\u514b\uff09\u83b7\u5f97\u4e00\u4ef6\u5c0f\u578b\u767d\u94f6\u7ea7\u836f\u6c34\u7269\u54c1",
+        )
+        self.assertEqual(
+            web_app.translate_common_game_text(data, "Your Basket gains 10 and progresses 2 on its Quests"),
+            "\u4f60\u7684\u63d0\u7bee\u83b7\u5f97 10\uff0c\u5e76\u4f7f\u5176\u4efb\u52a1\u8fdb\u5ea6\u63a8\u8fdb 2",
+        )
+        self.assertEqual(
+            web_app.display_reason_text(data, "No clear card or resource value identified."),
+            "\u6682\u672a\u8bc6\u522b\u5230\u660e\u786e\u7684\u5361\u724c\u6216\u8d44\u6e90\u6536\u76ca\u3002",
+        )
+        self.assertEqual(
+            web_app.display_reason_text(data, "Best follow-up can provide exp +1."),
+            "\u6700\u597d\u7684\u540e\u7eed\u9009\u9879\u53ef\u63d0\u4f9b\uff1a\u7ecf\u9a8c +1\u3002",
+        )
+
+    def test_static_followups_skip_reward_pool_items(self) -> None:
+        data = load_all_data(DATA_DIR)
+
+        obstacle_options = web_app.static_child_options_for_event(data, "Obstacle Course")
+        strange_mushroom_options = web_app.static_child_options_for_event(data, "A Strange Mushroom")
+
+        self.assertEqual(obstacle_options, [])
+        self.assertFalse(
+            any(item.get("source_name") == "Keep it for Luck" for item in strange_mushroom_options)
+        )
+
+    def test_static_followup_descriptions_use_official_zh(self) -> None:
+        data = load_all_data(DATA_DIR)
+        options = web_app.static_child_options_for_event(data, "A Strange Mushroom")
+        by_source = {item.get("source_name"): item for item in options}
+
+        self.assertEqual(by_source["Sell It"]["description"], "\u83b7\u5f974\u679a\u91d1\u5e01")
+        for source_name in (
+            "Trade It for Something",
+            "Sell It",
+            "Brew a Potion",
+            "Share It With a Friend",
+            "Add It to Your Bushel",
+            "Add It to Your Basket",
+            "No Place Like Home",
+        ):
+            self.assertNotRegex(
+                by_source[source_name]["description"],
+                r"\b(?:Gain|Your|Quests|Item)\b",
+            )
 
     def test_shop_display_does_not_call_known_zero_gold_unknown(self) -> None:
         display = web_app.shop_rule_display_from_result(

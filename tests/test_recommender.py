@@ -1483,29 +1483,25 @@ class RecommenderTests(unittest.TestCase):
             0,
         )
 
-    def test_generated_events_include_followup_options(self) -> None:
+    def test_loaded_events_do_not_include_generated_followup_options(self) -> None:
         data = load_all_data(DATA_DIR)
-        mushroom_options = {
-            option["name"]: option
-            for option in data["events"]["A Strange Mushroom"]["followup_options"]
-        }
-        haddy_options = {
-            option["name"]: option
-            for option in data["events"]["Haddy"]["followup_options"]
-        }
-
-        self.assertEqual(mushroom_options["Keep it for Luck"]["event_category"], "resource_events")
-        self.assertEqual(mushroom_options["Sell It"]["resource_rewards"], {"gold": 1})
-        self.assertEqual(mushroom_options["Brew a Potion"]["event_category"], "item_rewards")
-        self.assertEqual(haddy_options["Bag of Gold"]["resource_rewards"], {"gold": 1})
-        self.assertEqual(haddy_options["Diamond Skill"]["event_category"], "skill_shops")
-        self.assertEqual(haddy_options["Mystery Bundle"]["event_category"], "item_rewards")
+        self.assertNotIn("followup_options", data["events"]["A Strange Mushroom"])
+        self.assertNotIn("followup_options", data["events"]["Haddy"])
 
     def test_followup_options_affect_recommendation_and_ai_payload(self) -> None:
         data = load_all_data(DATA_DIR)
         result = analyze_event(
-            event_name="A Strange Mushroom",
-            event_data=data["events"]["A Strange Mushroom"],
+            event_name="Parent Event",
+            event_data={
+                "name": "Parent Event",
+                "followup_options": [
+                    {
+                        "name": "Sell It",
+                        "event_category": "resource_events",
+                        "resource_rewards": {"gold": 4},
+                    }
+                ],
+            },
             cards=data["cards"],
             build_name="BazaarDBPygmalienMeta",
             build_data=data["builds"]["BazaarDBPygmalienMeta"],
@@ -1610,7 +1606,7 @@ class RecommenderTests(unittest.TestCase):
         self.assertEqual(result["best_followup"], "Sell It")
         self.assertEqual(result["resource_rewards"], {"gold": 4})
         self.assertTrue(
-            any("Best follow-up" in reason and "gold" in reason for reason in result["reasons"])
+            any("Best follow-up" in reason and "\u91d1\u5e01" in reason for reason in result["reasons"])
         )
 
     def test_exact_item_rewards_match_named_reward_cards(self) -> None:

@@ -497,7 +497,10 @@ namespace BazaarStateExporter
             object currentState = GetField(dto, "CurrentState");
             object player = GetField(dto, "Player");
             string hero = StringValue(GetField(player, "Hero"));
-            int day = IntValue(GetField(run, "Day"), 1);
+            int dtoDay = IntValue(GetField(run, "Day"), 1);
+            int day = dtoDay;
+            bool uiDayOverridesDto = latestUiDay.HasValue
+                && latestUiDay.Value != dtoDay;
             if (latestUiDay.HasValue)
             {
                 day = latestUiDay.Value;
@@ -533,6 +536,15 @@ namespace BazaarStateExporter
                 RuntimeStateCache.ResetForNewRun();
                 ResetLocalRunState();
             }
+            else if (lastSnapshotDay.HasValue && day != lastSnapshotDay.Value)
+            {
+                RuntimeStateCache.ClearTransientUiState(
+                    "day changed "
+                    + lastSnapshotDay.Value
+                    + " -> "
+                    + day);
+                lastLoggedSnapshotSummary = null;
+            }
             if (!string.IsNullOrEmpty(hero))
             {
                 lastSnapshotHero = hero;
@@ -547,7 +559,9 @@ namespace BazaarStateExporter
                 day = day,
                 max_prestige = 20,
                 inventory_slots_total = 20,
-                event_option_ids = StringList(GetField(currentState, "SelectionSet")),
+                event_option_ids = uiDayOverridesDto
+                    ? new List<string>()
+                    : StringList(GetField(currentState, "SelectionSet")),
             };
 
             object allCards = GetField(dto, "Cards");
@@ -667,7 +681,7 @@ namespace BazaarStateExporter
                 eventOptionIdSet.Clear();
                 detailedEventOptionIds.Clear();
             }
-            else
+            else if (!uiDayOverridesDto)
             {
                 float eventCaptureMinSeenAt = screenModeIsEvents
                     ? Math.Max(0f, RuntimeStateCache.LastScreenModeAt - 1.0f)
@@ -810,7 +824,10 @@ namespace BazaarStateExporter
                 snapshot.combat_health = RuntimeStateCache.LatestHealth;
             }
             snapshot.monster_health = TryReadOpponentUiHealth();
-            FillMonsterCards(snapshot, screenModeIsShop, screenModeIsEvents);
+            if (!uiDayOverridesDto)
+            {
+                FillMonsterCards(snapshot, screenModeIsShop, screenModeIsEvents);
+            }
 
             if (snapshot.event_option_ids.Count > 0 || snapshot.owned_cards.Count > 0)
             {
@@ -1800,7 +1817,8 @@ namespace BazaarStateExporter
             HashSet<string> detailedEventOptionIds,
             float minSeenAt)
         {
-            List<CardSnapshot> capturedCards = RuntimeStateCache.GetCurrentVisibleCards();
+            List<CardSnapshot> capturedCards =
+                RuntimeStateCache.GetCurrentVisibleCards(30f, minSeenAt);
             foreach (CardSnapshot recentCard in RuntimeStateCache.GetCapturedUiCards(15f, minSeenAt))
             {
                 if (recentCard == null || string.IsNullOrEmpty(recentCard.id))

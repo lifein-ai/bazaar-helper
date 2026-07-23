@@ -21,6 +21,11 @@ from recommender import (
 from shop_pool_cache import get_cached_shop_pool_summary, hydrate_cached_shop_cards
 from advisor import analyze_game_state
 from ai_advisor import analyze_with_ai, compact_recommendations
+from battle_simulation_service import (
+    BattleSimulationInputError,
+    simulate_selected_monster,
+    simulate_training_dummy,
+)
 from build_strategy import applicable_build_names, build_applies_to_day, get_game_stage_for_day
 from combat_simulator import estimate_self_health_ttk
 from data_loader import load_all_data
@@ -1674,6 +1679,23 @@ def zh_name(data: dict[str, Any], name: Any, template_id: Any = None) -> str:
     return ""
 
 
+def zh_monster_name(data: dict[str, Any], name: Any, template_id: Any = None) -> str:
+    translated = zh_name(data, name, template_id)
+    text = str(name or "")
+    if translated and translated != text:
+        return translated
+
+    cleaned = re.sub(r"\s*\((?:monster|Monster)\)\s*$", "", text).strip()
+    cleaned = re.sub(r"\s+Monster\s*$", "", cleaned).strip()
+    cleaned = re.sub(r"\s+\d+\s*$", "", cleaned).strip()
+    if cleaned and cleaned != text:
+        translated = zh_name(data, cleaned, template_id)
+        if translated and translated != cleaned:
+            return translated
+        return cleaned
+    return translated
+
+
 def zh_text(data: dict[str, Any], text: Any) -> str:
     if not text:
         return ""
@@ -1693,10 +1715,128 @@ def zh_id(data: dict[str, Any], source_id: Any) -> str:
     return str(data.get("translations", {}).get("by_id", {}).get(str(source_id), ""))
 
 
+def zh_description(
+    data: dict[str, Any],
+    source_id: Any,
+    text: Any,
+    card: dict[str, Any] | None = None,
+) -> str:
+    translations = data.get("translations", {})
+    template = ""
+    if source_id:
+        template = str(
+            translations.get("description_by_id", {}).get(str(source_id), "")
+            or translations.get("description_by_id", {}).get(str(source_id).lower(), "")
+        )
+    if not template and text:
+        template = str(translations.get("description_by_text", {}).get(str(text), ""))
+    if not template:
+        return ""
+    if isinstance(card, dict):
+        return render_card_text(card, template)
+    return template
+
+
 def translate_common_game_text(data: dict[str, Any], text: Any) -> str:
     result = zh_text(data, text)
     if not result:
         return ""
+
+    rarity_labels = {
+        "bronze": "\u9752\u94dc",
+        "silver": "\u767d\u94f6",
+        "gold": "\u9ec4\u91d1",
+        "diamond": "\u94bb\u77f3",
+    }
+    size_labels = {
+        "small": "\u5c0f\u578b",
+        "medium": "\u4e2d\u578b",
+        "large": "\u5927\u578b",
+    }
+    tag_labels = {
+        "food": "\u98df\u7269",
+        "friend": "\u670b\u53cb",
+        "toy": "\u73a9\u5177",
+        "drone": "\u65e0\u4eba\u673a",
+        "loot": "\u6218\u5229\u54c1",
+        "potion": "\u836f\u6c34",
+        "skill": "\u6280\u80fd",
+    }
+
+    def translate_name_list(value: str) -> str:
+        parts = [
+            part.strip()
+            for part in re.split(r",|\bor\b", value)
+            if part.strip()
+        ]
+        return "\u3001".join(zh_text(data, part) for part in parts)
+
+    def translate_reward_item(match: re.Match[str]) -> str:
+        size = size_labels.get((match.group("size") or "").lower(), "")
+        rarity = rarity_labels.get((match.group("rarity") or "").lower(), match.group("rarity") or "")
+        if rarity:
+            rarity = f"{rarity}\u7ea7"
+        raw_tag = (match.group("tag") or "").lower()
+        tag = "" if raw_tag == "item" else tag_labels.get(raw_tag, zh_text(data, match.group("tag") or ""))
+        hero_scope = "\uff08\u4efb\u610f\u82f1\u96c4\uff09" if match.group("scope") else ""
+        name = "".join(part for part in [size, rarity, tag] if part)
+        return f"\u83b7\u5f97\u4e00\u4ef6{name}\u7269\u54c1{hero_scope}"
+
+    result = re.sub(
+        r"^\(if you have a ([^)]+)\)\s*",
+        lambda match: f"\uff08\u5982\u679c\u4f60\u62e5\u6709{translate_name_list(match.group(1))}\uff09",
+        result,
+        flags=re.IGNORECASE,
+    )
+    result = re.sub(
+        r"^\(if you are ([^)]+)\)\s*",
+        lambda match: f"\uff08\u5982\u679c\u4f60\u662f{translate_name_list(match.group(1))}\uff09",
+        result,
+        flags=re.IGNORECASE,
+    )
+    result = re.sub(
+        r"Get a (?:(?P<size>Small|Medium|Large) )?(?:(?P<rarity>Bronze|Silver|Gold|Diamond|\u9752\u94dc|\u767d\u94f6|\u9ec4\u91d1|\u94bb\u77f3)-tier )?(?P<tag>[A-Za-z]+)(?: item)?(?P<scope> from any Hero)?",
+        translate_reward_item,
+        result,
+        flags=re.IGNORECASE,
+    )
+    result = re.sub(
+        r"\bYour (.+?) gains (\d+)(?: and progresses (\d+) on its Quests)?",
+        lambda match: (
+            f"\u4f60\u7684{zh_text(data, match.group(1))}\u83b7\u5f97 {match.group(2)}"
+            + (
+                f"\uff0c\u5e76\u4f7f\u5176\u4efb\u52a1\u8fdb\u5ea6\u63a8\u8fdb {match.group(3)}"
+                if match.group(3)
+                else ""
+            )
+        ),
+        result,
+        flags=re.IGNORECASE,
+    )
+    result = re.sub(
+        r"\bGain (\d+) Max Health\b",
+        lambda match: f"\u83b7\u5f97 {match.group(1)} \u6700\u5927\u751f\u547d\u503c",
+        result,
+        flags=re.IGNORECASE,
+    )
+    result = re.sub(
+        r"\bGain (\d+) (?:Gold|\u9ec4\u91d1|\u91d1\u5e01)\b",
+        lambda match: f"\u83b7\u5f97 {match.group(1)} \u91d1\u5e01",
+        result,
+        flags=re.IGNORECASE,
+    )
+    result = re.sub(
+        r"\bGain (\d+) XP\b",
+        lambda match: f"\u83b7\u5f97 {match.group(1)} \u7ecf\u9a8c",
+        result,
+        flags=re.IGNORECASE,
+    )
+    result = re.sub(
+        r"Choose a Skill",
+        "\u9009\u62e9\u4e00\u4e2a\u6280\u80fd",
+        result,
+        flags=re.IGNORECASE,
+    )
 
     replacements = [
         (r"^Gain (\d+) Max Health$", r"获得 \1 最大生命值"),
@@ -1761,6 +1901,9 @@ def display_reason_text(data: dict[str, Any], reason: Any) -> str:
         "no_visible_target_but_shop_pool_is_actionable": "\u5f53\u524d\u53ef\u89c1\u5546\u54c1\u6ca1\u6709\u76ee\u6807\uff0c\u4f46\u8fd9\u5bb6\u5e97\u7684\u6c60\u8d28\u91cf\u652f\u6301\u8003\u8651\u5237\u65b0\u3002",
         "current_gold_unknown": "\u91d1\u5e01\u672a\u63a5\u5165\u5230\u8be5\u89c4\u5219\u9879\uff0c\u65e0\u6cd5\u5224\u65ad\u8d2d\u4e70\u529b\u3002",
         "refresh_cost_unknown": "\u5237\u65b0\u8d39\u7528\u672a\u77e5\uff0c\u4e0d\u5f3a\u63a8\u5237\u65b0\u3002",
+        "No clear card or resource value identified.": "\u6682\u672a\u8bc6\u522b\u5230\u660e\u786e\u7684\u5361\u724c\u6216\u8d44\u6e90\u6536\u76ca\u3002",
+        "Some usable cards exist, but hit quality is low.": "\u5361\u6c60\u91cc\u6709\u53ef\u7528\u5361\uff0c\u4f46\u547d\u4e2d\u8d28\u91cf\u504f\u4f4e\u3002",
+        "Follow-up options detected, but current estimated value is limited.": "\u5df2\u8bc6\u522b\u5230\u540e\u7eed\u9009\u9879\uff0c\u4f46\u5f53\u524d\u4f30\u7b97\u6536\u76ca\u6709\u9650\u3002",
     }
     if text in exact:
         return exact[text]
@@ -1778,6 +1921,8 @@ def display_reason_text(data: dict[str, Any], reason: Any) -> str:
         (r"^Reward gives (\d+) items; expected relevant cards ([\d.]+), useful hit chance (\d+)%\.$", "\u5956\u52b1\u7ed9 {0} \u4e2a\u7269\u54c1\uff1b\u9884\u671f\u76f8\u5173\u5361 {1} \u5f20\uff0c\u6709\u7528\u547d\u4e2d\u7387\u7ea6 {2}%\u3002"),
         (r"^Chance to hit at least one core card is (\d+)%\.$", "\u81f3\u5c11\u547d\u4e2d\u4e00\u5f20\u6838\u5fc3\u5361\u7684\u6982\u7387\u7ea6 {0}%\u3002"),
         (r"^Unrelated items still have estimated sell value around ([\d.]+) gold\.$", "\u65e0\u5173\u7269\u54c1\u4ecd\u6709\u7ea6 {0} \u91d1\u5e01\u7684\u8f6c\u5356\u671f\u671b\u3002"),
+        (r"^Best follow-up can provide (.+)\.$", "\u6700\u597d\u7684\u540e\u7eed\u9009\u9879\u53ef\u63d0\u4f9b\uff1a{0}\u3002"),
+        (r"^Best follow-up (.+) has (\d+)% useful hit chance, (\d+)% core hit chance, expected useful cards ([\d.]+)\.$", "\u6700\u597d\u7684\u540e\u7eed\u9009\u9879 {0}\uff1a\u6709\u7528\u547d\u4e2d\u7387\u7ea6 {1}%\uff0c\u6838\u5fc3\u547d\u4e2d\u7387\u7ea6 {2}%\uff0c\u9884\u671f\u6709\u7528\u5361 {3} \u5f20\u3002"),
     ]
     for pattern, template in patterns:
         match = re.match(pattern, text)
@@ -1790,9 +1935,27 @@ def display_reason_text(data: dict[str, Any], reason: Any) -> str:
                 [part.strip() for part in groups[0].split(",") if part.strip()],
             )
             return template.format(names="\u3001".join(names))
+        if pattern.startswith("^Best follow-up can provide"):
+            return template.format(translate_resource_reward_phrase(groups[0]))
         return template.format(*groups)
 
     return translate_common_game_text(data, text)
+
+
+def translate_resource_reward_phrase(text: Any) -> str:
+    result = str(text or "")
+    resource_labels = {
+        "exp": "\u7ecf\u9a8c",
+        "gold": "\u91d1\u5e01",
+        "health": "\u751f\u547d",
+        "income": "\u6536\u5165",
+        "regen": "\u518d\u751f",
+        "speed": "\u901f\u5ea6",
+        "toughness": "\u575a\u97e7",
+    }
+    for source, translated in resource_labels.items():
+        result = re.sub(rf"\b{re.escape(source)}\b", translated, result, flags=re.IGNORECASE)
+    return result
 
 
 def display_card_entry(data: dict[str, Any], card: dict[str, Any]) -> dict[str, Any]:
@@ -1801,7 +1964,7 @@ def display_card_entry(data: dict[str, Any], card: dict[str, Any]) -> dict[str, 
     rarity = card.get("rarity")
     return {
         **card,
-        "display_name": zh_name(data, name, template_id),
+        "display_name": zh_monster_name(data, name, template_id),
         "rarity": RARITY_LABELS_ZH.get(str(rarity).lower(), rarity) if rarity else rarity,
         "card_type": display_card_type(data, card),
     }
@@ -1817,7 +1980,7 @@ def display_monster_choice(
     skills = monster.get("skills") or []
     return {
         **monster,
-        "display_name": zh_name(data, name, template_id),
+        "display_name": zh_monster_name(data, name, template_id),
         "items": [
             display_card_entry(data, item)
             for item in items
@@ -2212,11 +2375,7 @@ def summarize_parent_child_options(
             or zh_text(data, zh_name(data, child.get("display_name") or name))
         )
         description = child.get("description", "")
-        translated_description = (
-            data.get("translations", {}).get("by_name", {}).get(str(description))
-            if description
-            else None
-        )
+        translated_description = zh_description(data, source_id, description, child)
         if official_card:
             official_title = official_card_title(official_card)
             official_description = official_card_description(official_card)
@@ -2224,7 +2383,7 @@ def summarize_parent_child_options(
                 display_name = translate_common_game_text(data, official_title)
             if official_description:
                 description = official_description
-                translated_description = data.get("translations", {}).get("by_name", {}).get(str(description))
+                translated_description = zh_description(data, source_id, description, official_card)
         source_name = child.get("source_name", "")
 
         result.append(
@@ -2312,16 +2471,31 @@ def static_child_options_for_event(data: dict[str, Any], event_name: str | None)
                 if isinstance(child, dict)
                 else ""
             )
+            translated_child_description = (
+                zh_description(
+                    data,
+                    child_id,
+                    str(child.get("description") or "") if isinstance(child, dict) else "",
+                    child,
+                )
+                if isinstance(child, dict)
+                else ""
+            )
             child_type = str(child.get("type") or child.get("card_type") or "") if isinstance(child, dict) else ""
+            child_kind = static_child_kind(child_type)
+            if child_kind == "unknown":
+                continue
 
             child_item = {
                 "name": child_display_name,
                 "source_name": child_source_name,
                 "display_name": child_display_name,
                 "source_id": child_id,
-                "kind": static_child_kind(child_type),
+                "kind": child_kind,
                 "card_type": child_type,
-                "description": translate_common_game_text(data, child_description) if child_description else "",
+                "description": translated_child_description or (
+                    translate_common_game_text(data, child_description) if child_description else ""
+                ),
                 "resource_rewards": (
                     extract_resource_rewards_from_card(child)
                     if isinstance(child, dict)
@@ -2823,7 +2997,11 @@ def analyze_payload(
                 "skills": normalized.get("skills", []),
                 "monster_items": normalized.get("monster_items", []),
                 "monster_skills": normalized.get("monster_skills", []),
-                "monster_choices": normalized.get("monster_choices", []),
+                "monster_choices": [
+                    display_monster_choice(data, monster)
+                    for monster in normalized.get("monster_choices", [])
+                    if isinstance(monster, dict)
+                ],
                 "current_events": normalized.get("current_events", []),
                 "current_shop": normalized.get("current_shop"),
                 "effective_shop": normalized.get("effective_shop"),
@@ -3241,6 +3419,10 @@ class BazaarHandler(BaseHTTPRequestHandler):
                         "analysis_endpoint": "/api/analysis",
                         "options_endpoint": "/api/options",
                         "state_signature_endpoint": "/api/state-signature",
+                        "battle_simulation_endpoints": {
+                            "monster": "/api/battle-simulation/monster",
+                            "training_dummy": "/api/battle-simulation/training-dummy",
+                        },
                     }
                 )
                 return
@@ -3310,6 +3492,9 @@ class BazaarHandler(BaseHTTPRequestHandler):
         if parsed.path.startswith("/api/update/"):
             self.handle_update_post(parsed.path)
             return
+        if parsed.path.startswith("/api/battle-simulation/"):
+            self.handle_battle_simulation_post(parsed.path)
+            return
         if parsed.path != "/api/state":
             self.send_error(HTTPStatus.NOT_FOUND, "Not found")
             return
@@ -3338,6 +3523,43 @@ class BazaarHandler(BaseHTTPRequestHandler):
             return
 
         self.send_json({"ok": True, "path": str(STATE_PATH)})
+
+    def handle_battle_simulation_post(self, path: str) -> None:
+        try:
+            request = self.read_json_body()
+            payload, state_path = load_runtime_payload()
+            normalized = normalize_payload_for_analysis(self.data, payload)
+            if path == "/api/battle-simulation/monster":
+                response = simulate_selected_monster(
+                    data=self.data,
+                    player_payload=normalized,
+                    event_option_id=request.get("event_option_id"),
+                    monster_id=request.get("monster_id"),
+                    simulation_count=request.get("simulation_count", 10),
+                    duration_sec=request.get("duration_sec", 60),
+                    seed=request.get("seed"),
+                )
+            elif path == "/api/battle-simulation/training-dummy":
+                response = simulate_training_dummy(
+                    data=self.data,
+                    player_payload=normalized,
+                    duration_seconds=request.get("duration_seconds", 10),
+                    dummy_max_health=request.get("dummy_max_health", 1_000_000_000),
+                    dummy_initial_shield=request.get("dummy_initial_shield", 0),
+                    seed=request.get("seed"),
+                )
+            else:
+                self.send_error(HTTPStatus.NOT_FOUND, "Not found")
+                return
+            response["state_path"] = str(state_path)
+            response["state_signature"] = state_signature(payload)
+            self.send_json(response)
+        except BattleSimulationInputError as exc:
+            self.send_json(exc.to_response(), status=HTTPStatus.BAD_REQUEST)
+        except UpdateError as exc:
+            self.send_json({"ok": False, "error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
+        except Exception as exc:  # noqa: BLE001 - local endpoint should report simulator errors.
+            self.send_json({"ok": False, "error": str(exc)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     def handle_update_post(self, path: str) -> None:
         try:

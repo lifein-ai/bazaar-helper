@@ -274,6 +274,8 @@ New-Item -ItemType Directory -Path $PytestTemp -Force | Out-Null
     tests\test_update_manager.py `
     tests\test_build_simulation_evaluator.py `
     tests\test_combat_simulator.py `
+    tests\test_monster_battle_evaluator.py `
+    tests\test_battle_simulation_service.py `
     -p no:cacheprovider --basetemp $PytestTemp
 if ($LASTEXITCODE -ne 0) {
     throw "Tests failed."
@@ -358,6 +360,7 @@ $requiredPaths = @(
     "data\events.json",
     "data\cards_generated.json",
     "data\encounters_generated.json",
+    "data\monsters_generated.json",
     "data\skills_generated.json",
     "data\translations_zh_cn.json",
     "guides",
@@ -407,6 +410,24 @@ if (-not $SkipUpdatePackage) {
 if (-not $SkipGamePluginSync) {
     if (-not $GameDir -and (Test-Path $RuntimeGameDirFile)) {
         $GameDir = (Get-Content -LiteralPath $RuntimeGameDirFile -Raw -Encoding UTF8).Trim()
+    }
+    if (-not $GameDir) {
+        $gameDirCandidates = @()
+        if (${env:ProgramFiles(x86)}) {
+            $gameDirCandidates += (Join-Path ${env:ProgramFiles(x86)} "Steam\steamapps\common\The Bazaar")
+        }
+        if ($env:ProgramFiles) {
+            $gameDirCandidates += (Join-Path $env:ProgramFiles "Steam\steamapps\common\The Bazaar")
+        }
+        $gameDirCandidates += "D:\steam\steamapps\common\The Bazaar"
+
+        foreach ($candidateGameDir in $gameDirCandidates) {
+            if ($candidateGameDir -and (Test-Path (Join-Path $candidateGameDir "BepInEx"))) {
+                $GameDir = $candidateGameDir
+                Write-Host "Detected game directory: $GameDir"
+                break
+            }
+        }
     }
 
     if ($GameDir) {
