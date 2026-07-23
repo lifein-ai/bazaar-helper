@@ -14,8 +14,11 @@
     <GameManagedDir Condition="'$(GameManagedDir)' == '' and '$(GameRoot)' != '' and '$(OS)' != 'Windows_NT'">$(GameRoot)/TheBazaar.app/Contents/Resources/Data/Managed</GameManagedDir>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(OS)' != 'Windows_NT'">
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="BepInEx">
       <HintPath>$(BepInExRoot)/core/BepInEx.dll</HintPath>
       <Private>false</Private>
