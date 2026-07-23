@@ -8,40 +8,49 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <BepInExRoot Condition="'$(BepInExRoot)' == ''">D:\steam\steamapps\common\The Bazaar\BepInEx</BepInExRoot>
-    <GameManagedDir Condition="'$(GameManagedDir)' == ''">D:\steam\steamapps\common\The Bazaar\TheBazaar_Data\Managed</GameManagedDir>
-    <BepInExRoot Condition="'$(BepInExRoot)' == ''">$(GameRoot)\BepInEx</BepInExRoot>
-    <GameManagedDir Condition="'$(GameManagedDir)' == ''">$(GameRoot)\TheBazaar_Data\Managed</GameManagedDir>
+    <GameRoot Condition="'$(GameRoot)' == '' and '$(OS)' == 'Windows_NT'">D:\steam\steamapps\common\The Bazaar</GameRoot>
+    <BepInExRoot Condition="'$(BepInExRoot)' == '' and '$(GameRoot)' != ''">$(GameRoot)/BepInEx</BepInExRoot>
+    <GameManagedDir Condition="'$(GameManagedDir)' == '' and '$(GameRoot)' != '' and '$(OS)' == 'Windows_NT'">$(GameRoot)/TheBazaar_Data/Managed</GameManagedDir>
+    <GameManagedDir Condition="'$(GameManagedDir)' == '' and '$(GameRoot)' != '' and '$(OS)' != 'Windows_NT'">$(GameRoot)/TheBazaar.app/Contents/Resources/Data/Managed</GameManagedDir>
   </PropertyGroup>
+
+  <ItemGroup Condition="'$(OS)' != 'Windows_NT'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="All" />
+  </ItemGroup>
 
   <ItemGroup>
     <Reference Include="BepInEx">
-      <HintPath>$(BepInExRoot)\core\BepInEx.dll</HintPath>
+      <HintPath>$(BepInExRoot)/core/BepInEx.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="0Harmony">
-      <HintPath>$(BepInExRoot)\core\0Harmony.dll</HintPath>
+      <HintPath>$(BepInExRoot)/core/0Harmony.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="UnityEngine">
-      <HintPath>$(GameManagedDir)\UnityEngine.dll</HintPath>
+      <HintPath>$(GameManagedDir)/UnityEngine.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>$(GameManagedDir)\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>$(GameManagedDir)/UnityEngine.CoreModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="UnityEngine.IMGUIModule">
-      <HintPath>$(GameManagedDir)\UnityEngine.IMGUIModule.dll</HintPath>
+      <HintPath>$(GameManagedDir)/UnityEngine.IMGUIModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="UnityEngine.InputLegacyModule">
-      <HintPath>$(GameManagedDir)\UnityEngine.InputLegacyModule.dll</HintPath>
+      <HintPath>$(GameManagedDir)/UnityEngine.InputLegacyModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="UnityEngine.TextRenderingModule">
-      <HintPath>$(GameManagedDir)\UnityEngine.TextRenderingModule.dll</HintPath>
+      <HintPath>$(GameManagedDir)/UnityEngine.TextRenderingModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>
+
+  <Target Name="ValidateGameReferences" BeforeTargets="ResolveReferences">
+    <Error Condition="'$(BepInExRoot)' == ''" Text="Set GameRoot or BepInExRoot to the installed The Bazaar directory." />
+    <Error Condition="'$(GameManagedDir)' == ''" Text="Set GameRoot or GameManagedDir to the game's Managed directory." />
+  </Target>
 </Project>

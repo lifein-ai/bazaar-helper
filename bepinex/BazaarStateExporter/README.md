@@ -19,6 +19,23 @@ dotnet build .\bepinex\BazaarStateExporter\BazaarStateExporter.csproj `
   -p:GameManagedDir="C:\Path\To\The Bazaar\TheBazaar_Data\Managed"
 ```
 
+On macOS, the repository root includes a launcher that passes the correct
+paths, installs the built DLL, and starts the local API:
+
+```bash
+./start_macos.sh
+```
+
+Pass `--launch-game` to additionally launch The Bazaar through BepInEx.
+
+The equivalent macOS paths are:
+
+```text
+GameRoot=/Users/<user>/Library/Application Support/Steam/steamapps/common/The Bazaar
+BepInExRoot=<GameRoot>/BepInEx
+GameManagedDir=<GameRoot>/TheBazaar.app/Contents/Resources/Data/Managed
+```
+
 Copy the built DLL to:
 
 ```text

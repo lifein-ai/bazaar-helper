@@ -134,6 +134,36 @@ python src/web_app.py
 http://127.0.0.1:8765
 ```
 
+### macOS
+
+macOS 使用源码版服务和已安装的 BepInEx。需要 Python 3.10+；首次运行时会自动通过 Homebrew 安装 .NET 8 SDK：
+
+```bash
+cd /Users/你的用户名/Documents/bazaarhelper
+./start_macos.sh
+```
+
+脚本会构建并安装 `BazaarStateExporter.dll`、启动本地 API，但不会打开游戏。
+首次启动后，插件状态会写入：
+
+```text
+~/.bazaar_helper/runtime/game_state.json
+```
+
+若希望由脚本通过 `run_bepinex.sh` 打开游戏：
+
+```bash
+./start_macos.sh --launch-game
+```
+
+若 8765 被其他程序占用，启动器会自动选择下一个可用本地端口并同步更新
+插件配置；若该端口是失活的 BazaarHelper，则会先重启它，而不是继续换端口。
+也可以显式指定端口：
+
+```bash
+BAZAAR_HELPER_PORT=8766 ./start_macos.sh
+```
+
 ## 命令行示例
 
 手动传入英雄、阵容、天数和事件：
