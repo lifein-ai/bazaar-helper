@@ -157,7 +157,8 @@ cd /Users/你的用户名/Documents/bazaarhelper
 ```
 
 若 8765 被其他程序占用，启动器会自动选择下一个可用本地端口并同步更新
-插件配置。也可以显式指定端口：
+插件配置；若该端口是失活的 BazaarHelper，则会先重启它，而不是继续换端口。
+也可以显式指定端口：
 
 ```bash
 BAZAAR_HELPER_PORT=8766 ./start_macos.sh

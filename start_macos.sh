@@ -125,6 +125,31 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
 PY
 }
 
+stop_stale_helper_on_port() {
+    listener_pids=$(lsof -t -nP -iTCP:"$PORT" -sTCP:LISTEN 2>/dev/null || true)
+    [ -n "$listener_pids" ] || return 1
+
+    found_helper=0
+    for pid in $listener_pids; do
+        command_line=$(ps -p "$pid" -o command= 2>/dev/null || true)
+        case "$command_line" in
+            *"$SCRIPT_DIR/src/web_app.py"*)
+                found_helper=1
+                printf '%s\n' "Stopping unresponsive BazaarHelper on http://$HOST:$PORT (pid $pid)"
+                kill -TERM "$pid" 2>/dev/null || true
+                ;;
+        esac
+    done
+    [ "$found_helper" -eq 1 ] || return 1
+
+    attempt=0
+    while port_is_bound && [ "$attempt" -lt 20 ]; do
+        attempt=$((attempt + 1))
+        sleep 0.1
+    done
+    ! port_is_bound
+}
+
 find_available_port() {
     "$PYTHON_BIN" - "$HOST" "$1" <<'PY'
 import socket
@@ -148,12 +173,15 @@ helper_already_running=0
 if helper_healthy; then
     helper_already_running=1
 elif port_is_bound; then
-    if [ -n "${BAZAAR_HELPER_PORT:-}" ]; then
+    if stop_stale_helper_on_port; then
+        printf '%s\n' "Restarting BazaarHelper on http://$HOST:$PORT"
+    elif [ -n "${BAZAAR_HELPER_PORT:-}" ]; then
         fail "Configured BAZAAR_HELPER_PORT=$PORT is occupied by a different service."
+    else
+        PORT=$(find_available_port "$((PORT + 1))") \
+            || fail "Port $PORT is occupied and no fallback port from $((PORT + 1)) to $((PORT + 20)) is available."
+        printf '%s\n' "Port 8765 is occupied by a different service; using http://$HOST:$PORT instead."
     fi
-    PORT=$(find_available_port "$((PORT + 1))") \
-        || fail "Port $PORT is occupied and no fallback port from $((PORT + 1)) to $((PORT + 20)) is available."
-    printf '%s\n' "Port 8765 is occupied by a different service; using http://$HOST:$PORT instead."
 fi
 
 printf '%s\n' "Building BazaarStateExporter..."
