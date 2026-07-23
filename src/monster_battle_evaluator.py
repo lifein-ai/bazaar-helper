@@ -234,6 +234,17 @@ STATUS_DURATION_REDUCTION_ATTRS = {
     "slow": "PercentSlowReduction",
     "haste": "PercentHasteReduction",
 }
+NONCOMBAT_UNSUPPORTED_TRIGGERS = {
+    "TTriggerOnCardPurchased",
+    "TTriggerOnCardSold",
+    "TTriggerOnCardSelected",
+    "TTriggerOnDayStarted",
+    "TTriggerOnEncounterCardsDealt",
+    "TTriggerOnEncounterSelected",
+    "TTriggerOnFightEnded",
+    "TTriggerOnHourStarted",
+}
+NONCOMBAT_UNSUPPORTED_ATTRIBUTES = {"BuyPrice", "SellPrice"}
 MAX_TRIGGER_DEPTH = 8
 TAG_AURA_SOURCE_PREFIX = "tag-aura:"
 TAG_AURA_ACTIONS = {"TAuraActionCardAddTagsList", "TAuraActionCardAddTagsBySource"}
@@ -6061,6 +6072,8 @@ def _evaluate_single_monster(
         or monster_choice.get("template_id")
         or monster_choice.get("name"),
         "monster_name": monster_choice.get("monster_name") or monster_choice.get("name"),
+        "player_cards": _feedback_card_labels(player.placements),
+        "monster_cards": _feedback_card_labels(monster.placements),
         "support_coverage": support,
         "unsupported_cards": unsupported_cards,
         "unsupported_skills": unsupported_skills,
@@ -6428,6 +6441,8 @@ def _unsupported_effects_for_cards(cards: list[PlacedCard], side: str) -> list[d
             trigger = get_field(row, "Trigger", default={}) or {}
             action_nodes = expand_action_nodes(action)
             trigger_type = type_name(trigger)
+            if _noncombat_unsupported_trigger(trigger_type):
+                continue
             for action_path, action_node in action_nodes:
                 action_type = type_name(action_node)
                 if action_type and action_type not in SUPPORTED_ACTIONS:
@@ -6442,7 +6457,7 @@ def _unsupported_effects_for_cards(cards: list[PlacedCard], side: str) -> list[d
                         }
                     )
                 unsupported_attr = _unsupported_modified_attribute(action_node)
-                if unsupported_attr:
+                if unsupported_attr and not _noncombat_unsupported_attribute(unsupported_attr):
                     unsupported.append(
                         {
                             "side": side,
@@ -6479,6 +6494,15 @@ def _unsupported_effects_for_cards(cards: list[PlacedCard], side: str) -> list[d
 
 def _simulation_card_type(card: PlacedCard) -> str:
     return "skill" if is_skill_card(card) else "item"
+
+
+def _noncombat_unsupported_trigger(trigger_type: str) -> bool:
+    return str(trigger_type or "") in NONCOMBAT_UNSUPPORTED_TRIGGERS
+
+
+def _noncombat_unsupported_attribute(attribute_type: str) -> bool:
+    normalized = _normalize_battle_attribute(attribute_type)
+    return normalized in NONCOMBAT_UNSUPPORTED_ATTRIBUTES or str(attribute_type or "") in NONCOMBAT_UNSUPPORTED_ATTRIBUTES
 
 
 def _unsupported_modified_attribute(action_node: dict[str, Any]) -> str:
@@ -6626,6 +6650,15 @@ def _optional_float(value: Any) -> float | None:
 
 def _card_name(card: PlacedCard) -> str:
     return str(card.card.get("name") or card.card.get("internal_name") or card.placement_id)
+
+
+def _feedback_card_labels(cards: list[PlacedCard]) -> list[str]:
+    labels: list[str] = []
+    for card in targetable_cards(cards):
+        label = card_label(card)
+        tier = str(card.tier or effective_tier(card) or "")
+        labels.append(f"{label} [{tier}]" if tier else label)
+    return labels
 
 
 def _dedupe(values: list[Any]) -> list[Any]:

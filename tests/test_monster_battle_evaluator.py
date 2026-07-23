@@ -3327,6 +3327,49 @@ class MonsterBattleEvaluatorTests(unittest.TestCase):
             )
         )
 
+    def test_noncombat_unsupported_effects_are_not_reported_for_battle_feedback(self) -> None:
+        player = make_card("Shop Trinket", "tpl_shop_trinket", damage=20)
+        player["raw_effects"]["abilities"]["1"] = {
+            "$type": "BazaarGameShared.Domain.Effect.TCardAbility",
+            "Trigger": {
+                "$type": "BazaarGameShared.Domain.Effect.Trigger.TTriggerOnCardSold"
+            },
+            "Action": {
+                "$type": "BazaarGameShared.Domain.Effect.Actions.TActionPlayerLifestealApply",
+                "Target": {
+                    "$type": "BazaarGameShared.Domain.Targeting.TTargetPlayerRelative",
+                    "TargetMode": "Self",
+                },
+            },
+        }
+        player["raw_effects"]["abilities"]["2"] = {
+            "$type": "BazaarGameShared.Domain.Effect.TCardAbility",
+            "Trigger": {
+                "$type": "BazaarGameShared.Domain.Effect.Trigger.TTriggerOnCardFired"
+            },
+            "Action": {
+                "$type": "BazaarGameShared.Domain.Effect.Actions.TActionCardModifyAttribute",
+                "AttributeType": "BuyPrice",
+                "Operation": "Add",
+                "Value": {"$type": "BazaarGameShared.Domain.Values.TFixedValue", "Value": 1},
+                "Target": {"$type": "BazaarGameShared.Domain.Targeting.TTargetCardSelf"},
+            },
+        }
+        player["raw_effects"]["tiers_raw"]["Bronze"]["AbilityIds"].extend(["1", "2"])
+        monster = make_card("Monster", "tpl_monster", damage=1)
+
+        result = evaluate_monster_choices(
+            data={"cards": {"Shop Trinket": player, "Monster": monster}},
+            player_state=state_with("tpl_shop_trinket", health=100),
+            monster_choices=[{**state_with("tpl_monster", health=100), "name": "Monster"}],
+            simulations=2,
+            duration_sec=3,
+        )["results"][0]
+
+        self.assertFalse(
+            any(item.get("card") == "Shop Trinket" for item in result["unsupported_effects"])
+        )
+
     def test_custom_attribute_bonus_is_used_by_reference_value_damage(self) -> None:
         player = make_card("Player", "tpl_player", damage=0, cooldown_ms=10000)
         monster = make_card("Custom Striker", "tpl_striker", damage=0, cooldown_ms=1000)

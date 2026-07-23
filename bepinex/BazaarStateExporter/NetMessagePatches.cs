@@ -1228,6 +1228,7 @@ namespace BazaarStateExporter
                 card,
                 controller,
                 "ui_controller");
+            CardSnapshotPosition.Fill(card);
 
             return card;
         }

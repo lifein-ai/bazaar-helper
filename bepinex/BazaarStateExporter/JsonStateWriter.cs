@@ -391,6 +391,7 @@ namespace BazaarStateExporter
                 WriteOptionalCardProperty("source", card.source, ref wrote);
                 WriteOptionalCardProperty("ui_context", card.ui_context, ref wrote);
                 WriteOptionalCardProperty("runtime_type", card.runtime_type, ref wrote);
+                WriteOptionalIntProperty("position", card.position, ref wrote);
                 if (card.price.HasValue)
                 {
                     if (wrote)
@@ -443,6 +444,22 @@ namespace BazaarStateExporter
                     card.attribute_modifiers,
                     ref wrote);
                 builder.Append('}');
+            }
+
+            private void WriteOptionalIntProperty(string name, int? value, ref bool wrote)
+            {
+                if (!value.HasValue)
+                {
+                    return;
+                }
+                if (wrote)
+                {
+                    builder.Append(',');
+                }
+                WriteString(name);
+                builder.Append(':');
+                builder.Append(value.Value.ToString(CultureInfo.InvariantCulture));
+                wrote = true;
             }
 
             private void WriteOptionalStringListProperty(

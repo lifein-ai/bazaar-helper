@@ -1011,6 +1011,10 @@ namespace BazaarStateExporter
             {
                 existing.price = captured.price;
             }
+            if (captured.position.HasValue)
+            {
+                existing.position = captured.position;
+            }
             if (!string.IsNullOrEmpty(captured.runtime_type))
             {
                 existing.runtime_type = captured.runtime_type;
@@ -1031,6 +1035,7 @@ namespace BazaarStateExporter
             CopyObjectDictionary(captured.current_attributes, existing.current_attributes);
             CopyObjectDictionary(captured.base_attributes, existing.base_attributes);
             CopyObjectDictionary(captured.attribute_modifiers, existing.attribute_modifiers);
+            CardSnapshotPosition.Fill(existing);
         }
 
         private static string CapturedOwnedSection(CardSnapshot card)
@@ -1343,7 +1348,68 @@ namespace BazaarStateExporter
             if (seenIds.Add(identity))
             {
                 cards.Add(card);
+                return;
             }
+
+            int existingIndex = cards.FindIndex(existing => CardIdentity(existing) == identity);
+            if (existingIndex >= 0 && ShouldPreferOwnedCardSnapshot(card, cards[existingIndex]))
+            {
+                cards[existingIndex] = card;
+            }
+        }
+
+        private static string CardIdentity(CardSnapshot card)
+        {
+            if (card == null)
+            {
+                return "";
+            }
+
+            return !string.IsNullOrEmpty(card.id)
+                ? "id:" + card.id
+                : "template:" + (card.template_id ?? "") + "|name:" + (card.name ?? "");
+        }
+
+        private static bool ShouldPreferOwnedCardSnapshot(CardSnapshot candidate, CardSnapshot existing)
+        {
+            int candidateScore = OwnedCardLocationScore(candidate);
+            int existingScore = OwnedCardLocationScore(existing);
+            if (candidateScore != existingScore)
+            {
+                return candidateScore > existingScore;
+            }
+
+            bool candidateHasContext = !string.IsNullOrEmpty(candidate.ui_context);
+            bool existingHasContext = !string.IsNullOrEmpty(existing.ui_context);
+            if (candidateHasContext != existingHasContext)
+            {
+                return candidateHasContext;
+            }
+
+            return !string.IsNullOrEmpty(candidate.section)
+                && string.IsNullOrEmpty(existing.section);
+        }
+
+        private static int OwnedCardLocationScore(CardSnapshot card)
+        {
+            if (card == null)
+            {
+                return 0;
+            }
+
+            if (IsBoardOwnedItem(card))
+            {
+                return 3;
+            }
+            if (IsStashOwnedItem(card))
+            {
+                return 2;
+            }
+            if (IsOwnedItemCard(card))
+            {
+                return 1;
+            }
+            return 0;
         }
 
         private void TryReadUiResources(ManualLogSource log, out int? gold, out int? health)
@@ -2787,6 +2853,7 @@ namespace BazaarStateExporter
                     card,
                     item,
                     "game_state_card");
+                CardSnapshotPosition.Fill(card);
 
                 yield return card;
             }

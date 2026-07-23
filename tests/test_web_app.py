@@ -276,6 +276,92 @@ class WebAppResilienceTests(unittest.TestCase):
         self.assertNotEqual(web_app.state_signature(payload), web_app.state_signature(changed_event))
         self.assertNotEqual(web_app.state_signature(payload), web_app.state_signature(changed_shop))
 
+    def test_state_signature_changes_when_owned_card_moves_between_stash_and_hand(self) -> None:
+        stash_payload = {
+            "source": "bepinex",
+            "hero": "Vanessa",
+            "day": 6,
+            "owned_cards": [
+                {
+                    "id": "same-instance",
+                    "template_id": "card-1",
+                    "name": "Card One",
+                    "section": "Stash",
+                }
+            ],
+        }
+        hand_payload = {
+            **stash_payload,
+            "owned_cards": [
+                {
+                    "id": "same-instance",
+                    "template_id": "card-1",
+                    "name": "Card One",
+                    "section": "Hand",
+                }
+            ],
+        }
+
+        self.assertNotEqual(
+            web_app.state_signature(stash_payload),
+            web_app.state_signature(hand_payload),
+        )
+
+    def test_state_signature_changes_when_board_position_changes(self) -> None:
+        left_payload = {
+            "source": "bepinex",
+            "hero": "Vanessa",
+            "day": 6,
+            "owned_cards": [
+                {
+                    "id": "same-instance",
+                    "template_id": "card-1",
+                    "name": "Card One",
+                    "section": "Hand",
+                    "position": 0,
+                }
+            ],
+        }
+        right_payload = {
+            **left_payload,
+            "owned_cards": [{**left_payload["owned_cards"][0], "position": 3}],
+        }
+
+        self.assertNotEqual(
+            web_app.state_signature(left_payload),
+            web_app.state_signature(right_payload),
+        )
+
+    def test_state_signature_infers_position_from_ui_socket_context(self) -> None:
+        left_payload = {
+            "source": "bepinex",
+            "hero": "Vanessa",
+            "day": 6,
+            "owned_cards": [
+                {
+                    "id": "same-instance",
+                    "template_id": "card-1",
+                    "name": "Card One",
+                    "section": "Hand",
+                    "ui_context": "Card/PlayerItemSocket_0/Board",
+                }
+            ],
+        }
+        right_payload = {
+            **left_payload,
+            "owned_cards": [
+                {
+                    **left_payload["owned_cards"][0],
+                    "ui_context": "Card/PlayerItemSocket_3/Board",
+                }
+            ],
+        }
+
+        self.assertNotEqual(
+            web_app.state_signature(left_payload),
+            web_app.state_signature(right_payload),
+        )
+
     def test_ai_analysis_is_cached_by_state_signature(self) -> None:
         web_app.ANALYSIS_CACHE.clear()
         web_app.AI_PAYLOAD_CACHE.clear()

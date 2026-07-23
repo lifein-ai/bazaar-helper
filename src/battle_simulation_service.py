@@ -444,11 +444,25 @@ def _monster_summary(result: dict[str, Any], requested: int) -> dict[str, Any]:
     unsupported_items = _unsupported_labels(result, card_type="item")
     unsupported_skills = _unsupported_labels(result, card_type="skill")
     unsupported_effects = _unsupported_effect_labels(result)
+    warnings = _dedupe(list(result.get("warnings") or []))
+    feedback_lines = _monster_feedback_lines(
+        result,
+        requested=requested,
+        completed=completed,
+        unsupported_items=unsupported_items,
+        unsupported_skills=unsupported_skills,
+        unsupported_effects=unsupported_effects,
+        warnings=warnings,
+    )
     return {
         "simulation_count": requested,
         "simulations_completed": completed,
         "wins": wins,
         "win_rate": round(wins / completed, 4) if completed else None,
+        "status": result.get("status"),
+        "confidence": result.get("confidence"),
+        "monster_name": result.get("monster_name"),
+        "monster_id": result.get("monster_id"),
         "average_battle_duration": result.get("average_battle_duration"),
         "average_remaining_health": result.get("average_remaining_health_on_win"),
         "minimum_remaining_health": _minimum_player_health(result.get("battle_log") or []),
@@ -462,7 +476,55 @@ def _monster_summary(result: dict[str, Any], requested: int) -> dict[str, Any]:
         "unsupported_item_count": len(unsupported_items),
         "unsupported_skill_count": len(unsupported_skills),
         "unsupported_effect_count": len(unsupported_effects),
+        "player_cards": list(result.get("player_cards") or []),
+        "monster_cards": list(result.get("monster_cards") or []),
+        "warnings": warnings,
+        "feedback_lines": feedback_lines,
+        "feedback_available": True,
     }
+
+
+def _monster_feedback_lines(
+    result: dict[str, Any],
+    *,
+    requested: int,
+    completed: int,
+    unsupported_items: list[str],
+    unsupported_skills: list[str],
+    unsupported_effects: list[str],
+    warnings: list[str],
+) -> list[str]:
+    lines = [
+        "BazaarHelper battle simulation feedback",
+        f"monster: {result.get('monster_name') or '-'}",
+        f"monster_id: {result.get('monster_id') or '-'}",
+        f"status: {result.get('status') or '-'}",
+        f"confidence: {result.get('confidence') or '-'}",
+        f"simulations: {completed}/{requested}",
+        f"win_rate: {result.get('estimated_win_rate')}",
+    ]
+    if result.get("average_battle_duration") is not None:
+        lines.append(f"average_duration: {result.get('average_battle_duration')}")
+    if result.get("average_remaining_health_on_win") is not None:
+        lines.append(f"average_remaining_health_on_win: {result.get('average_remaining_health_on_win')}")
+    if result.get("simulations_failed"):
+        lines.append(f"simulation_failures: {result.get('simulations_failed')}")
+    lines.append("player_cards: " + _join_feedback_values(result.get("player_cards") or []))
+    lines.append("monster_cards: " + _join_feedback_values(result.get("monster_cards") or []))
+    if unsupported_items:
+        lines.append("unsupported_items: " + _join_feedback_values(unsupported_items))
+    if unsupported_skills:
+        lines.append("unsupported_skills: " + _join_feedback_values(unsupported_skills))
+    if unsupported_effects:
+        lines.append("unsupported_effects: " + _join_feedback_values(unsupported_effects))
+    if warnings:
+        lines.append("warnings: " + _join_feedback_values(warnings))
+    return lines
+
+
+def _join_feedback_values(values: list[Any]) -> str:
+    text = [str(value) for value in values if value]
+    return " | ".join(text) if text else "-"
 
 
 def _unsupported_labels(result: dict[str, Any], *, card_type: str) -> list[str]:

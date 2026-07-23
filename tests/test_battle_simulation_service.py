@@ -150,10 +150,15 @@ class BattleSimulationServiceTests(unittest.TestCase):
                     {
                         "monster_id": "monster-a",
                         "monster_name": "A",
+                        "status": "unsupported",
+                        "confidence": "low",
                         "wins": 1,
                         "draws": 0,
                         "simulations_completed": 1,
+                        "player_cards": ["Player Blade [Bronze]"],
+                        "monster_cards": ["Odd Blade [Diamond]"],
                         "battle_log": [],
+                        "warnings": ["current_simulator_is_bounded_two_sided_timeline"],
                         "unsupported_cards": [
                             {"side": "monster", "card": "Missing Blade", "reason": "template_not_found"}
                         ],
@@ -193,6 +198,37 @@ class BattleSimulationServiceTests(unittest.TestCase):
         self.assertEqual(summary["unsupported_items"][0], "Missing Blade")
         self.assertTrue(any("Odd Blade" in item for item in summary["unsupported_items"]))
         self.assertTrue(any("Arms Race" in item for item in summary["unsupported_skills"]))
+        self.assertTrue(summary["feedback_available"])
+        self.assertIn("Player Blade [Bronze]", "\n".join(summary["feedback_lines"]))
+        self.assertIn("Odd Blade [Diamond]", "\n".join(summary["feedback_lines"]))
+
+    def test_monster_summary_feedback_is_available_even_without_detected_issue(self) -> None:
+        summary = service._monster_summary(
+            {
+                "monster_id": "monster-ok",
+                "monster_name": "Clean Monster",
+                "status": "ok",
+                "confidence": "high",
+                "estimated_win_rate": 1.0,
+                "wins": 1,
+                "draws": 0,
+                "simulations_completed": 1,
+                "player_cards": ["Player Blade [Bronze]"],
+                "monster_cards": ["Clean Claw [Bronze]"],
+                "battle_log": [],
+                "warnings": [],
+                "unsupported_cards": [],
+                "unsupported_skills": [],
+                "unsupported_effects": [],
+            },
+            requested=1,
+        )
+
+        self.assertTrue(summary["feedback_available"])
+        text = "\n".join(summary["feedback_lines"])
+        self.assertIn("Clean Monster", text)
+        self.assertIn("Player Blade [Bronze]", text)
+        self.assertIn("Clean Claw [Bronze]", text)
 
     def test_training_dummy_stops_at_requested_duration_and_aggregates_metrics(self) -> None:
         weapon = make_damage_card("Weapon", "tpl_weapon", damage=10, cooldown_ms=1000)

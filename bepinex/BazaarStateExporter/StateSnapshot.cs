@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace BazaarStateExporter
 {
@@ -130,6 +132,7 @@ namespace BazaarStateExporter
         public string source;
         public string ui_context;
         public int? price;
+        public int? position;
         public List<string> enchantments = new List<string>();
         public string runtime_type;
         public List<string> runtime_sources = new List<string>();
@@ -137,5 +140,93 @@ namespace BazaarStateExporter
         public Dictionary<string, object> current_attributes = new Dictionary<string, object>();
         public Dictionary<string, object> base_attributes = new Dictionary<string, object>();
         public Dictionary<string, object> attribute_modifiers = new Dictionary<string, object>();
+    }
+
+    internal static class CardSnapshotPosition
+    {
+        private static readonly string[] PositionKeys =
+        {
+            "position",
+            "Position",
+            "slot",
+            "Slot",
+            "index",
+            "Index",
+            "board_index",
+            "BoardIndex",
+            "InventoryIndex",
+            "inventory_index",
+        };
+
+        public static void Fill(CardSnapshot card)
+        {
+            if (card == null || card.position.HasValue)
+            {
+                return;
+            }
+
+            card.position = FirstRuntimePosition(card.runtime_values)
+                ?? PositionFromUiContext(card.ui_context);
+        }
+
+        private static int? FirstRuntimePosition(Dictionary<string, object> values)
+        {
+            if (values == null)
+            {
+                return null;
+            }
+
+            foreach (string key in PositionKeys)
+            {
+                object raw;
+                if (!values.TryGetValue(key, out raw))
+                {
+                    continue;
+                }
+
+                int? parsed = ParsePosition(raw);
+                if (parsed.HasValue)
+                {
+                    return parsed;
+                }
+            }
+
+            return null;
+        }
+
+        private static int? PositionFromUiContext(string context)
+        {
+            if (string.IsNullOrEmpty(context))
+            {
+                return null;
+            }
+
+            Match match = Regex.Match(
+                context,
+                "(?:PlayerItemSocket|PlayerStorageSocket|OpponentItemSocket)_(\\d+)",
+                RegexOptions.IgnoreCase);
+            if (!match.Success)
+            {
+                return null;
+            }
+
+            return ParsePosition(match.Groups[1].Value);
+        }
+
+        private static int? ParsePosition(object raw)
+        {
+            if (raw == null)
+            {
+                return null;
+            }
+
+            int value;
+            if (int.TryParse(Convert.ToString(raw), out value))
+            {
+                return Math.Max(0, value);
+            }
+
+            return null;
+        }
     }
 }

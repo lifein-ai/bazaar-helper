@@ -229,9 +229,43 @@ def signature_card_identity(item: Any) -> Any:
         "enchantment": item.get("enchantment"),
         "enchantments": stable_cache_value(item.get("enchantments", [])),
         "section": item.get("section"),
+        "position": signature_card_position(item),
         "runtime_values": stable_cache_value(item.get("runtime_values", {})),
         "current_attributes": stable_cache_value(item.get("current_attributes", {})),
     }
+
+
+def signature_card_position(item: dict[str, Any]) -> int | str | None:
+    position_keys = (
+        "position",
+        "Position",
+        "slot",
+        "Slot",
+        "index",
+        "Index",
+        "board_index",
+        "BoardIndex",
+        "InventoryIndex",
+        "inventory_index",
+    )
+    for key in position_keys:
+        if item.get(key) is not None:
+            return stable_cache_value(item.get(key))
+
+    runtime_values = item.get("runtime_values")
+    if isinstance(runtime_values, dict):
+        for key in position_keys:
+            if runtime_values.get(key) is not None:
+                return stable_cache_value(runtime_values.get(key))
+
+    match = re.search(
+        r"(?:PlayerItemSocket|PlayerStorageSocket|OpponentItemSocket)_(\d+)",
+        str(item.get("ui_context") or ""),
+    )
+    if match:
+        return int(match.group(1))
+
+    return None
 
 
 def signature_option_identity(item: Any) -> Any:

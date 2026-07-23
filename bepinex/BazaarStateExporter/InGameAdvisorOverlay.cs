@@ -80,6 +80,7 @@ namespace BazaarStateExporter
         private OverlayUpdateState updateState = new OverlayUpdateState();
         private string selectedBuildOverride = "";
         private readonly Dictionary<string, OverlayCombatSimulation> latestMonsterSimulations = new Dictionary<string, OverlayCombatSimulation>();
+        private readonly Dictionary<string, bool> monsterFeedbackExpanded = new Dictionary<string, bool>();
         private float trainingDummyDurationSeconds = 10f;
         private string trainingDummyDurationText = "10";
         private GUIStyle windowStyle;
@@ -955,10 +956,62 @@ namespace BazaarStateExporter
                             + "  平均剩余血量：" + simulation.TotalShield,
                             mutedStyle);
                         DrawUnsupportedSimulationLines(simulation);
+                        DrawMonsterFeedbackControls(choice, simulation);
                     }
                 }
             }
             GUILayout.EndVertical();
+        }
+
+        private void DrawMonsterFeedbackControls(OverlayMonsterChoice choice, OverlayCombatSimulation simulation)
+        {
+            if (simulation.FeedbackLines.Count == 0)
+            {
+                return;
+            }
+
+            bool expanded;
+            monsterFeedbackExpanded.TryGetValue(choice.Id, out expanded);
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button(expanded ? "隐藏反馈" : "反馈", GUILayout.Width(86f), GUILayout.MinHeight(22f)))
+            {
+                monsterFeedbackExpanded[choice.Id] = !expanded;
+                expanded = !expanded;
+            }
+            if (GUILayout.Button("复制反馈", GUILayout.Width(86f), GUILayout.MinHeight(22f)))
+            {
+                GUIUtility.systemCopyBuffer = BuildMonsterFeedbackText(choice, simulation);
+                simulation.FeedbackCopied = true;
+            }
+            if (simulation.FeedbackCopied)
+            {
+                GUILayout.Label("已复制", mutedStyle);
+            }
+            GUILayout.EndHorizontal();
+
+            if (!expanded)
+            {
+                return;
+            }
+
+            int count = Math.Min(simulation.FeedbackLines.Count, 12);
+            for (int i = 0; i < count; i++)
+            {
+                GUILayout.Label(simulation.FeedbackLines[i], mutedStyle);
+            }
+            if (simulation.FeedbackLines.Count > count)
+            {
+                GUILayout.Label("还有 " + (simulation.FeedbackLines.Count - count) + " 行，点复制反馈获取完整内容。", mutedStyle);
+            }
+        }
+
+        private static string BuildMonsterFeedbackText(OverlayMonsterChoice choice, OverlayCombatSimulation simulation)
+        {
+            List<string> lines = new List<string>();
+            lines.Add("BazaarHelper 怪物战斗模拟反馈");
+            lines.Add("选择怪物：" + (choice == null ? "" : choice.Name));
+            lines.AddRange(simulation.FeedbackLines);
+            return string.Join("\n", lines.ToArray());
         }
 
         private void DrawUnsupportedSimulationLines(OverlayCombatSimulation simulation)
@@ -2191,6 +2244,8 @@ namespace BazaarStateExporter
         public readonly List<string> UnsupportedItems = new List<string>();
         public readonly List<string> UnsupportedSkills = new List<string>();
         public readonly List<string> UnsupportedEffects = new List<string>();
+        public readonly List<string> FeedbackLines = new List<string>();
+        public bool FeedbackCopied;
 
         public static OverlayCombatSimulation Waiting(string status)
         {
@@ -2375,6 +2430,7 @@ namespace BazaarStateExporter
             result.UnsupportedItems.AddRange(FindStringArrayProperty(summaryObject, "unsupported_items"));
             result.UnsupportedSkills.AddRange(FindStringArrayProperty(summaryObject, "unsupported_skills"));
             result.UnsupportedEffects.AddRange(FindStringArrayProperty(summaryObject, "unsupported_effects"));
+            result.FeedbackLines.AddRange(FindStringArrayProperty(summaryObject, "feedback_lines"));
             return result;
         }
 
