@@ -121,3 +121,11 @@ def test_update_package_accepts_nested_release_root(tmp_path: Path) -> None:
 
     assert info.version == "0.2.0"
     assert info.payload_root == "BazaarHelper"
+
+
+def test_update_helper_syncs_scanning_config() -> None:
+    text = (PROJECT_ROOT / "update_helper.ps1").read_text(encoding="utf-8")
+
+    assert 'Set-PluginConfigValue $configPath "Export" "EnableHudResourceScanning" "true"' in text
+    assert 'Set-PluginConfigValue $configPath "Export" "EnableVisibleCardScanning" "true"' in text
+    assert 'Set-PluginConfigValue $configPath "Debug" "WritePlaceholderWhenEmpty" "false"' in text

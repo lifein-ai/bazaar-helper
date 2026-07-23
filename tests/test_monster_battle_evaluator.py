@@ -2589,6 +2589,48 @@ class MonsterBattleEvaluatorTests(unittest.TestCase):
         self.assertIn("shield", kinds)
         self.assertTrue(any(event["kind"] in {"damage", "use"} and event["value"] == 5 for event in outcome.timeline if event["source"] == "Combo"))
 
+    def test_high_priority_self_damage_modifier_applies_before_on_use_damage(self) -> None:
+        claw = make_card("Sharkclaws", "tpl_sharkclaws", damage=10, cooldown_ms=1000)
+        claw["tags"] = ["Weapon"]
+        claw["hidden_tags"] = ["Weapon"]
+        claw["raw_effects"]["abilities"]["0"]["Priority"] = "Medium"
+        claw["raw_effects"]["abilities"]["1"] = {
+            "$type": "BazaarGameShared.Domain.Effect.TCardAbility",
+            "Priority": "High",
+            "Trigger": {
+                "$type": "BazaarGameShared.Domain.Effect.Trigger.TTriggerOnCardFired",
+            },
+            "Action": {
+                "$type": "BazaarGameShared.Domain.Effect.Actions.TActionCardModifyAttribute",
+                "AttributeType": "DamageAmount",
+                "Operation": "Add",
+                "Value": {"$type": "BazaarGameShared.Domain.Values.TFixedValue", "Value": 10},
+                "Target": {
+                    "$type": "BazaarGameShared.Domain.Targeting.TTargetCardSelf",
+                },
+            },
+        }
+        monster = make_card("Monster", "tpl_monster", damage=0, cooldown_ms=10000)
+
+        outcome = _simulate_two_sided_battle(
+            player_cards=[PlacedCard("claw", claw, tier="Bronze")],
+            monster_cards=[PlacedCard("monster", monster, tier="Bronze")],
+            player_health=100,
+            monster_health=100,
+            duration_sec=1.1,
+            rng=None,
+        )
+
+        interesting = [
+            (index, event)
+            for index, event in enumerate(outcome.timeline)
+            if event["source"] == "Sharkclaws" and event["kind"] in {"modify-attribute", "use"}
+        ]
+        modify_index = next(index for index, event in interesting if event["kind"] == "modify-attribute")
+        damage_index, damage_event = next((index, event) for index, event in interesting if event["kind"] == "use")
+        self.assertLess(modify_index, damage_index)
+        self.assertEqual(damage_event["value"], 20)
+
     def test_runtime_tags_affect_later_trigger_conditions_without_mutating_card(self) -> None:
         tagger = make_card("Tagger", "tpl_tagger", damage=0, cooldown_ms=1000, action_type="TActionCardAddTagsList")
         tagger["raw_effects"]["abilities"]["0"]["Action"]["Tags"] = ["Weapon"]

@@ -185,6 +185,9 @@ class EffectRule:
     trigger_limit_scope: str = "combat"
     raw_action: dict[str, Any] = field(default_factory=dict)
     action_path: str = "0"
+    priority: str = "Medium"
+    priority_rank: int = 30
+    source_order: int = 0
 
 
 @dataclass
@@ -742,9 +745,32 @@ def expand_trigger_branches(trigger: Any) -> list[dict[str, Any]]:
     return [{"type": type_name(trigger), "subject": get_field(trigger, "Subject", default={}) or {}, "raw": trigger}]
 
 
+def effect_priority_rank(value: Any) -> int:
+    return {
+        "immediate": 0,
+        "highest": 10,
+        "high": 20,
+        "medium": 30,
+        "low": 40,
+        "lowest": 50,
+    }.get(str(value or "Medium").strip().lower(), 30)
+
+
+def action_path_sort_key(path: Any) -> tuple[int, ...]:
+    parts: list[int] = []
+    for token in str(path or "0").split("."):
+        try:
+            parts.append(int(token))
+        except (TypeError, ValueError):
+            parts.append(0)
+    return tuple(parts or [0])
+
+
 def read_rules(card: PlacedCard, action_types: set[str] | None = None) -> list[EffectRule]:
     rules: list[EffectRule] = []
-    for effect_id, row in effect_rows_with_ids(card.card):
+    for source_order, (effect_id, row) in enumerate(effect_rows_with_ids(card.card)):
+        priority = str(get_field(row, "Priority", default="Medium") or "Medium")
+        priority_rank = effect_priority_rank(priority)
         action = get_field(row, "Action", default={}) or {}
         parent_target = get_field(action, "Target", default={}) or {}
         for action_path, expanded_action in expand_action_nodes(action):
@@ -819,9 +845,12 @@ def read_rules(card: PlacedCard, action_types: set[str] | None = None) -> list[E
                         ),
                         raw_action=expanded_action,
                         action_path=action_path,
+                        priority=priority,
+                        priority_rank=priority_rank,
+                        source_order=source_order,
                     )
                 )
-    return rules
+    return sorted(rules, key=lambda rule: (rule.priority_rank, rule.source_order, action_path_sort_key(rule.action_path), rule.action_type))
 
 
 def expand_action_nodes(action: Any, *, depth: int = 0, path: str = "0", max_depth: int = 20) -> list[tuple[str, dict[str, Any]]]:

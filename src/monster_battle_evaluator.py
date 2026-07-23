@@ -26,6 +26,7 @@ from combat_simulator import (
     OverhealConfig,
     PlacedCard,
     ChargePortState,
+    action_path_sort_key,
     action_performed_key,
     apply_attribute_operation,
     build_current_board_placements,
@@ -110,6 +111,10 @@ SUPPORTED_ON_USE_ACTIONS = {
     "TActionPlayerHeal",
     "TActionPlayerHealApply",
     "TActionPlayerRegenApply",
+}
+SELF_ON_USE_PLAYER_ACTIONS = SUPPORTED_ON_USE_ACTIONS | {
+    "TActionPlayerShieldApply",
+    "TActionPlayerRageApply",
 }
 SUPPORTED_ACTIONS = SUPPORTED_RULE_ACTIONS | SUPPORTED_ON_USE_ACTIONS
 TWO_SIDED_RULE_ACTIONS = {
@@ -2963,6 +2968,39 @@ def _fire_battle_card(
         )
     source_side.uses[fired.placement_id] = source_side.uses.get(fired.placement_id, 0.0) + 1.0
 
+    performed = {
+        "damage": 0,
+        "burn": 0,
+        "poison": 0,
+        "burn_cleanse": 0,
+        "poison_cleanse": 0,
+        "crit": 0,
+        "slow": 0,
+        "haste": 0,
+        "freeze": 0,
+        "reload": 0,
+        "destruction": 0,
+        "shield": 0,
+        "heal": 0,
+        "regen": 0,
+        "rage": 0,
+        "attribute_delta": 0,
+        "enraged": 0,
+    }
+    pre_applied_rule_ids = _run_pre_damage_self_on_fire_rules(
+        player,
+        monster,
+        rules_by_source,
+        scheduler,
+        now,
+        timeline,
+        rng,
+        fired_ref=ref,
+        performed=performed,
+        casts=casts,
+        card_index=card_index,
+    )
+
     merged_bonus = _merged_bonus(source_side)
     crit_multiplier, crits = crit_multiplier_for_casts(fired, source_side.cards, merged_bonus, casts, rng)
     damage = _battle_amount(
@@ -3022,25 +3060,14 @@ def _fire_battle_card(
     )
     regen = _battle_amount(fired, source_side, "TActionPlayerRegenApply", "RegenApplyAmount", casts, crit_multiplier)
     rage = _battle_amount(fired, source_side, "TActionPlayerRageApply", "RageApplyAmount", casts, 1.0)
-    performed = {
-        "damage": casts if damage > 0 else 0,
-        "burn": casts if burn > 0 else 0,
-        "poison": casts if poison > 0 else 0,
-        "burn_cleanse": 0,
-        "poison_cleanse": 0,
-        "crit": crits,
-        "slow": 0,
-        "haste": 0,
-        "freeze": 0,
-        "reload": 0,
-        "destruction": 0,
-        "shield": casts if shield > 0 else 0,
-        "heal": 0,
-        "regen": casts if regen > 0 else 0,
-        "rage": casts if rage > 0 else 0,
-        "attribute_delta": rage,
-        "enraged": 0,
-    }
+    performed["damage"] = casts if damage > 0 else 0
+    performed["burn"] = casts if burn > 0 else 0
+    performed["poison"] = casts if poison > 0 else 0
+    performed["crit"] = crits
+    performed["shield"] = casts if shield > 0 else 0
+    performed["regen"] = casts if regen > 0 else 0
+    performed["rage"] = casts if rage > 0 else 0
+    performed["attribute_delta"] = rage
 
     if damage:
         actual = _apply_damage(source_side, target_side, damage, now, card_label(fired), "use", timeline)
@@ -3120,6 +3147,7 @@ def _fire_battle_card(
         fired_ref=ref,
         performed=performed,
         casts=casts,
+        skip_rule_ids=pre_applied_rule_ids,
         card_index=card_index,
     )
 
@@ -3195,6 +3223,89 @@ def _run_fight_started_actions(
                 )
 
 
+def _rule_execution_sort_key(rule: Any) -> tuple[int, int, tuple[int, ...], str]:
+    return (
+        int(getattr(rule, "priority_rank", 30) or 30),
+        int(getattr(rule, "source_order", 0) or 0),
+        action_path_sort_key(getattr(rule, "action_path", "0")),
+        str(getattr(rule, "action_type", "")),
+    )
+
+
+def _matches_direct_self_on_fire_rule(source_side: BattleSide, source: PlacedCard, rule: Any, fired_ref: BattleCardRef, performed: dict[str, float]) -> bool:
+    return (
+        source_side is fired_ref.side
+        and source.placement_id == fired_ref.card.placement_id
+        and "." not in str(getattr(rule, "action_path", "0"))
+        and _battle_trigger_matches(source_side, fired_ref.side, source, fired_ref.card, rule, performed)
+    )
+
+
+def _run_pre_damage_self_on_fire_rules(
+    player: BattleSide,
+    monster: BattleSide,
+    rules_by_source: dict[str, list[Any]],
+    scheduler: BattleEventScheduler,
+    now: float,
+    timeline: list[dict[str, Any]],
+    rng: Callable[[], float] | None,
+    *,
+    fired_ref: BattleCardRef,
+    performed: dict[str, float],
+    casts: int,
+    card_index: dict[str, dict[str, Any]] | None = None,
+) -> set[str]:
+    source_side = fired_ref.side
+    other_side = _opponent(player, monster, source_side)
+    source = fired_ref.card
+    matching_rules = [
+        rule
+        for rule in rules_by_source.get(source.placement_id, [])
+        if _matches_direct_self_on_fire_rule(source_side, source, rule, fired_ref, performed)
+    ]
+    first_player_action_key = min(
+        (_rule_execution_sort_key(rule) for rule in matching_rules if rule.action_type in SELF_ON_USE_PLAYER_ACTIONS),
+        default=None,
+    )
+    if first_player_action_key is None:
+        return set()
+
+    applied_rule_ids: set[str] = set()
+    for rule in matching_rules:
+        rule_id = str(getattr(rule, "effect_id", "") or "")
+        if rule.action_type in SELF_ON_USE_PLAYER_ACTIONS or _rule_execution_sort_key(rule) >= first_player_action_key:
+            continue
+        if not _consume_trigger_count(source_side, source, rule, fired_ref, now, timeline):
+            continue
+        amount = max(0.0, _battle_rule_amount(source_side, other_side, source, rule, performed)) * casts
+        preview_amount = _effective_rule_amount(source_side, source, rule, amount, casts)
+        if preview_amount <= 0 and rule.action_type not in AMOUNTLESS_RULE_ACTIONS:
+            continue
+        _apply_battle_rule(
+            player,
+            monster,
+            source_side,
+            other_side,
+            source,
+            fired_ref.card,
+            rule,
+            amount,
+            casts,
+            scheduler,
+            now,
+            timeline,
+            rng,
+            rules_by_source,
+            math.inf,
+            performed,
+            trigger_depth=1,
+            card_index=card_index,
+        )
+        if rule_id:
+            applied_rule_ids.add(rule_id)
+    return applied_rule_ids
+
+
 def _run_triggered_rules(
     player: BattleSide,
     monster: BattleSide,
@@ -3208,6 +3319,7 @@ def _run_triggered_rules(
     performed: dict[str, float],
     casts: int,
     trigger_depth: int = 0,
+    skip_rule_ids: set[str] | None = None,
     card_index: dict[str, dict[str, Any]] | None = None,
 ) -> None:
     if trigger_depth >= MAX_TRIGGER_DEPTH:
@@ -3218,6 +3330,8 @@ def _run_triggered_rules(
             if is_card_destroyed(source_side, source):
                 continue
             for rule in rules_by_source.get(source.placement_id, []):
+                if skip_rule_ids and str(getattr(rule, "effect_id", "") or "") in skip_rule_ids:
+                    continue
                 lower_trigger = rule.trigger_type.lower()
                 if (
                     "fightstarted" in lower_trigger
@@ -3391,19 +3505,7 @@ def _consume_trigger_count(
 
 def _skip_self_on_fire_rule(source: PlacedCard, rule: Any, fired_ref: BattleCardRef) -> bool:
     return (
-        rule.action_type
-        in {
-            "TActionPlayerDamage",
-            "TActionPlayerBurnApply",
-            "TActionPlayerPoisonApply",
-            "TActionPlayerShieldApply",
-            "TActionPlayerHealApply",
-            "TActionPlayerHeal",
-            "TActionPlayerBurnRemove",
-            "TActionPlayerPoisonRemove",
-            "TActionPlayerRegenApply",
-            "TActionPlayerRageApply",
-        }
+        rule.action_type in SELF_ON_USE_PLAYER_ACTIONS
         and rule.trigger_type == "TTriggerOnCardFired"
         and source.placement_id == fired_ref.card.placement_id
         and "." not in str(getattr(rule, "action_path", "0"))

@@ -169,19 +169,51 @@ function Get-InstalledGameDir {
 function Set-PluginConfigValue {
     param(
         [string]$ConfigPath,
+        [string]$Section,
         [string]$Key,
         [string]$Value
     )
 
+    $configDir = Split-Path -Parent $ConfigPath
+    New-Item -ItemType Directory -Path $configDir -Force | Out-Null
+
+    $lines = [System.Collections.Generic.List[string]]::new()
     if (-not (Test-Path $ConfigPath)) {
+        $lines.Add("[$Section]")
+        $lines.Add("$Key = $Value")
+        [System.IO.File]::WriteAllLines($ConfigPath, $lines, [System.Text.UTF8Encoding]::new($false))
         return
     }
 
-    $lines = [System.Collections.Generic.List[string]]::new()
     $lines.AddRange([string[]](Get-Content -LiteralPath $ConfigPath -Encoding UTF8))
+    $sectionIndex = -1
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        if ($lines[$i] -match ("^\s*\[" + [regex]::Escape($Section) + "\]\s*$")) {
+            $sectionIndex = $i
+            break
+        }
+    }
+    if ($sectionIndex -lt 0) {
+        if ($lines.Count -gt 0 -and $lines[$lines.Count - 1].Trim() -ne "") {
+            $lines.Add("")
+        }
+        $lines.Add("[$Section]")
+        $lines.Add("$Key = $Value")
+        [System.IO.File]::WriteAllLines($ConfigPath, $lines, [System.Text.UTF8Encoding]::new($false))
+        return
+    }
+
+    $sectionEnd = $lines.Count
+    for ($i = $sectionIndex + 1; $i -lt $lines.Count; $i++) {
+        if ($lines[$i] -match "^\s*\[") {
+            $sectionEnd = $i
+            break
+        }
+    }
+
     $pattern = "^\s*$([regex]::Escape($Key))\s*="
     $found = $false
-    for ($i = 0; $i -lt $lines.Count; $i++) {
+    for ($i = $sectionIndex + 1; $i -lt $sectionEnd; $i++) {
         if ($lines[$i] -match $pattern) {
             $lines[$i] = "$Key = $Value"
             $found = $true
@@ -189,20 +221,7 @@ function Set-PluginConfigValue {
         }
     }
     if (-not $found) {
-        $overlayIndex = -1
-        for ($i = 0; $i -lt $lines.Count; $i++) {
-            if ($lines[$i] -match "^\s*\[Overlay\]\s*$") {
-                $overlayIndex = $i
-                break
-            }
-        }
-        if ($overlayIndex -ge 0) {
-            $insertAt = $overlayIndex + 1
-            while ($insertAt -lt $lines.Count -and $lines[$insertAt] -notmatch "^\s*\[") {
-                $insertAt++
-            }
-            $lines.Insert($insertAt, "$Key = $Value")
-        }
+        $lines.Insert($sectionEnd, "$Key = $Value")
     }
     [System.IO.File]::WriteAllLines($ConfigPath, $lines, [System.Text.UTF8Encoding]::new($false))
 }
@@ -230,15 +249,19 @@ function Sync-GamePlugin {
     New-Item -ItemType Directory -Path $runtimeDir -Force | Out-Null
     Copy-Item -LiteralPath $sourceDll -Destination (Join-Path $pluginDir "BazaarStateExporter.dll") -Force
 
-    Set-PluginConfigValue $configPath "OutputPath" $outputPath
-    Set-PluginConfigValue $configPath "HelperExecutablePath" (Join-Path $AppRoot "BazaarHelper.exe")
-    Set-PluginConfigValue $configPath "ManualAnalysisKey" "F8"
-    Set-PluginConfigValue $configPath "ManualAnalyze" "true"
-    Set-PluginConfigValue $configPath "FontScale" "1.15"
+    Set-PluginConfigValue $configPath "Export" "OutputPath" $outputPath
+    Set-PluginConfigValue $configPath "Export" "PollIntervalSeconds" "1"
+    Set-PluginConfigValue $configPath "Export" "EnableHudResourceScanning" "true"
+    Set-PluginConfigValue $configPath "Export" "EnableVisibleCardScanning" "true"
+    Set-PluginConfigValue $configPath "Debug" "WritePlaceholderWhenEmpty" "false"
+    Set-PluginConfigValue $configPath "Overlay" "HelperExecutablePath" (Join-Path $AppRoot "BazaarHelper.exe")
+    Set-PluginConfigValue $configPath "Overlay" "ManualAnalysisKey" "F8"
+    Set-PluginConfigValue $configPath "Overlay" "ManualAnalyze" "true"
+    Set-PluginConfigValue $configPath "Overlay" "FontScale" "1.15"
     if (Test-Path $configPath) {
         $configText = Get-Content -LiteralPath $configPath -Raw -Encoding UTF8
         if ($configText -notmatch "(?m)^\s*AutoAnalyze\s*=") {
-            Set-PluginConfigValue $configPath "AutoAnalyze" "false"
+            Set-PluginConfigValue $configPath "Overlay" "AutoAnalyze" "false"
         }
     }
     Write-UpdateLog "Synced BepInEx plugin to game directory: $gameDir"
