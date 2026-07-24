@@ -231,6 +231,26 @@ namespace BazaarStateExporter
                 WriteString(debug.dto_source);
                 WriteInlinePropertyName("dto_summary", true);
                 WriteString(debug.dto_summary);
+                WriteInlinePropertyName("card_controller_total", true);
+                builder.Append(debug.card_controller_total.ToString(CultureInfo.InvariantCulture));
+                WriteInlinePropertyName("active_card_controller_count", true);
+                builder.Append(debug.active_card_controller_count.ToString(CultureInfo.InvariantCulture));
+                WriteInlinePropertyName("ui_snapshot_success_count", true);
+                builder.Append(debug.ui_snapshot_success_count.ToString(CultureInfo.InvariantCulture));
+                WriteInlinePropertyName("ui_snapshot_failed_count", true);
+                builder.Append(debug.ui_snapshot_failed_count.ToString(CultureInfo.InvariantCulture));
+                WriteInlinePropertyName("captured_cards", true);
+                WriteCapturedCardDebugSnapshots(debug.captured_cards);
+                WriteInlinePropertyName("dto_day", true);
+                WriteNullableInt(debug.dto_day);
+                WriteInlinePropertyName("ui_day", true);
+                WriteNullableInt(debug.ui_day);
+                WriteInlinePropertyName("dto_selection_count", true);
+                builder.Append(debug.dto_selection_count.ToString(CultureInfo.InvariantCulture));
+                WriteInlinePropertyName("event_source", true);
+                WriteString(debug.event_source);
+                WriteInlinePropertyName("scene_guess", true);
+                WriteString(debug.scene_guess);
                 builder.Append('}');
             }
 
@@ -267,6 +287,42 @@ namespace BazaarStateExporter
                     WriteCard(cards[i]);
                 }
                 builder.Append(']');
+            }
+
+            private void WriteCapturedCardDebugSnapshots(
+                List<CapturedCardDebugSnapshot> cards)
+            {
+                builder.Append('[');
+                for (int i = 0; cards != null && i < cards.Count; i++)
+                {
+                    if (i > 0)
+                    {
+                        builder.Append(',');
+                    }
+                    WriteCapturedCardDebugSnapshot(cards[i]);
+                }
+                builder.Append(']');
+            }
+
+            private void WriteCapturedCardDebugSnapshot(CapturedCardDebugSnapshot card)
+            {
+                if (card == null)
+                {
+                    builder.Append("{}");
+                    return;
+                }
+
+                builder.Append('{');
+                bool wrote = false;
+                WriteOptionalCardProperty("name", card.name, ref wrote);
+                WriteOptionalCardProperty("id", card.id, ref wrote);
+                WriteOptionalCardProperty("template_id", card.template_id, ref wrote);
+                WriteOptionalCardProperty("card_type", card.card_type, ref wrote);
+                WriteOptionalCardProperty("section", card.section, ref wrote);
+                WriteOptionalCardProperty("ui_context", card.ui_context, ref wrote);
+                WriteOptionalCardProperty("classification", card.classification, ref wrote);
+                WriteOptionalCardProperty("ignore_reason", card.ignore_reason, ref wrote);
+                builder.Append('}');
             }
 
             private void WriteInlinePropertyName(string name, bool comma)

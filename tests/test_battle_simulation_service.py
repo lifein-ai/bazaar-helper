@@ -157,6 +157,26 @@ class BattleSimulationServiceTests(unittest.TestCase):
                         "simulations_completed": 1,
                         "player_cards": ["Player Blade [Bronze]"],
                         "monster_cards": ["Odd Blade [Diamond]"],
+                        "player_card_details": [
+                            {
+                                "name": "Player Blade",
+                                "template_id": "tpl_player",
+                                "tier": "Bronze",
+                                "cooldown_sec": 5,
+                                "base_damage": 10,
+                                "attributes": {"DamageAmount": 10, "CooldownMax": 5000},
+                            }
+                        ],
+                        "monster_card_details": [
+                            {
+                                "name": "Odd Blade",
+                                "template_id": "tpl_odd",
+                                "tier": "Diamond",
+                                "cooldown_sec": 4,
+                                "base_damage": 20,
+                                "attributes": {"DamageAmount": 20, "CooldownMax": 4000},
+                            }
+                        ],
                         "battle_log": [],
                         "warnings": ["current_simulator_is_bounded_two_sided_timeline"],
                         "unsupported_cards": [
@@ -201,6 +221,10 @@ class BattleSimulationServiceTests(unittest.TestCase):
         self.assertTrue(summary["feedback_available"])
         self.assertIn("Player Blade [Bronze]", "\n".join(summary["feedback_lines"]))
         self.assertIn("Odd Blade [Diamond]", "\n".join(summary["feedback_lines"]))
+        self.assertEqual(summary["player_card_details"][0]["cooldown_sec"], 5)
+        self.assertEqual(summary["monster_card_details"][0]["template_id"], "tpl_odd")
+        self.assertIn("player_card_details:", "\n".join(summary["feedback_lines"]))
+        self.assertIn('"CooldownMax":5000', "\n".join(summary["feedback_lines"]))
 
     def test_monster_summary_feedback_is_available_even_without_detected_issue(self) -> None:
         summary = service._monster_summary(

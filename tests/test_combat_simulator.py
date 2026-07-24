@@ -183,6 +183,19 @@ class CombatSimulatorTests(unittest.TestCase):
         self.assertEqual(summary.total_damage, 60)
         self.assertEqual(summary.by_card_damage["weapon"], 60)
 
+    def test_ammo_item_stops_after_last_shot(self) -> None:
+        card = make_card(
+            "Ammo Weapon",
+            {"DamageAmount": 30, "CooldownMax": 1000, "AmmoMax": 1},
+            {"0": fired_action("TActionPlayerDamage")},
+        )
+
+        summary = simulate_combat([PlacedCard("weapon", card, tier="Bronze")], duration_sec=4)
+
+        self.assertEqual(summary.total_uses, 1)
+        self.assertEqual(summary.total_damage, 30)
+        self.assertEqual(summary.by_card_damage["weapon"], 30)
+
     def test_simulates_poison_tick_damage(self) -> None:
         card = make_card("Poisoner", {"PoisonApplyAmount": 5, "CooldownMax": 5000}, {"0": fired_action("TActionPlayerPoisonApply")})
 

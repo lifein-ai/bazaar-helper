@@ -29,6 +29,7 @@ from combat_simulator import (
     action_path_sort_key,
     action_performed_key,
     apply_attribute_operation,
+    base_on_use_amount,
     build_current_board_placements,
     card_attr_with_bonus,
     card_enchantment,
@@ -160,6 +161,7 @@ TWO_SIDED_RULE_ACTIONS = {
     "TActionCardModifyAttribute",
 }
 AMOUNTLESS_RULE_ACTIONS = {
+    "TActionCardForceUse",
     "TActionCardFlyingStart",
     "TActionCardFlyingStop",
     "TActionCardFlyingToggle",
@@ -233,8 +235,11 @@ RUNTIME_AURA_ATTRS = {
     *(f"Custom_{index}" for index in range(16)),
 }
 PLAYER_ATTRIBUTE_AURA_ATTRS = {
+    "CritChance",
     "HealthRegen",
 }
+PLAYER_SCALAR_AURA_ATTRS = {"EnragedDurationMax", "HealthMax", "RageMax"}
+PLAYER_MODIFY_AURA_ATTRS = PLAYER_ATTRIBUTE_AURA_ATTRS | PLAYER_SCALAR_AURA_ATTRS
 TIMELINE_AURA_ATTRS = {
     "Multicast",
     "AmmoMax",
@@ -738,6 +743,7 @@ def _simulate_two_sided_battle(
     _apply_two_sided_static_card_auras(player_cards, monster_cards, rng)
     player = _make_battle_side("player", player_cards, player_health, duration_sec, attributes=player_attributes)
     monster = _make_battle_side("monster", monster_cards, monster_health, duration_sec, attributes=monster_attributes)
+    _apply_initial_player_attribute_auras(player, monster, rng)
     player.shield = max(0.0, float(player_initial_shield or 0.0))
     monster.shield = max(0.0, float(monster_initial_shield or 0.0))
     sides = [player, monster]
@@ -1044,6 +1050,64 @@ def _apply_two_sided_static_card_auras(
                     set_attr_value_by_tier(target.card.card, rule.attribute_type, tier, updated)
 
 
+def _apply_initial_player_attribute_auras(
+    player: BattleSide,
+    monster: BattleSide,
+    rng: Callable[[], float] | None,
+) -> None:
+    for source_side, other_side in ((player, monster), (monster, player)):
+        for source in source_side.cards:
+            for rule in read_rules(source, {"TAuraActionPlayerModifyAttribute"}):
+                mapped = _normalize_battle_attribute(rule.attribute_type)
+                if mapped not in PLAYER_MODIFY_AURA_ATTRS:
+                    continue
+                amount = _battle_rule_amount(source_side, other_side, source, rule)
+                target_side = _player_target_side(player, monster, source_side, rule)
+                if mapped == "HealthMax":
+                    _apply_initial_max_health_aura(target_side, amount, rule.operation)
+                elif mapped == "RageMax":
+                    target_side.rage_max = max(1.0, apply_attribute_operation(target_side.rage_max, amount, rule.operation))
+                    target_side.rage = min(target_side.rage, target_side.rage_max)
+                elif mapped == "EnragedDurationMax":
+                    target_side.enraged_duration_sec = max(
+                        0.0,
+                        apply_attribute_operation(target_side.enraged_duration_sec, amount, rule.operation),
+                    )
+                elif mapped in PLAYER_ATTRIBUTE_AURA_ATTRS:
+                    _apply_player_attribute_bonus(target_side, mapped, amount, rule.operation)
+    player.condition_state = _condition_snapshot(player)
+    monster.condition_state = _condition_snapshot(monster)
+
+
+def _apply_initial_max_health_aura(target_side: BattleSide, amount: float, operation: str) -> None:
+    before_max = target_side.max_health
+    before_health = target_side.health
+    target_side.max_health = max(1.0, apply_attribute_operation(target_side.max_health, amount, operation))
+    target_side.max_health_modifiers.append(
+        {
+            "source": "initial_aura",
+            "amount": amount,
+            "operation": operation,
+            "start": 0.0,
+            "duration": 0.0,
+        }
+    )
+    delta = target_side.max_health - before_max
+    if before_health >= before_max - 1e-6:
+        target_side.health = max(0.0, before_health + delta)
+    elif target_side.health > target_side.max_health:
+        target_side.health = target_side.max_health
+
+
+def _apply_player_attribute_bonus(target_side: BattleSide, attr: str, amount: float, operation: str) -> None:
+    current = target_side.player_attribute_bonus.get(attr, 0.0)
+    target_side.player_attribute_bonus[attr] = apply_attribute_operation(
+        current,
+        amount,
+        operation,
+    )
+
+
 def _numeric_attr(attributes: dict[str, Any], key: str, *, default: float = 0.0) -> float:
     lower_key = key.lower()
     for raw_key, value in attributes.items():
@@ -1150,6 +1214,12 @@ def _player_attribute_value(side: BattleSide, attribute_type: str) -> float:
         return max(0.0, side.max_health)
     if lower == "rage":
         return max(0.0, side.rage)
+    if lower == "ragemax":
+        return max(0.0, side.rage_max)
+    if lower in {"enrageddurationmax", "enragedduration"}:
+        return max(0.0, side.enraged_duration_sec)
+    if lower == "critchance":
+        return max(0.0, side.player_attribute_bonus.get("CritChance", 0.0))
     if lower == "healthregen":
         base = _numeric_attr(side.attributes, "HealthRegen", default=0.0)
         return max(0.0, base + side.player_attribute_bonus.get("HealthRegen", 0.0))
@@ -2043,12 +2113,7 @@ def _refresh_runtime_state_auras(
                 if mapped in PLAYER_ATTRIBUTE_AURA_ATTRS:
                     aura_amount = _runtime_aura_rule_amount(source_side, other_side, source, rule)
                     target_side = _player_target_side(player, monster, source_side, rule)
-                    current = target_side.player_attribute_bonus.get(mapped, 0.0)
-                    target_side.player_attribute_bonus[mapped] = apply_attribute_operation(
-                        current,
-                        aura_amount,
-                        rule.operation,
-                    )
+                    _apply_player_attribute_bonus(target_side, mapped, aura_amount, rule.operation)
                     continue
                 if mapped not in RUNTIME_AURA_ATTRS and mapped not in COOLDOWN_AURA_ATTRS:
                     continue
@@ -2080,6 +2145,13 @@ def _refresh_runtime_state_auras(
                         aura_amount,
                         rule.operation,
                     )
+            for rule in read_rules(source, {"TAuraActionPlayerModifyAttribute"}):
+                mapped = _normalize_battle_attribute(rule.attribute_type)
+                if mapped not in PLAYER_ATTRIBUTE_AURA_ATTRS:
+                    continue
+                aura_amount = _runtime_aura_rule_amount(source_side, other_side, source, rule)
+                target_side = _player_target_side(player, monster, source_side, rule)
+                _apply_player_attribute_bonus(target_side, mapped, aura_amount, rule.operation)
     _remove_stale_runtime_cooldown_modifiers((player, monster), active_cooldown_modifier_ids, now, scheduler, timeline)
     _refresh_ammo_max_for_sides((player, monster), now, timeline)
 
@@ -2248,12 +2320,20 @@ def _merged_bonus(side: BattleSide) -> dict[str, dict[str, float]]:
             + side.runtime_aura_bonus.get(attr, {}).get(placement_id, 0.0)
             for placement_id in placement_ids
         }
+    crit_chance = side.player_attribute_bonus.get("CritChance", 0.0)
+    if crit_chance:
+        crit_bonus = merged.setdefault("CritChance", {})
+        for card in targetable_cards(side.cards):
+            crit_bonus[card.placement_id] = crit_bonus.get(card.placement_id, 0.0) + crit_chance
     return merged
 
 
 def _bonus_value(side: BattleSide, attr: str, placement_id: str) -> float:
     normalized = _normalize_battle_attribute(attr)
-    return side.bonus.get(normalized, {}).get(placement_id, 0.0) + side.runtime_aura_bonus.get(normalized, {}).get(placement_id, 0.0)
+    value = side.bonus.get(normalized, {}).get(placement_id, 0.0) + side.runtime_aura_bonus.get(normalized, {}).get(placement_id, 0.0)
+    if normalized == "CritChance":
+        value += side.player_attribute_bonus.get("CritChance", 0.0)
+    return value
 
 
 def _effective_multicast(ref: BattleCardRef) -> int:
@@ -3369,7 +3449,7 @@ def _fire_battle_card(
     if ammo:
         old_ammo = float(ammo.get("current", 0.0))
         ammo["current"] = max(0.0, float(ammo.get("current", 0.0)) - 1.0)
-        ammo["empty"] = False
+        ammo["empty"] = ammo["current"] <= 0.0
         emit_card_attribute_change(
             player,
             monster,
@@ -3870,6 +3950,42 @@ def _state_event_should_skip_rule(rule: Any) -> bool:
     return "cardfired" in lower or "itemused" in lower
 
 
+def _propagate_performed_action(
+    player: BattleSide,
+    monster: BattleSide,
+    rules_by_source: dict[str, list[Any]],
+    scheduler: BattleEventScheduler,
+    now: float,
+    timeline: list[dict[str, Any]],
+    rng: Callable[[], float] | None,
+    *,
+    source_side: BattleSide,
+    source: PlacedCard,
+    key: str,
+    performed_count: float,
+    casts: int,
+    trigger_depth: int,
+    card_index: dict[str, dict[str, Any]] | None = None,
+) -> None:
+    if performed_count <= 0:
+        return
+    _run_state_triggered_rules(
+        player,
+        monster,
+        rules_by_source,
+        scheduler,
+        now,
+        timeline,
+        rng,
+        event_side=source_side,
+        event_card=source,
+        performed={key: performed_count},
+        casts=casts,
+        trigger_depth=trigger_depth,
+        card_index=card_index,
+    )
+
+
 def _consume_trigger_count(
     source_side: BattleSide,
     source: PlacedCard,
@@ -4021,8 +4137,25 @@ def _apply_battle_rule(
                     duration_sec=duration_sec,
                     trigger_depth=trigger_depth + 1,
                     card_index=card_index,
-                )
-        performed["haste"] = performed.get("haste", 0) + len(targets)
+        )
+        performed_count = len(targets)
+        performed["haste"] = performed.get("haste", 0) + performed_count
+        _propagate_performed_action(
+            player,
+            monster,
+            rules_by_source,
+            scheduler,
+            now,
+            timeline,
+            rng,
+            source_side=source_side,
+            source=source,
+            key="haste",
+            performed_count=performed_count,
+            casts=casts,
+            trigger_depth=trigger_depth + 1,
+            card_index=card_index,
+        )
     elif rule.action_type == "TActionCardSlow":
         for target in targets:
             if target.card.placement_id in target.side.slow_until:
@@ -4062,7 +4195,24 @@ def _apply_battle_rule(
                     trigger_depth=trigger_depth + 1,
                     card_index=card_index,
                 )
-        performed["slow"] = performed.get("slow", 0) + len(targets)
+        performed_count = len(targets)
+        performed["slow"] = performed.get("slow", 0) + performed_count
+        _propagate_performed_action(
+            player,
+            monster,
+            rules_by_source,
+            scheduler,
+            now,
+            timeline,
+            rng,
+            source_side=source_side,
+            source=source,
+            key="slow",
+            performed_count=performed_count,
+            casts=casts,
+            trigger_depth=trigger_depth + 1,
+            card_index=card_index,
+        )
     elif rule.action_type == "TActionCardFreeze":
         for target in targets:
             if target.card.placement_id in target.side.freeze_until:
@@ -4102,7 +4252,24 @@ def _apply_battle_rule(
                     trigger_depth=trigger_depth + 1,
                     card_index=card_index,
                 )
-        performed["freeze"] = performed.get("freeze", 0) + len(targets)
+        performed_count = len(targets)
+        performed["freeze"] = performed.get("freeze", 0) + performed_count
+        _propagate_performed_action(
+            player,
+            monster,
+            rules_by_source,
+            scheduler,
+            now,
+            timeline,
+            rng,
+            source_side=source_side,
+            source=source,
+            key="freeze",
+            performed_count=performed_count,
+            casts=casts,
+            trigger_depth=trigger_depth + 1,
+            card_index=card_index,
+        )
     elif rule.action_type in {"TActionCardFlyingStart", "TActionCardFlyingStop", "TActionCardFlyingToggle"}:
         for target in targets:
             old_value = _card_attribute_value(target, "Flying", now)
@@ -4186,7 +4353,24 @@ def _apply_battle_rule(
                 trigger_depth=trigger_depth + 1,
                 card_index=card_index,
             )
-        performed["reload"] = performed.get("reload", 0) + len(targets)
+        performed_count = len(targets)
+        performed["reload"] = performed.get("reload", 0) + performed_count
+        _propagate_performed_action(
+            player,
+            monster,
+            rules_by_source,
+            scheduler,
+            now,
+            timeline,
+            rng,
+            source_side=source_side,
+            source=source,
+            key="reload",
+            performed_count=performed_count,
+            casts=casts,
+            trigger_depth=trigger_depth + 1,
+            card_index=card_index,
+        )
     elif rule.action_type in {"TActionCardDisable", "TActionCardDestroy"}:
         destroyed = 0
         for target in targets:
@@ -4466,8 +4650,25 @@ def _apply_battle_rule(
     else:
         target_side = _player_target_side(player, monster, source_side, rule)
         if rule.action_type == "TActionPlayerRageApply":
-            performed["rage"] = performed.get("rage", 0) + max(1, casts)
+            performed_count = max(1, casts)
+            performed["rage"] = performed.get("rage", 0) + performed_count
             performed["attribute_delta"] = amount
+            _propagate_performed_action(
+                player,
+                monster,
+                rules_by_source,
+                scheduler,
+                now,
+                timeline,
+                rng,
+                source_side=source_side,
+                source=source,
+                key="rage",
+                performed_count=performed_count,
+                casts=casts,
+                trigger_depth=trigger_depth + 1,
+                card_index=card_index,
+            )
             if _apply_rage(target_side, amount, now, card_label(source), timeline):
                 performed["enraged"] = performed.get("enraged", 0) + 1
                 _refresh_runtime_state_auras(player, monster, scheduler, now, timeline, rng)
@@ -4507,7 +4708,24 @@ def _apply_battle_rule(
         )
         key = action_performed_key(rule.action_type)
         if key:
-            performed[key] = performed.get(key, 0) + max(1, casts)
+            performed_count = max(1, casts)
+            performed[key] = performed.get(key, 0) + performed_count
+            _propagate_performed_action(
+                player,
+                monster,
+                rules_by_source,
+                scheduler,
+                now,
+                timeline,
+                rng,
+                source_side=source_side,
+                source=source,
+                key=key,
+                performed_count=performed_count,
+                casts=casts,
+                trigger_depth=trigger_depth + 1,
+                card_index=card_index,
+            )
 
 
 def _apply_flying_action(
@@ -6636,6 +6854,8 @@ def _evaluate_single_monster(
         "monster_name": monster_choice.get("monster_name") or monster_choice.get("name"),
         "player_cards": _feedback_card_labels(player.placements),
         "monster_cards": _feedback_card_labels(monster.placements),
+        "player_card_details": _feedback_card_details(player.placements),
+        "monster_card_details": _feedback_card_details(monster.placements),
         "support_coverage": support,
         "unsupported_cards": unsupported_cards,
         "unsupported_skills": unsupported_skills,
@@ -7076,7 +7296,7 @@ def _unsupported_modified_attribute(action_node: dict[str, Any]) -> str:
     if not attr:
         return ""
     normalized = _normalize_battle_attribute(attr)
-    supported = RUNTIME_AURA_ATTRS | COOLDOWN_AURA_ATTRS | PLAYER_ATTRIBUTE_AURA_ATTRS
+    supported = RUNTIME_AURA_ATTRS | COOLDOWN_AURA_ATTRS | PLAYER_MODIFY_AURA_ATTRS
     if normalized in supported or normalized in CARD_STATUS_ATTRIBUTES or _runtime_state_attribute(attr):
         return ""
     return attr
@@ -7223,6 +7443,44 @@ def _feedback_card_labels(cards: list[PlacedCard]) -> list[str]:
         tier = str(card.tier or effective_tier(card) or "")
         labels.append(f"{label} [{tier}]" if tier else label)
     return labels
+
+
+def _feedback_card_details(cards: list[PlacedCard]) -> list[dict[str, Any]]:
+    details: list[dict[str, Any]] = []
+    for card in targetable_cards(cards):
+        tier = str(card.tier or effective_tier(card) or "")
+        raw = card.card.get("raw_effects") or {}
+        tiers_raw = raw.get("tiers_raw") if isinstance(raw, dict) else {}
+        tier_raw = tiers_raw.get(tier) if isinstance(tiers_raw, dict) else {}
+        tier_attrs = tier_raw.get("Attributes") if isinstance(tier_raw, dict) else {}
+        details.append(
+            {
+                "placement_id": card.placement_id,
+                "name": card_label(card),
+                "template_id": card.card.get("template_id") or card.card.get("id"),
+                "source_id": card.card.get("source_id"),
+                "tier": tier,
+                "start": card.start,
+                "width": card.width,
+                "card_type": card.card.get("card_type") or card.card.get("type"),
+                "size": card.card.get("size"),
+                "tags": list(card.card.get("tags") or []),
+                "hidden_tags": list(card.card.get("hidden_tags") or []),
+                "enchantment": card_enchantment(card),
+                "cooldown_sec": round(get_card_cooldown_sec(card, cards), 6),
+                "ammo_max": get_card_ammo_max(card),
+                "base_damage": base_on_use_amount(card, "TActionPlayerDamage", opponent_only=True),
+                "base_burn": base_on_use_amount(card, "TActionPlayerBurnApply", opponent_only=True),
+                "base_poison": base_on_use_amount(card, "TActionPlayerPoisonApply", opponent_only=True),
+                "base_shield": base_on_use_amount(card, "TActionPlayerShieldApply"),
+                "base_heal": (
+                    base_on_use_amount(card, "TActionPlayerHealApply")
+                    + base_on_use_amount(card, "TActionPlayerHeal")
+                ),
+                "attributes": dict(tier_attrs) if isinstance(tier_attrs, dict) else {},
+            }
+        )
+    return details
 
 
 def _dedupe(values: list[Any]) -> list[Any]:

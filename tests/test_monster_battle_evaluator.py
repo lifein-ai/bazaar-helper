@@ -7,7 +7,14 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from combat_simulator import HealCleanseConfig, PlacedCard, build_current_board_placements, card_tags, read_rules  # noqa: E402
+from combat_simulator import (  # noqa: E402
+    HealCleanseConfig,
+    PlacedCard,
+    build_current_board_placements,
+    card_tags,
+    get_attr_value_by_tier,
+    read_rules,
+)
 from monster_battle_evaluator import (  # noqa: E402
     BattleCardRef,
     BattleEventScheduler,
@@ -18,6 +25,7 @@ from monster_battle_evaluator import (  # noqa: E402
     _apply_heal,
     _apply_damage,
     _apply_battle_rule,
+    _apply_initial_player_attribute_auras,
     _add_cooldown_modifier,
     _add_runtime_state,
     _add_runtime_tags,
@@ -195,6 +203,147 @@ def make_damage_aura_skill(name: str, template_id: str, amount: float) -> dict:
                         "Target": {
                             "$type": "BazaarGameShared.Domain.Targeting.TTargetCardSection",
                             "TargetSection": "SelfBoard",
+                        },
+                    },
+                }
+            },
+            "tiers_raw": {
+                "Bronze": {
+                    "Attributes": {},
+                    "AbilityIds": [],
+                    "AuraIds": ["0"],
+                }
+            },
+        },
+    }
+
+
+def make_healthmax_value_aura_card(name: str, template_id: str, multiplier: float) -> dict:
+    return {
+        "id": template_id,
+        "template_id": template_id,
+        "name": name,
+        "type": "Item",
+        "size": "Small",
+        "tags": [],
+        "hidden_tags": [],
+        "tiers": ["Bronze"],
+        "rarity": "Bronze",
+        "raw_effects": {
+            "abilities": {},
+            "auras": {
+                "0": {
+                    "$type": "BazaarGameShared.Domain.Effect.TCardAura",
+                    "Action": {
+                        "$type": "BazaarGameShared.Domain.Effect.AuraActions.TAuraActionPlayerModifyAttribute",
+                        "AttributeType": "HealthMax",
+                        "Operation": "Add",
+                        "Value": {
+                            "$type": "BazaarGameShared.Domain.Values.ReferenceValues.TReferenceValueCardAttribute",
+                            "AttributeType": "SellPrice",
+                            "Target": {
+                                "$type": "BazaarGameShared.Domain.Targeting.TTargetCardSelf",
+                            },
+                            "Modifier": {
+                                "$type": "BazaarGameShared.Domain.Values.TValueModifier",
+                                "ModifyMode": "Multiply",
+                                "Value": {
+                                    "$type": "BazaarGameShared.Domain.Values.ReferenceValues.TReferenceValueCardAttribute",
+                                    "AttributeType": "Custom_1",
+                                    "Target": {
+                                        "$type": "BazaarGameShared.Domain.Targeting.TTargetCardSelf",
+                                    },
+                                },
+                                "ShouldRound": True,
+                            },
+                        },
+                        "Target": {
+                            "$type": "BazaarGameShared.Domain.Targeting.TTargetPlayerRelative",
+                            "TargetMode": "Self",
+                        },
+                    },
+                }
+            },
+            "tiers_raw": {
+                "Bronze": {
+                    "Attributes": {"Custom_1": multiplier},
+                    "AbilityIds": [],
+                    "AuraIds": ["0"],
+                }
+            },
+        },
+    }
+
+
+def make_healthmax_damage_card(name: str, template_id: str, percent: float) -> dict:
+    card = make_card(name, template_id, damage=0, cooldown_ms=1000)
+    card["raw_effects"]["auras"] = {
+        "0": {
+            "$type": "BazaarGameShared.Domain.Effect.TCardAura",
+            "Action": {
+                "$type": "BazaarGameShared.Domain.Effect.AuraActions.TAuraActionCardModifyAttribute",
+                "AttributeType": "DamageAmount",
+                "Operation": "Add",
+                "Value": {
+                    "$type": "BazaarGameShared.Domain.Values.ReferenceValues.TReferenceValuePlayerAttribute",
+                    "AttributeType": "HealthMax",
+                    "Target": {
+                        "$type": "BazaarGameShared.Domain.Targeting.TTargetPlayerRelative",
+                        "TargetMode": "Self",
+                    },
+                    "Modifier": {
+                        "$type": "BazaarGameShared.Domain.Values.TValueModifier",
+                        "ModifyMode": "Multiply",
+                        "Value": {
+                            "$type": "BazaarGameShared.Domain.Values.TFixedValue",
+                            "Value": percent,
+                        },
+                    },
+                },
+                "Target": {
+                    "$type": "BazaarGameShared.Domain.Targeting.TTargetCardSelf",
+                },
+            },
+        }
+    }
+    card["raw_effects"]["tiers_raw"]["Bronze"]["AuraIds"] = ["0"]
+    return card
+
+
+def make_player_attribute_aura_card(
+    name: str,
+    template_id: str,
+    attribute_type: str,
+    amount: float,
+    *,
+    operation: str = "Add",
+) -> dict:
+    return {
+        "id": template_id,
+        "template_id": template_id,
+        "name": name,
+        "type": "Skill",
+        "size": "Medium",
+        "tags": [],
+        "hidden_tags": [],
+        "tiers": ["Bronze"],
+        "rarity": "Bronze",
+        "raw_effects": {
+            "abilities": {},
+            "auras": {
+                "0": {
+                    "$type": "BazaarGameShared.Domain.Effect.TCardAura",
+                    "Action": {
+                        "$type": "BazaarGameShared.Domain.Effect.AuraActions.TAuraActionPlayerModifyAttribute",
+                        "AttributeType": attribute_type,
+                        "Operation": operation,
+                        "Value": {
+                            "$type": "BazaarGameShared.Domain.Values.TFixedValue",
+                            "Value": amount,
+                        },
+                        "Target": {
+                            "$type": "BazaarGameShared.Domain.Targeting.TTargetPlayerRelative",
+                            "TargetMode": "Self",
                         },
                     },
                 }
@@ -1120,6 +1269,142 @@ class MonsterBattleEvaluatorTests(unittest.TestCase):
     def setUp(self) -> None:
         clear_monster_evaluation_cache()
 
+    def test_instance_attributes_are_applied_as_runtime_snapshot(self) -> None:
+        data = {
+            "cards": {
+                "Pawn": make_healthmax_value_aura_card("Pawn", "tpl_pawn", 20),
+            }
+        }
+
+        placements, skipped = build_current_board_placements(
+            data,
+            {
+                "board_items": [
+                    {
+                        "template_id": "tpl_pawn",
+                        "name": "Pawn",
+                        "rarity": "Bronze",
+                        "attributes": {"SellPrice": 10},
+                    }
+                ]
+            },
+        )
+
+        self.assertEqual(skipped, [])
+        self.assertEqual(get_attr_value_by_tier(placements[0].card, "SellPrice", placements[0].tier), 10)
+
+    def test_player_healthmax_aura_feeds_health_reference_damage(self) -> None:
+        data = {
+            "cards": {
+                "Pawn": make_healthmax_value_aura_card("Pawn", "tpl_pawn", 20),
+                "Whammy": make_healthmax_damage_card("Whammy", "tpl_whammy", 0.2),
+            }
+        }
+        monster_cards, skipped = build_current_board_placements(
+            data,
+            {
+                "board_items": [
+                    {
+                        "template_id": "tpl_pawn",
+                        "name": "Pawn",
+                        "rarity": "Bronze",
+                        "attributes": {"SellPrice": 10},
+                    },
+                    {
+                        "template_id": "tpl_whammy",
+                        "name": "Whammy",
+                        "rarity": "Bronze",
+                    },
+                ]
+            },
+        )
+
+        self.assertEqual(skipped, [])
+        player = _make_battle_side("player", [], 1000, 2)
+        monster = _make_battle_side("monster", monster_cards, 100, 2)
+        _apply_initial_player_attribute_auras(player, monster, None)
+        self.assertEqual(monster.max_health, 300)
+        self.assertEqual(monster.health, 300)
+
+        outcome = _simulate_two_sided_battle(
+            player_cards=[],
+            monster_cards=monster_cards,
+            player_health=1000,
+            monster_health=100,
+            duration_sec=1.2,
+            rng=lambda: 0.0,
+            sandstorm_config=SandstormConfig(enabled=False),
+        )
+
+        self.assertEqual(outcome.monster_remaining_health, 300)
+        self.assertEqual(outcome.player_remaining_health, 940)
+
+    def test_player_healthregen_aura_survives_runtime_refresh(self) -> None:
+        regen_skill = make_player_attribute_aura_card("Regen Skill", "tpl_regen_skill", "HealthRegen", 5)
+        player = _make_battle_side(
+            "player",
+            [PlacedCard("regen_skill", regen_skill, start=100, tier="Bronze")],
+            100,
+            2,
+        )
+        monster = _make_battle_side("monster", [], 100, 2)
+        player.health = 80
+
+        _apply_initial_player_attribute_auras(player, monster, None)
+        _refresh_runtime_state_auras(player, monster, BattleEventScheduler([]), 0.0, [], None)
+        _process_second_tick(player, monster, 1.0, [])
+
+        self.assertEqual(player.health, 85)
+
+    def test_player_critchance_aura_applies_to_item_crit_rolls(self) -> None:
+        weapon = make_card("Weapon", "tpl_weapon", damage=10, cooldown_ms=1000)
+        weapon["raw_effects"]["tiers_raw"]["Bronze"]["Attributes"]["DamageCrit"] = 100
+        crit_skill = make_player_attribute_aura_card("Wild Strength", "tpl_crit_skill", "CritChance", 100)
+
+        outcome = _simulate_two_sided_battle(
+            player_cards=[
+                PlacedCard("weapon", weapon, start=0, tier="Bronze"),
+                PlacedCard("crit_skill", crit_skill, start=100, tier="Bronze"),
+            ],
+            monster_cards=[],
+            player_health=100,
+            monster_health=100,
+            duration_sec=1.2,
+            rng=lambda: 0.0,
+            sandstorm_config=SandstormConfig(enabled=False),
+        )
+
+        damage_events = [
+            event
+            for event in outcome.timeline
+            if event["kind"] in {"damage", "use"} and event["source"] == "Weapon"
+        ]
+        self.assertEqual(damage_events[0]["value"], 30)
+
+    def test_initial_player_scalar_auras_update_rage_limits(self) -> None:
+        rage_max_skill = make_player_attribute_aura_card("Lichen", "tpl_rage_max", "RageMax", 2, operation="Multiply")
+        duration_skill = make_player_attribute_aura_card(
+            "Rage Extender",
+            "tpl_rage_duration",
+            "EnragedDurationMax",
+            5000,
+        )
+        player = _make_battle_side(
+            "player",
+            [
+                PlacedCard("rage_max", rage_max_skill, start=100, tier="Bronze"),
+                PlacedCard("rage_duration", duration_skill, start=101, tier="Bronze"),
+            ],
+            100,
+            2,
+        )
+        monster = _make_battle_side("monster", [], 100, 2)
+
+        _apply_initial_player_attribute_auras(player, monster, None)
+
+        self.assertEqual(player.rage_max, 200)
+        self.assertEqual(player.enraged_duration_sec, 10)
+
     def _charge_scheduler_target(self, *, cooldown_ms: int = 6000) -> tuple[BattleEventScheduler, BattleSide, BattleCardRef, PlacedCard]:
         timeline: list[dict] = []
         target_card = make_card("Target", "tpl_target", damage=0, cooldown_ms=cooldown_ms)
@@ -1446,6 +1731,169 @@ class MonsterBattleEvaluatorTests(unittest.TestCase):
         self.assertEqual(event["max_health"], 100)
         self.assertEqual(event["source_card"], "Healer")
         self.assertEqual(event["target_player"], "player")
+
+    def test_triggered_burn_can_force_use_burn_listener(self) -> None:
+        blunderbuss = make_card("Blunderbuss", "tpl_blunder", damage=15, cooldown_ms=1000)
+        blunderbuss["size"] = "Medium"
+        blunderbuss["raw_effects"]["abilities"]["1"] = {
+            "$type": "BazaarGameShared.Domain.Effect.TCardAbility",
+            "Trigger": {
+                "$type": "BazaarGameShared.Domain.Effect.Trigger.TTriggerOnCardPerformedBurn",
+                "Subject": {
+                    "$type": "BazaarGameShared.Domain.Targeting.TTargetCardSection",
+                    "TargetSection": "SelfBoard",
+                    "ExcludeSelf": False,
+                },
+            },
+            "Action": {
+                "$type": "BazaarGameShared.Domain.Effect.Actions.TActionCardForceUse",
+                "Target": {
+                    "$type": "BazaarGameShared.Domain.Targeting.TTargetCardSelf",
+                },
+            },
+        }
+        blunderbuss["raw_effects"]["tiers_raw"]["Bronze"]["Attributes"]["AmmoMax"] = 2
+        blunderbuss["raw_effects"]["tiers_raw"]["Bronze"]["AbilityIds"].append("1")
+
+        rounds = make_card("Incendiary Rounds", "tpl_rounds", damage=0, cooldown_ms=0)
+        rounds["raw_effects"]["abilities"]["0"] = {
+            "$type": "BazaarGameShared.Domain.Effect.TCardAbility",
+            "Trigger": {
+                "$type": "BazaarGameShared.Domain.Effect.Trigger.TTriggerOnItemUsed",
+                "Subject": {
+                    "$type": "BazaarGameShared.Domain.Targeting.TTargetCardPositional",
+                    "Origin": "Self",
+                    "TargetMode": "Neighbor",
+                    "IncludeOrigin": False,
+                },
+            },
+            "Action": {
+                "$type": "BazaarGameShared.Domain.Effect.Actions.TActionPlayerBurnApply",
+                "Target": {
+                    "$type": "BazaarGameShared.Domain.Targeting.TTargetPlayerRelative",
+                    "TargetMode": "Opponent",
+                },
+            },
+        }
+        rounds["raw_effects"]["tiers_raw"]["Bronze"]["Attributes"] = {
+            "BurnApplyAmount": 2,
+            "CooldownMax": 0,
+        }
+
+        outcome = _simulate_two_sided_battle(
+            player_cards=[
+                PlacedCard("blunder", blunderbuss, start=0, tier="Bronze"),
+                PlacedCard("rounds", rounds, start=2, tier="Bronze"),
+            ],
+            monster_cards=[],
+            player_health=100,
+            monster_health=100,
+            duration_sec=2,
+            rng=None,
+            sandstorm_config=SandstormConfig(enabled=False),
+        )
+
+        blunder_uses = [
+            event
+            for event in outcome.timeline
+            if event["kind"] == "item-used" and event["source"] == "Blunderbuss"
+        ]
+        force_requests = [
+            event
+            for event in outcome.timeline
+            if event["kind"] == "item-use-requested"
+            and event["source"] == "Blunderbuss"
+            and event.get("reason") == "forceuse"
+        ]
+        burn_events = [
+            event
+            for event in outcome.timeline
+            if event["kind"] == "burn-apply" and event["source"] == "Incendiary Rounds"
+        ]
+
+        self.assertGreaterEqual(len(blunder_uses), 2)
+        self.assertTrue(force_requests)
+        self.assertTrue(burn_events)
+
+    def test_triggered_slow_can_trigger_performed_slow_listener(self) -> None:
+        starter = make_card("Starter", "tpl_starter", damage=1, cooldown_ms=1000)
+        slower = make_card("Passive Slower", "tpl_slower", damage=0, cooldown_ms=0)
+        slower["raw_effects"]["abilities"]["0"] = {
+            "$type": "BazaarGameShared.Domain.Effect.TCardAbility",
+            "Trigger": {
+                "$type": "BazaarGameShared.Domain.Effect.Trigger.TTriggerOnItemUsed",
+                "Subject": {
+                    "$type": "BazaarGameShared.Domain.Targeting.TTargetCardPositional",
+                    "Origin": "Self",
+                    "TargetMode": "Neighbor",
+                    "IncludeOrigin": False,
+                },
+            },
+            "Action": {
+                "$type": "BazaarGameShared.Domain.Effect.Actions.TActionCardSlow",
+                "Target": {
+                    "$type": "BazaarGameShared.Domain.Targeting.TTargetCardSection",
+                    "TargetSection": "OpponentHand",
+                },
+            },
+        }
+        slower["raw_effects"]["tiers_raw"]["Bronze"]["Attributes"] = {
+            "SlowAmount": 1000,
+            "CooldownMax": 0,
+        }
+
+        listener = make_card("Slow Shield", "tpl_listener", damage=0, cooldown_ms=0)
+        listener["raw_effects"]["abilities"]["0"] = {
+            "$type": "BazaarGameShared.Domain.Effect.TCardAbility",
+            "Trigger": {
+                "$type": "BazaarGameShared.Domain.Effect.Trigger.TTriggerOnCardPerformedSlow",
+                "Subject": {
+                    "$type": "BazaarGameShared.Domain.Targeting.TTargetCardSection",
+                    "TargetSection": "SelfBoard",
+                    "ExcludeSelf": False,
+                },
+            },
+            "Action": {
+                "$type": "BazaarGameShared.Domain.Effect.Actions.TActionPlayerShieldApply",
+                "Target": {
+                    "$type": "BazaarGameShared.Domain.Targeting.TTargetPlayerRelative",
+                    "TargetMode": "Player",
+                },
+            },
+        }
+        listener["raw_effects"]["tiers_raw"]["Bronze"]["Attributes"] = {
+            "ShieldApplyAmount": 7,
+            "CooldownMax": 0,
+        }
+        monster_item = make_card("Monster Item", "tpl_monster", damage=0, cooldown_ms=10000)
+
+        outcome = _simulate_two_sided_battle(
+            player_cards=[
+                PlacedCard("starter", starter, start=0, tier="Bronze"),
+                PlacedCard("slower", slower, start=1, tier="Bronze"),
+                PlacedCard("listener", listener, start=2, tier="Bronze"),
+            ],
+            monster_cards=[PlacedCard("monster", monster_item, start=0, tier="Bronze")],
+            player_health=100,
+            monster_health=100,
+            duration_sec=2,
+            rng=None,
+            sandstorm_config=SandstormConfig(enabled=False),
+        )
+
+        self.assertGreaterEqual(outcome.player_remaining_shield, 7)
+        self.assertTrue(
+            any(
+                event["kind"] == "slow" and event["source"] == "Passive Slower"
+                for event in outcome.timeline
+            )
+        )
+        self.assertTrue(
+            any(
+                event["kind"] == "shield" and event["source"] == "Slow Shield"
+                for event in outcome.timeline
+            )
+        )
 
     def test_performed_overheal_trigger_skips_when_no_overheal_or_zero_heal(self) -> None:
         healer = make_heal_card("Healer", "tpl_healer", heal=30)
@@ -2412,6 +2860,38 @@ class MonsterBattleEvaluatorTests(unittest.TestCase):
 
         self.assertTrue(any(item["kind"] == "CARD_ATTRIBUTE_CHANGED" and item["attribute"] == "Ammo" for item in timeline))
         self.assertEqual(side.shield, 4)
+
+    def test_last_ammo_marks_card_empty_immediately(self) -> None:
+        ammo_card = make_card("One Shot", "tpl_ammo", damage=10, cooldown_ms=1000)
+        ammo_card["raw_effects"]["tiers_raw"]["Bronze"]["Attributes"]["AmmoMax"] = 1
+        filler = make_card("Filler", "tpl_filler", damage=0, cooldown_ms=10000)
+
+        outcome = _simulate_two_sided_battle(
+            player_cards=[
+                PlacedCard("ammo", ammo_card, tier="Bronze"),
+                PlacedCard("filler", filler, start=1, tier="Bronze"),
+            ],
+            monster_cards=[],
+            player_health=100,
+            monster_health=100,
+            duration_sec=4,
+            rng=None,
+            sandstorm_config=SandstormConfig(enabled=False),
+        )
+
+        ready_events = [
+            item
+            for item in outcome.timeline
+            if item["kind"] == "cooldown-ready" and item["source"] == "One Shot"
+        ]
+        damage_events = [
+            item
+            for item in outcome.timeline
+            if item["kind"] == "use" and item["source"] == "One Shot"
+        ]
+
+        self.assertEqual([item["time"] for item in ready_events], [1.0])
+        self.assertEqual([item["time"] for item in damage_events], [1.0])
 
     def test_flying_gain_and_loss_trigger_card_attribute_changed(self) -> None:
         flier = make_card("Flier", "tpl_flier", damage=0, action_type="TActionCardFlyingStart", cooldown_ms=1000)

@@ -478,6 +478,8 @@ def _monster_summary(result: dict[str, Any], requested: int) -> dict[str, Any]:
         "unsupported_effect_count": len(unsupported_effects),
         "player_cards": list(result.get("player_cards") or []),
         "monster_cards": list(result.get("monster_cards") or []),
+        "player_card_details": list(result.get("player_card_details") or []),
+        "monster_card_details": list(result.get("monster_card_details") or []),
         "warnings": warnings,
         "feedback_lines": feedback_lines,
         "feedback_available": True,
@@ -511,6 +513,8 @@ def _monster_feedback_lines(
         lines.append(f"simulation_failures: {result.get('simulations_failed')}")
     lines.append("player_cards: " + _join_feedback_values(result.get("player_cards") or []))
     lines.append("monster_cards: " + _join_feedback_values(result.get("monster_cards") or []))
+    lines.append("player_card_details: " + _feedback_json(result.get("player_card_details") or []))
+    lines.append("monster_card_details: " + _feedback_json(result.get("monster_card_details") or []))
     if unsupported_items:
         lines.append("unsupported_items: " + _join_feedback_values(unsupported_items))
     if unsupported_skills:
@@ -525,6 +529,12 @@ def _monster_feedback_lines(
 def _join_feedback_values(values: list[Any]) -> str:
     text = [str(value) for value in values if value]
     return " | ".join(text) if text else "-"
+
+
+def _feedback_json(value: Any) -> str:
+    if value in (None, "", [], {}):
+        return "-"
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
 def _unsupported_labels(result: dict[str, Any], *, card_type: str) -> list[str]:

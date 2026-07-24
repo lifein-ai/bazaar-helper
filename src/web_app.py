@@ -27,7 +27,6 @@ from battle_simulation_service import (
     simulate_training_dummy,
 )
 from build_strategy import applicable_build_names, build_applies_to_day, get_game_stage_for_day
-from combat_simulator import estimate_self_health_ttk
 from data_loader import load_all_data
 from dooley_rules import dooley_build_is_blocked_by_missing_core
 from game_state import GameState
@@ -285,6 +284,13 @@ def signature_option_identity(item: Any) -> Any:
 
 
 def state_signature_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    debug = payload.get("debug")
+    debug_scene = None
+    debug_screen_mode = None
+    if isinstance(debug, dict):
+        debug_scene = debug.get("scene_guess")
+        debug_screen_mode = debug.get("screen_mode")
+
     current_shop = payload.get("current_shop")
     visible_items = []
     shop_facts: dict[str, Any] = {}
@@ -300,6 +306,7 @@ def state_signature_payload(payload: dict[str, Any]) -> dict[str, Any]:
             "refreshes_remaining": current_shop.get("refreshes_remaining"),
         }
     detailed_options = payload.get("event_options_detailed") or []
+    current_events = payload.get("current_events") or []
     reward_options = payload.get("current_reward_options") or []
     visible_cards = payload.get("visible_cards") or []
     monster_items = payload.get("monster_items") or []
@@ -311,6 +318,8 @@ def state_signature_payload(payload: dict[str, Any]) -> dict[str, Any]:
         "source": payload.get("source"),
         "status": payload.get("status"),
         "screen_type": payload.get("screen_type"),
+        "scene_guess": payload.get("scene") or payload.get("scene_guess") or debug_scene,
+        "screen_mode": payload.get("screen_mode") or debug_screen_mode,
         "hero": payload.get("hero"),
         "build": payload.get("build"),
         "day": payload.get("day"),
@@ -323,6 +332,11 @@ def state_signature_payload(payload: dict[str, Any]) -> dict[str, Any]:
         "event_options_detailed": [
             signature_option_identity(item)
             for item in detailed_options
+            if item is not None
+        ],
+        "current_events": [
+            signature_option_identity(item)
+            for item in current_events
             if item is not None
         ],
         "shop_card_ids": [
@@ -401,6 +415,22 @@ def state_signature(payload: dict[str, Any]) -> str:
         separators=(",", ":"),
     ).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
+
+
+def scene_from_payload(payload: dict[str, Any]) -> str:
+    for key in ("scene", "scene_guess", "screen_mode", "screen_type"):
+        value = str(payload.get(key) or "").strip()
+        if value:
+            return value
+
+    debug = payload.get("debug")
+    if isinstance(debug, dict):
+        for key in ("scene_guess", "screen_mode"):
+            value = str(debug.get(key) or "").strip()
+            if value:
+                return value
+
+    return ""
 
 
 def remember_analysis_cache(
@@ -666,6 +696,7 @@ def normalize_payload_for_analysis(
     build_override: str | None = None,
 ) -> dict[str, Any]:
     normalized = dict(payload)
+    scene = scene_from_payload(normalized)
     gold_value = first_optional_int(
         normalized.get("gold"),
         normalized.get("current_gold"),
@@ -679,7 +710,20 @@ def normalize_payload_for_analysis(
     )
     if gold_value is not None:
         normalized["gold"] = gold_value
-    normalized["event_options"] = normalize_event_options(data, normalized)
+    if scene and scene not in {"event_options", "events"}:
+        normalized["event_options"] = []
+        normalized["event_option_ids"] = []
+        normalized["event_option_template_ids"] = []
+        normalized["event_options_detailed"] = []
+    else:
+        normalized["event_options"] = normalize_event_options(data, normalized)
+    if scene and scene != "monster_choices":
+        normalized["monster_choices"] = []
+    if scene and scene not in {"shop", "current_shop"}:
+        normalized["current_shop"] = None
+        normalized["effective_shop"] = None
+    if scene and scene != "reward_options":
+        normalized["current_reward_options"] = []
     normalized["owned_cards"] = normalize_card_entries(data, normalized.get("owned_cards", []))
     normalized["visible_cards"] = normalize_card_entries(data, normalized.get("visible_cards", []))
     for field_name in (
@@ -893,6 +937,30 @@ def monster_tokens_from_value(value: Any) -> list[str]:
             "internal_name",
         ):
             result.extend(monster_tokens_from_value(value.get(key)))
+        for key in (
+            "branches",
+            "children",
+            "options",
+            "encounters",
+            "event_options",
+            "event_options_detailed",
+        ):
+            nested = value.get(key)
+            if isinstance(nested, list):
+                for item in nested:
+                    result.extend(monster_tokens_from_value(item))
+        for key in (
+            "branch",
+            "child",
+            "option",
+            "encounter",
+            "event",
+            "card",
+            "payload",
+        ):
+            nested = value.get(key)
+            if isinstance(nested, dict):
+                result.extend(monster_tokens_from_value(nested))
         return result
     if value in (None, ""):
         return []
@@ -1950,6 +2018,7 @@ def display_reason_text(data: dict[str, Any], reason: Any) -> str:
         (r"^Pool contains (\d+) transition cards\.$", "\u6c60\u5b50\u5305\u542b {0} \u5f20\u8fc7\u6e21\u5361\u3002"),
         (r"^Pool contains (\d+) S/A tier cards\.$", "\u6c60\u5b50\u5305\u542b {0} \u5f20 S/A \u8bc4\u7ea7\u5361\u3002"),
         (r"^Pool contains (\d+) alternate-build core cards\.$", "\u6c60\u5b50\u5305\u542b {0} \u5f20\u8f6c\u578b/\u5907\u9009\u9635\u5bb9\u6838\u5fc3\u5361\u3002"),
+        (r"^Provides resources: (.+)\.$", "\u63d0\u4f9b\u8d44\u6e90\uff1a{0}\u3002"),
         (r"^Pool has (\d+) cards; (\d+) are build-relevant \((\d+)%\)\.$", "\u6c60\u5b50\u5171 {0} \u5f20\uff1b{1} \u5f20\u548c\u5f53\u524d\u9635\u5bb9\u76f8\u5173\uff08{2}%\uff09\u3002"),
         (r"^Shop view expects ([\d.]+) relevant cards; chance to see at least one relevant card (\d+)%\.$", "\u8fdb\u5e97\u540e\u9884\u671f\u53ef\u89c1 {0} \u5f20\u76f8\u5173\u5361\uff1b\u81f3\u5c11\u770b\u5230\u4e00\u5f20\u76f8\u5173\u5361\u7684\u6982\u7387\u7ea6 {1}%\u3002"),
         (r"^Reward gives (\d+) items; expected relevant cards ([\d.]+), useful hit chance (\d+)%\.$", "\u5956\u52b1\u7ed9 {0} \u4e2a\u7269\u54c1\uff1b\u9884\u671f\u76f8\u5173\u5361 {1} \u5f20\uff0c\u6709\u7528\u547d\u4e2d\u7387\u7ea6 {2}%\u3002"),
@@ -1970,6 +2039,8 @@ def display_reason_text(data: dict[str, Any], reason: Any) -> str:
             )
             return template.format(names="\u3001".join(names))
         if pattern.startswith("^Best follow-up can provide"):
+            return template.format(translate_resource_reward_phrase(groups[0]))
+        if pattern.startswith("^Provides resources"):
             return template.format(translate_resource_reward_phrase(groups[0]))
         return template.format(*groups)
 
@@ -3361,46 +3432,6 @@ def analyze_payload(
     return response
 
 
-def simulate_current_combat_payload(
-    data: dict[str, Any],
-    payload: dict[str, Any],
-    *,
-    horizon_sec: float = 60.0,
-    random_trials: int = 1,
-) -> dict[str, Any]:
-    normalized = normalize_payload_for_analysis(data, payload)
-    state = GameState.from_dict(normalized)
-    estimate = estimate_self_health_ttk(
-        data,
-        state,
-        horizon_sec=max(1.0, min(180.0, float(horizon_sec or 60.0))),
-        random_trials=max(1, min(20, int(random_trials or 1))),
-    )
-    combat = estimate.to_dict() if estimate is not None else None
-    if combat is not None:
-        horizon = float(combat.get("horizon_sec") or 0.0)
-        total_damage = float(combat.get("total_damage") or 0.0)
-        combat["damage_per_second"] = total_damage / horizon if horizon > 0 else 0.0
-    return {
-        "ok": estimate is not None,
-        "combat": combat,
-        "state": {
-            "hero": state.hero,
-            "build": state.build,
-            "day": state.day,
-            "health": state.combat_health,
-            "combat_health": state.combat_health,
-            "monster_health": state.monster_health,
-            "board_item_count": len(state.board_items or []),
-            "owned_item_count": len(state.owned_items or []),
-            "monster_item_count": len(state.monster_items or []),
-            "monster_skill_count": len(state.monster_skills or []),
-            "monster_choice_count": len(state.monster_choices or []),
-        },
-        "state_signature": state_signature(payload),
-    }
-
-
 def record_missing_events(
     event_names: list[str],
     state: GameState,
@@ -3505,18 +3536,6 @@ class BazaarHandler(BaseHTTPRequestHandler):
                 response["state_path"] = str(path)
                 self.send_json(response)
                 return
-            if parsed.path == "/api/combat-simulation":
-                payload, path = load_runtime_payload()
-                response = simulate_current_combat_payload(
-                    self.data,
-                    payload,
-                    horizon_sec=_optional_float(query.get("duration", [None])[0], 60.0),
-                    random_trials=_optional_int(query.get("trials", [None])[0]) or 1,
-                )
-                response["state_path"] = str(path)
-                self.send_json(response)
-                return
-
             self.send_error(HTTPStatus.NOT_FOUND, "Not found")
         except Exception as exc:  # noqa: BLE001 - this is a small local dev server.
             self.send_json({"error": str(exc)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)

@@ -375,6 +375,7 @@ def is_item_reward_event(event: dict[str, Any]) -> bool:
         "weapon",
         "property",
         "friend",
+        "food",
         "potion",
         "core",
         "loot",
@@ -605,24 +606,29 @@ def build_item_reward_event(event_name: str, event: dict[str, Any]) -> dict[str,
 
 def resource_types_from_description(description: str) -> list[str]:
     text = description.lower()
+    resource_text = re.sub(
+        r"\b(?:bronze|silver|gold|diamond|legendary)[- ]tier\b",
+        "",
+        text,
+    )
     result = []
-    if "coin" in text:
+    if "coin" in resource_text:
         result.append("gold")
-    if "gold" in text:
+    if "gold" in resource_text:
         result.append("gold")
-    if "xp" in text or "experience" in text or "seminar" in text:
+    if "xp" in resource_text or "experience" in resource_text or "seminar" in resource_text:
         result.append("exp")
-    if "health" in text or "tasty treats" in text or "temporary boost" in text:
+    if "health" in resource_text or "tasty treats" in resource_text or "temporary boost" in resource_text:
         result.append("health")
-    if "income" in text or "financial boost" in text or "opportunities" in text:
+    if "income" in resource_text or "financial boost" in resource_text or "opportunities" in resource_text:
         result.append("income")
-    if "power" in text:
+    if "power" in resource_text:
         result.append("power")
-    if "regen" in text:
+    if "regen" in resource_text:
         result.append("regen")
-    if "toughness" in text:
+    if "toughness" in resource_text:
         result.append("toughness")
-    if "speed" in text:
+    if "speed" in resource_text:
         result.append("speed")
     return unique(result)
 

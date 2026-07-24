@@ -1427,6 +1427,14 @@ class RecommenderTests(unittest.TestCase):
 
         self.assertEqual(data["events"]["Go Fishing"]["event_category"], "item_rewards")
         self.assertEqual(data["events"]["Ammo Cache"]["event_category"], "item_rewards")
+        self.assertEqual(data["events"]["Bountiful Harvest"]["event_category"], "item_rewards")
+        self.assertEqual(
+            data["events"]["Bountiful Harvest"]["card_reward"]["reward_tags"],
+            ["food"],
+        )
+        self.assertFalse(
+            any(data["events"]["Bountiful Harvest"]["resource_rewards"].values())
+        )
         self.assertEqual(data["events"]["C4"]["event_category"], "skill_shops")
         self.assertEqual(data["events"]["C4"]["shop_pool"]["reward_tags"], ["ammo"])
         self.assertEqual(data["events"]["Burning Caldera"]["event_category"], "enchant_events")

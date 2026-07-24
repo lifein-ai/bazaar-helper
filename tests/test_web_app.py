@@ -105,6 +105,14 @@ class WebAppResilienceTests(unittest.TestCase):
         self.assertEqual(body["mode"], "api-only")
         self.assertEqual(body["analysis_endpoint"], "/api/analysis")
         self.assertEqual(body["state_signature_endpoint"], "/api/state-signature")
+        self.assertEqual(
+            body["battle_simulation_endpoints"],
+            {
+                "monster": "/api/battle-simulation/monster",
+                "training_dummy": "/api/battle-simulation/training-dummy",
+            },
+        )
+        self.assertNotIn("/api/combat-simulation", json.dumps(body))
 
     def test_display_name_list_uses_chinese_translation_table(self) -> None:
         data = {
@@ -604,6 +612,64 @@ class WebAppResilienceTests(unittest.TestCase):
         self.assertEqual(response["state"]["monster_choices"][0]["health"], 450)
         self.assertEqual(response["state"]["monster_choices"][0]["display_name"], "三花")
 
+    def test_static_monster_choices_are_matched_from_exported_branches(self) -> None:
+        data = {
+            "events": {},
+            "translations": {"by_name": {"Calico": "涓夎姳"}, "by_id": {}},
+            "cards": {
+                "Claws": {"id": "claws-template", "type": "Item", "size": "Small"},
+            },
+            "monsters": {
+                "calico-monster": {
+                    "id": "calico-monster",
+                    "template_id": "calico-monster",
+                    "name": "Calico",
+                    "health": 450,
+                    "items": [{"template_id": "claws-template", "rarity": "Silver"}],
+                    "encounter_ids": ["calico-encounter"],
+                    "encounters": [
+                        {
+                            "id": "calico-encounter",
+                            "template_id": "calico-encounter",
+                            "name": "Calico",
+                        }
+                    ],
+                }
+            },
+            "builds": {"VanessaTest": {"hero": "Vanessa"}},
+            "rarity_rules": {},
+        }
+        payload = {
+            "hero": "Vanessa",
+            "build": "VanessaTest",
+            "day": 6,
+            "event_options": [],
+            "owned_cards": [],
+            "visible_cards": [],
+            "event_options_detailed": [
+                {
+                    "id": "enc_parent",
+                    "template_id": "parent-template",
+                    "kind": "encounter",
+                    "card_type": "EventEncounter",
+                    "branches": [
+                        {
+                            "id": "com_runtime",
+                            "template_id": "calico-encounter",
+                            "kind": "combat",
+                            "card_type": "CombatEncounter",
+                            "name": "Calico",
+                        }
+                    ],
+                }
+            ],
+        }
+
+        normalized = web_app.normalize_payload_for_analysis(data, payload)
+
+        self.assertEqual(normalized["monster_choices"][0]["name"], "Calico")
+        self.assertEqual(normalized["monster_health"], 450)
+
     def test_monster_display_name_strips_runtime_suffix_before_translation(self) -> None:
         data = {"translations": {"by_name": {"Coconut Crab": "椰子蟹", "Calico": "三花"}, "by_id": {}}}
 
@@ -757,73 +823,6 @@ class WebAppResilienceTests(unittest.TestCase):
             web_app.state_signature(base_payload),
             web_app.state_signature(branched_payload),
         )
-
-    def test_current_combat_simulation_is_explicit(self) -> None:
-        weapon = {
-            "id": "tpl_weapon",
-            "template_id": "tpl_weapon",
-            "name": "Weapon",
-            "type": "Item",
-            "size": "Small",
-            "tags": [],
-            "hidden_tags": [],
-            "tiers": ["Bronze"],
-            "rarity": "Bronze",
-            "raw_effects": {
-                "abilities": {
-                    "0": {
-                        "$type": "BazaarGameShared.Domain.Effect.TCardAbility",
-                        "Trigger": {
-                            "$type": "BazaarGameShared.Domain.Effect.Trigger.TTriggerOnCardFired"
-                        },
-                        "Action": {
-                            "$type": "BazaarGameShared.Domain.Effect.Actions.TActionPlayerDamage",
-                            "Target": {
-                                "$type": "BazaarGameShared.Domain.Targeting.TTargetPlayerRelative",
-                                "TargetMode": "Opponent",
-                            },
-                        },
-                    }
-                },
-                "auras": {},
-                "tiers_raw": {
-                    "Bronze": {
-                        "Attributes": {"DamageAmount": 25, "CooldownMax": 5000},
-                        "AbilityIds": ["0"],
-                        "AuraIds": [],
-                    }
-                },
-            },
-        }
-        data = {
-            "events": {},
-            "translations": {},
-            "cards": {"Weapon": weapon},
-            "builds": {"VanessaTest": {"hero": "Vanessa"}},
-            "rarity_rules": {},
-        }
-        payload = {
-            "hero": "Vanessa",
-            "build": "VanessaTest",
-            "day": 5,
-            "combat_health": 50,
-            "board_items": [
-                {
-                    "id": "itm_weapon",
-                    "template_id": "tpl_weapon",
-                    "name": "Weapon",
-                    "rarity": "Bronze",
-                    "section": "Hand",
-                }
-            ],
-        }
-
-        response = web_app.simulate_current_combat_payload(data, payload, horizon_sec=10)
-
-        self.assertTrue(response["ok"])
-        self.assertEqual(response["combat"]["total_damage"], 50)
-        self.assertEqual(response["combat"]["damage_per_second"], 5)
-        self.assertEqual(response["combat"]["kill_time_sec"], 10)
 
     def test_priority_cards_exclude_other_build_cores_and_have_no_limit(self) -> None:
         cards = web_app.priority_cards(
@@ -1183,6 +1182,7 @@ class WebAppResilienceTests(unittest.TestCase):
                 "shop_entry_status=not_actionable",
                 "Pool contains 3 current-build core cards.",
                 "Can upgrade owned cards: Bee, Crook.",
+                "Provides resources: 金币 +1.",
                 "Pool has 19 cards; 6 are build-relevant (32%).",
                 "Reward gives 1 items; expected relevant cards 0.0, useful hit chance 4%.",
             ],
@@ -1199,6 +1199,7 @@ class WebAppResilienceTests(unittest.TestCase):
         self.assertIn("\u5546\u5e97\u5165\u53e3\u8bc4\u4f30", joined)
         self.assertIn("\u5f53\u524d\u9635\u5bb9\u6838\u5fc3\u5361", joined)
         self.assertIn("\u53ef\u5347\u7ea7\u5df2\u62e5\u6709\u5361", joined)
+        self.assertIn("\u63d0\u4f9b\u8d44\u6e90\uff1a\u91d1\u5e01 +1", joined)
 
 
 class WebAppStartupTests(unittest.TestCase):

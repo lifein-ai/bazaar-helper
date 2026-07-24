@@ -14,6 +14,7 @@ namespace BazaarStateExporter
     {
         public const string ScreenModeEvents = "events";
         public const string ScreenModeShop = "shop";
+        public const string ScreenModeMonsterChoices = "monster_choices";
         public static ManualLogSource Logger;
         public static object LatestGameStateSnapshot;
         public static string LatestGameStateSource;
@@ -34,6 +35,7 @@ namespace BazaarStateExporter
         private static readonly Dictionary<string, CapturedCardEntry> CapturedCardsByInstanceId = new Dictionary<string, CapturedCardEntry>();
         private static List<CardSnapshot> CurrentVisibleCards = new List<CardSnapshot>();
         private static float CurrentVisibleCardsSeenAt;
+        private static UiScanDebugSnapshot LastUiScanDebug = new UiScanDebugSnapshot();
 
         public static void UpdateResources(int? gold, int? health, string source)
         {
@@ -104,6 +106,7 @@ namespace BazaarStateExporter
                 CapturedCardsByInstanceId.Clear();
                 CurrentVisibleCards.Clear();
                 CurrentVisibleCardsSeenAt = 0f;
+                LastUiScanDebug = new UiScanDebugSnapshot();
             }
 
             Logger?.LogInfo("Cleared runtime resource and UI card caches for new run.");
@@ -123,6 +126,7 @@ namespace BazaarStateExporter
                 CapturedCardsByInstanceId.Clear();
                 CurrentVisibleCards.Clear();
                 CurrentVisibleCardsSeenAt = 0f;
+                LastUiScanDebug = new UiScanDebugSnapshot();
             }
 
             Logger?.LogInfo(
@@ -386,6 +390,58 @@ namespace BazaarStateExporter
                 }
                 return new List<CardSnapshot>(CurrentVisibleCards);
             }
+        }
+
+        public static void SetLastUiScanDebug(UiScanDebugSnapshot debug)
+        {
+            lock (CapturedCardsLock)
+            {
+                LastUiScanDebug = CloneUiScanDebug(debug);
+            }
+        }
+
+        public static UiScanDebugSnapshot GetLastUiScanDebug()
+        {
+            lock (CapturedCardsLock)
+            {
+                return CloneUiScanDebug(LastUiScanDebug);
+            }
+        }
+
+        private static UiScanDebugSnapshot CloneUiScanDebug(UiScanDebugSnapshot debug)
+        {
+            UiScanDebugSnapshot clone = new UiScanDebugSnapshot();
+            if (debug == null)
+            {
+                return clone;
+            }
+
+            clone.card_controller_total = debug.card_controller_total;
+            clone.active_card_controller_count = debug.active_card_controller_count;
+            clone.ui_snapshot_success_count = debug.ui_snapshot_success_count;
+            clone.ui_snapshot_failed_count = debug.ui_snapshot_failed_count;
+            if (debug.captured_cards != null)
+            {
+                foreach (CapturedCardDebugSnapshot card in debug.captured_cards)
+                {
+                    if (card == null)
+                    {
+                        continue;
+                    }
+                    clone.captured_cards.Add(new CapturedCardDebugSnapshot
+                    {
+                        name = card.name,
+                        id = card.id,
+                        template_id = card.template_id,
+                        card_type = card.card_type,
+                        section = card.section,
+                        ui_context = card.ui_context,
+                        classification = card.classification,
+                        ignore_reason = card.ignore_reason,
+                    });
+                }
+            }
+            return clone;
         }
 
         private sealed class CapturedCardEntry
@@ -1088,6 +1144,14 @@ namespace BazaarStateExporter
                         source);
                     changed = true;
                 }
+                else if (IsMonsterChoiceCard(card))
+                {
+                    RuntimeStateCache.ClearShopRefresh();
+                    RuntimeStateCache.SetScreenMode(
+                        RuntimeStateCache.ScreenModeMonsterChoices,
+                        source);
+                    changed = true;
+                }
                 else if (IsShopOfferCard(card))
                 {
                     RuntimeStateCache.SetScreenMode(
@@ -1153,6 +1217,29 @@ namespace BazaarStateExporter
 
             string context = card.ui_context ?? "";
             return context.IndexOf("Merchant", StringComparison.OrdinalIgnoreCase) < 0
+                && context.IndexOf("Shop", StringComparison.OrdinalIgnoreCase) < 0;
+        }
+
+        private static bool IsMonsterChoiceCard(CardSnapshot card)
+        {
+            if (card == null || string.IsNullOrEmpty(card.id))
+            {
+                return false;
+            }
+
+            string cardType = card.card_type ?? "";
+            bool combatEncounter = cardType.IndexOf(
+                    "CombatEncounter",
+                    StringComparison.OrdinalIgnoreCase) >= 0
+                || card.id.StartsWith("com_", StringComparison.OrdinalIgnoreCase);
+            if (!combatEncounter)
+            {
+                return false;
+            }
+
+            string context = card.ui_context ?? "";
+            return context.IndexOf("OpponentBoardAnchor", StringComparison.OrdinalIgnoreCase) >= 0
+                && context.IndexOf("Merchant", StringComparison.OrdinalIgnoreCase) < 0
                 && context.IndexOf("Shop", StringComparison.OrdinalIgnoreCase) < 0;
         }
 

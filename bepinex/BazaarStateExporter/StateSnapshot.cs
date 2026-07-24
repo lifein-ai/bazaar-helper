@@ -86,6 +86,37 @@ namespace BazaarStateExporter
         public int reward_option_count;
         public string dto_source;
         public string dto_summary;
+        public int card_controller_total;
+        public int active_card_controller_count;
+        public int ui_snapshot_success_count;
+        public int ui_snapshot_failed_count;
+        public List<CapturedCardDebugSnapshot> captured_cards = new List<CapturedCardDebugSnapshot>();
+        public int? dto_day;
+        public int? ui_day;
+        public int dto_selection_count;
+        public string event_source;
+        public string scene_guess;
+    }
+
+    public sealed class UiScanDebugSnapshot
+    {
+        public int card_controller_total;
+        public int active_card_controller_count;
+        public int ui_snapshot_success_count;
+        public int ui_snapshot_failed_count;
+        public List<CapturedCardDebugSnapshot> captured_cards = new List<CapturedCardDebugSnapshot>();
+    }
+
+    public sealed class CapturedCardDebugSnapshot
+    {
+        public string name;
+        public string id;
+        public string template_id;
+        public string card_type;
+        public string section;
+        public string ui_context;
+        public string classification;
+        public string ignore_reason;
     }
 
     public sealed class CurrentShopSnapshot

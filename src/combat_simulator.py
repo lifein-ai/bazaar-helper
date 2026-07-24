@@ -31,6 +31,7 @@ TIME_LIKE_ATTRIBUTES = {
     "MulticastIntervalSeconds",
     "FlatCooldownReduction",
     "CooldownReduction",
+    "EnragedDurationMax",
 }
 ITEM_USE_ICD_SEC = 0.25
 CHARGE_PORT_ICD_SEC = 0.25
@@ -1461,7 +1462,7 @@ def simulate_combat(
             casts = max(1, multicast.get(fired.placement_id, 1))
             if ammo:
                 ammo["current"] = max(0, ammo["current"] - 1)
-                ammo["empty"] = False
+                ammo["empty"] = ammo["current"] <= 0
             if not forced:
                 cooldown_state[fired.placement_id] += get_card_cooldown_sec(fired, cards)
             uses[fired.placement_id] += casts
@@ -2284,7 +2285,11 @@ def apply_instance_snapshot(template: dict[str, Any], entry: dict[str, Any]) -> 
     if entry.get("name"):
         card["name"] = entry["name"]
     tier = normalize_tier(entry.get("rarity") or entry.get("tier") or card.get("rarity"))
-    attrs = entry.get("current_attributes")
+    attrs = {}
+    for attr_key in ("attributes", "current_attributes"):
+        raw_attrs = entry.get(attr_key)
+        if isinstance(raw_attrs, dict):
+            attrs.update(raw_attrs)
     if isinstance(attrs, dict) and attrs:
         blocked_attrs = _inactive_conditional_snapshot_attrs(card, attrs)
         snapshot_attrs = set(runtime_snapshot_attributes(card))

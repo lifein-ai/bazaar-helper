@@ -266,10 +266,17 @@ namespace BazaarStateExporter
         {
             Type cardControllerType = AccessTools.TypeByName("CardController");
             List<CardSnapshot> visibleCards = new List<CardSnapshot>();
+            List<CapturedCardDebugSnapshot> debugCards =
+                new List<CapturedCardDebugSnapshot>();
             HashSet<string> seenIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            int cardControllerTotal = 0;
+            int activeCardControllerCount = 0;
+            int uiSnapshotSuccessCount = 0;
+            int uiSnapshotFailedCount = 0;
             if (cardControllerType != null)
             {
                 UnityEngine.Object[] controllers = Resources.FindObjectsOfTypeAll(cardControllerType);
+                cardControllerTotal = controllers == null ? 0 : controllers.Length;
                 foreach (UnityEngine.Object controller in controllers)
                 {
                     MonoBehaviour behaviour = controller as MonoBehaviour;
@@ -278,7 +285,22 @@ namespace BazaarStateExporter
                         continue;
                     }
 
-                    AddVisibleUiCard(visibleCards, seenIds, behaviour, "visible_scan");
+                    activeCardControllerCount++;
+                    CardSnapshot card;
+                    if (TryAddVisibleUiCard(
+                        visibleCards,
+                        seenIds,
+                        behaviour,
+                        "visible_scan",
+                        out card))
+                    {
+                        uiSnapshotSuccessCount++;
+                        debugCards.Add(BuildCapturedCardDebug(card));
+                    }
+                    else
+                    {
+                        uiSnapshotFailedCount++;
+                    }
                 }
             }
 
@@ -299,14 +321,43 @@ namespace BazaarStateExporter
                     continue;
                 }
 
-                AddVisibleUiCard(visibleCards, seenIds, behaviour, "monster_board_visible_scan");
+                CardSnapshot card;
+                if (TryAddVisibleUiCard(
+                    visibleCards,
+                    seenIds,
+                    behaviour,
+                    "monster_board_visible_scan",
+                    out card))
+                {
+                    uiSnapshotSuccessCount++;
+                    debugCards.Add(BuildCapturedCardDebug(card));
+                }
+                else
+                {
+                    uiSnapshotFailedCount++;
+                }
             }
 
+            RuntimeStateCache.SetLastUiScanDebug(new UiScanDebugSnapshot
+            {
+                card_controller_total = cardControllerTotal,
+                active_card_controller_count = activeCardControllerCount,
+                ui_snapshot_success_count = uiSnapshotSuccessCount,
+                ui_snapshot_failed_count = uiSnapshotFailedCount,
+                captured_cards = debugCards,
+            });
             RuntimeStateCache.SetCurrentVisibleCards(visibleCards);
             if (visibleCards.Any(IsShopOfferCard))
             {
                 RuntimeStateCache.SetScreenMode(
                     RuntimeStateCache.ScreenModeShop,
+                    "visible_scan");
+            }
+            else if (visibleCards.Any(IsMonsterChoiceCard))
+            {
+                RuntimeStateCache.ClearShopRefresh();
+                RuntimeStateCache.SetScreenMode(
+                    RuntimeStateCache.ScreenModeMonsterChoices,
                     "visible_scan");
             }
             else if (visibleCards.Any(IsCurrentEventOptionCard))
@@ -318,16 +369,17 @@ namespace BazaarStateExporter
             }
         }
 
-        private static void AddVisibleUiCard(
+        private static bool TryAddVisibleUiCard(
             List<CardSnapshot> visibleCards,
             HashSet<string> seenIds,
             MonoBehaviour behaviour,
-            string source)
+            string source,
+            out CardSnapshot card)
         {
-            CardSnapshot card = UiCardCapture.TryBuildSnapshot(behaviour, source);
+            card = UiCardCapture.TryBuildSnapshot(behaviour, source);
             if (card == null || string.IsNullOrEmpty(card.id))
             {
-                return;
+                return false;
             }
 
             string key = card.id + "|" + (card.ui_context ?? "");
@@ -336,6 +388,7 @@ namespace BazaarStateExporter
                 visibleCards.Add(card);
             }
             RuntimeStateCache.RecordUiCard(card);
+            return true;
         }
 
         private static bool LooksLikeMonsterBoardContext(string hierarchy)
@@ -499,6 +552,7 @@ namespace BazaarStateExporter
             string hero = StringValue(GetField(player, "Hero"));
             int dtoDay = IntValue(GetField(run, "Day"), 1);
             int day = dtoDay;
+            List<string> dtoSelectionSet = StringList(GetField(currentState, "SelectionSet"));
             bool uiDayOverridesDto = latestUiDay.HasValue
                 && latestUiDay.Value != dtoDay;
             if (latestUiDay.HasValue)
@@ -561,7 +615,13 @@ namespace BazaarStateExporter
                 inventory_slots_total = 20,
                 event_option_ids = uiDayOverridesDto
                     ? new List<string>()
-                    : StringList(GetField(currentState, "SelectionSet")),
+                    : dtoSelectionSet,
+                debug = new ExportDebugSnapshot
+                {
+                    dto_day = dtoDay,
+                    ui_day = latestUiDay,
+                    dto_selection_count = dtoSelectionSet.Count,
+                },
             };
 
             object allCards = GetField(dto, "Cards");
@@ -575,6 +635,14 @@ namespace BazaarStateExporter
                 screenMode,
                 RuntimeStateCache.ScreenModeEvents,
                 StringComparison.Ordinal);
+            bool screenModeIsMonsterChoices = string.Equals(
+                screenMode,
+                RuntimeStateCache.ScreenModeMonsterChoices,
+                StringComparison.Ordinal);
+            if (screenModeIsMonsterChoices)
+            {
+                snapshot.event_option_ids.Clear();
+            }
             List<CardSnapshot> selectedCards = allCardSnapshots
                 .Where(card => !string.IsNullOrEmpty(card.id)
                     && snapshot.event_option_ids.Contains(card.id))
@@ -672,7 +740,7 @@ namespace BazaarStateExporter
                 }
             }
 
-            if (screenModeIsShop)
+            if (screenModeIsShop || screenModeIsMonsterChoices)
             {
                 snapshot.event_options.Clear();
                 snapshot.event_option_ids.Clear();
@@ -681,7 +749,7 @@ namespace BazaarStateExporter
                 eventOptionIdSet.Clear();
                 detailedEventOptionIds.Clear();
             }
-            else if (!uiDayOverridesDto)
+            else
             {
                 float eventCaptureMinSeenAt = screenModeIsEvents
                     ? Math.Max(0f, RuntimeStateCache.LastScreenModeAt - 1.0f)
@@ -692,7 +760,16 @@ namespace BazaarStateExporter
                     detailedEventOptionIds,
                     eventCaptureMinSeenAt);
             }
-            snapshot.current_events.AddRange(snapshot.event_options_detailed);
+            if (screenModeIsMonsterChoices)
+            {
+                float monsterChoiceMinSeenAt =
+                    Math.Max(0f, RuntimeStateCache.LastScreenModeAt - 1.0f);
+                AddMonsterChoiceCurrentEvents(snapshot, monsterChoiceMinSeenAt);
+            }
+            else
+            {
+                snapshot.current_events.AddRange(snapshot.event_options_detailed);
+            }
 
             // Rebuild screen-specific groups after merging UI-captured cards so
             // current_shop never includes Selection/Reward cards.
@@ -717,6 +794,7 @@ namespace BazaarStateExporter
             bool merchantScreen = screenModeIsShop
                 || (hasMerchantPortrait && latestSocketOffers.Count > 0)
                 || (!screenModeIsEvents
+                && !screenModeIsMonsterChoices
                 && !selectionSetHasEncounters
                 && (
                     hasMerchantPortrait
@@ -829,6 +907,13 @@ namespace BazaarStateExporter
             {
                 FillMonsterCards(snapshot, screenModeIsShop, screenModeIsEvents);
             }
+            snapshot.debug.event_source = GuessEventSource(snapshot, uiDayOverridesDto);
+            snapshot.debug.scene_guess = GuessScene(
+                snapshot,
+                screenMode,
+                screenModeIsShop,
+                screenModeIsEvents,
+                screenModeIsMonsterChoices);
 
             if (snapshot.event_option_ids.Count > 0 || snapshot.owned_cards.Count > 0)
             {
@@ -864,6 +949,70 @@ namespace BazaarStateExporter
             }
 
             return snapshot;
+        }
+
+        private static string GuessEventSource(
+            GameStateSnapshot snapshot,
+            bool uiDayOverridesDto)
+        {
+            if (snapshot == null
+                || snapshot.event_options_detailed == null
+                || snapshot.event_options_detailed.Count == 0)
+            {
+                return uiDayOverridesDto ? "dto_selection_set_blocked_by_ui_day" : "none";
+            }
+
+            bool hasUi = snapshot.event_options_detailed.Any(option =>
+                option != null
+                && !string.IsNullOrEmpty(option.source)
+                && !string.Equals(option.source, "selection_set", StringComparison.Ordinal)
+                && !string.Equals(option.source, "unknown", StringComparison.Ordinal));
+            if (hasUi)
+            {
+                return "ui_capture";
+            }
+            return uiDayOverridesDto ? "ui_capture_after_dto_block" : "dto_selection_set";
+        }
+
+        private static string GuessScene(
+            GameStateSnapshot snapshot,
+            string screenMode,
+            bool screenModeIsShop,
+            bool screenModeIsEvents,
+            bool screenModeIsMonsterChoices)
+        {
+            if (screenModeIsMonsterChoices)
+            {
+                return "monster_choices";
+            }
+            if (screenModeIsEvents
+                || (snapshot != null
+                    && snapshot.event_options_detailed != null
+                    && snapshot.event_options_detailed.Count > 0))
+            {
+                return "event_options";
+            }
+            if (screenModeIsShop
+                || (snapshot != null
+                    && snapshot.current_shop != null
+                    && snapshot.current_shop.visible_items != null
+                    && snapshot.current_shop.visible_items.Count > 0))
+            {
+                return "shop";
+            }
+            if (snapshot != null
+                && snapshot.current_reward_options != null
+                && snapshot.current_reward_options.Count > 0)
+            {
+                return "reward_options";
+            }
+            if (snapshot != null
+                && ((snapshot.monster_items != null && snapshot.monster_items.Count > 0)
+                    || (snapshot.monster_skills != null && snapshot.monster_skills.Count > 0)))
+            {
+                return "monster_choices";
+            }
+            return string.IsNullOrEmpty(screenMode) ? "unknown" : screenMode;
         }
 
         private static string MerchantName(CardSnapshot merchant)
@@ -1193,11 +1342,15 @@ namespace BazaarStateExporter
                 return;
             }
 
-            List<CardSnapshot> capturedCards = RuntimeStateCache.GetCapturedUiCards(30f);
+            float monsterCaptureMinSeenAt = screenModeIsEvents
+                ? Math.Max(0f, RuntimeStateCache.LastScreenModeAt - 1.0f)
+                : 0f;
+            List<CardSnapshot> capturedCards =
+                RuntimeStateCache.GetCapturedUiCards(30f, monsterCaptureMinSeenAt);
             bool hasMonsterTooltipCards = capturedCards.Any(IsMonsterTooltipCard);
 
             HashSet<string> seenItems = new HashSet<string>();
-            foreach (CardSnapshot card in RuntimeStateCache.GetLatestOpponentItemSocketCards(30f))
+            foreach (CardSnapshot card in RuntimeStateCache.GetLatestOpponentItemSocketCards(30f, monsterCaptureMinSeenAt))
             {
                 if (!IsOpponentItemCard(card, hasMonsterTooltipCards))
                 {
@@ -1310,6 +1463,153 @@ namespace BazaarStateExporter
             string context = card.ui_context ?? "";
             return context.IndexOf("Merchant", StringComparison.OrdinalIgnoreCase) < 0
                 && context.IndexOf("Shop", StringComparison.OrdinalIgnoreCase) < 0;
+        }
+
+        private static bool IsMonsterChoiceCard(CardSnapshot card)
+        {
+            if (card == null || string.IsNullOrEmpty(card.id))
+            {
+                return false;
+            }
+
+            string cardType = card.card_type ?? "";
+            bool combatEncounter = cardType.IndexOf(
+                    "CombatEncounter",
+                    StringComparison.OrdinalIgnoreCase) >= 0
+                || card.id.StartsWith("com_", StringComparison.OrdinalIgnoreCase);
+            if (!combatEncounter)
+            {
+                return false;
+            }
+
+            string context = card.ui_context ?? "";
+            return context.IndexOf("OpponentBoardAnchor", StringComparison.OrdinalIgnoreCase) >= 0
+                && context.IndexOf("Merchant", StringComparison.OrdinalIgnoreCase) < 0
+                && context.IndexOf("Shop", StringComparison.OrdinalIgnoreCase) < 0;
+        }
+
+        private static CapturedCardDebugSnapshot BuildCapturedCardDebug(CardSnapshot card)
+        {
+            string classification = ClassifyCapturedCard(card);
+            return new CapturedCardDebugSnapshot
+            {
+                name = card == null ? null : card.name,
+                id = card == null ? null : card.id,
+                template_id = card == null ? null : card.template_id,
+                card_type = card == null ? null : card.card_type,
+                section = card == null ? null : card.section,
+                ui_context = card == null ? null : card.ui_context,
+                classification = classification,
+                ignore_reason = string.Equals(
+                    classification,
+                    "ignored",
+                    StringComparison.Ordinal)
+                    ? CapturedCardIgnoreReason(card)
+                    : null,
+            };
+        }
+
+        private static string ClassifyCapturedCard(CardSnapshot card)
+        {
+            if (IsCurrentEventOptionCard(card))
+            {
+                return "event_option";
+            }
+            if (IsShopOfferCard(card))
+            {
+                return "shop_offer";
+            }
+            if (IsRewardOptionCard(card))
+            {
+                return "reward_option";
+            }
+            if (IsMonsterChoiceCard(card))
+            {
+                return "monster_choice";
+            }
+            if (IsOpponentItemCard(card, false) || IsOpponentSkillCard(card, false))
+            {
+                return "monster_card";
+            }
+            if (IsVisibleUiCandidate(card))
+            {
+                return "visible_candidate";
+            }
+            return "ignored";
+        }
+
+        private static string CapturedCardIgnoreReason(CardSnapshot card)
+        {
+            if (card == null)
+            {
+                return "snapshot_failed";
+            }
+            if (string.IsNullOrEmpty(card.id))
+            {
+                return "missing_id";
+            }
+
+            string cardType = card.card_type ?? "";
+            string section = card.section ?? "";
+            string context = card.ui_context ?? "";
+            bool eventEncounter = cardType.IndexOf(
+                    "EventEncounter",
+                    StringComparison.OrdinalIgnoreCase) >= 0
+                || card.id.StartsWith("enc_", StringComparison.OrdinalIgnoreCase);
+            bool combatEncounter = cardType.IndexOf(
+                    "CombatEncounter",
+                    StringComparison.OrdinalIgnoreCase) >= 0
+                || card.id.StartsWith("com_", StringComparison.OrdinalIgnoreCase);
+            if (eventEncounter
+                && (context.IndexOf("Merchant", StringComparison.OrdinalIgnoreCase) >= 0
+                    || context.IndexOf("Shop", StringComparison.OrdinalIgnoreCase) >= 0))
+            {
+                return "event_encounter_in_merchant_or_shop_context";
+            }
+            if (combatEncounter)
+            {
+                return "combat_encounter_outside_monster_choice_context";
+            }
+            if (IsOwnedItemCard(card))
+            {
+                return "owned_item_context";
+            }
+            if (IsShopOfferCardType(cardType))
+            {
+                return "item_or_skill_not_in_shop_context";
+            }
+            if (section.IndexOf("Selection", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return "selection_section_without_event_encounter";
+            }
+            return "not_event_shop_reward_or_monster_candidate";
+        }
+
+        private static bool IsRewardOptionCard(CardSnapshot card)
+        {
+            if (card == null || string.IsNullOrEmpty(card.id))
+            {
+                return false;
+            }
+
+            string section = card.section ?? "";
+            string context = card.ui_context ?? "";
+            return section.IndexOf("Reward", StringComparison.OrdinalIgnoreCase) >= 0
+                || context.IndexOf("Reward", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static bool IsVisibleUiCandidate(CardSnapshot card)
+        {
+            if (card == null || string.IsNullOrEmpty(card.id))
+            {
+                return false;
+            }
+
+            string section = card.section ?? "";
+            return section.IndexOf("Shop", StringComparison.OrdinalIgnoreCase) >= 0
+                || section.IndexOf("Selection", StringComparison.OrdinalIgnoreCase) >= 0
+                || section.IndexOf("Reward", StringComparison.OrdinalIgnoreCase) >= 0
+                || card.source == "show";
         }
 
         private static void UpsertCardById(List<CardSnapshot> cards, CardSnapshot card)
@@ -2075,6 +2375,37 @@ namespace BazaarStateExporter
             }
         }
 
+        private static void AddMonsterChoiceCurrentEvents(
+            GameStateSnapshot snapshot,
+            float minSeenAt)
+        {
+            if (snapshot == null)
+            {
+                return;
+            }
+
+            List<CardSnapshot> capturedCards =
+                RuntimeStateCache.GetCurrentVisibleCards(30f, minSeenAt);
+            foreach (CardSnapshot recentCard in RuntimeStateCache.GetCapturedUiCards(15f, minSeenAt))
+            {
+                if (recentCard == null || string.IsNullOrEmpty(recentCard.id))
+                {
+                    continue;
+                }
+                if (capturedCards.Any(card => card != null && card.id == recentCard.id))
+                {
+                    continue;
+                }
+                capturedCards.Add(recentCard);
+            }
+
+            HashSet<string> seenIds = new HashSet<string>();
+            foreach (CardSnapshot card in capturedCards.Where(IsMonsterChoiceCard))
+            {
+                AddCurrentEventDetailed(snapshot, card, seenIds);
+            }
+        }
+
         private static void AddEventOptionDetailed(
             GameStateSnapshot snapshot,
             CardSnapshot card,
@@ -2104,6 +2435,36 @@ namespace BazaarStateExporter
             AddTemplateBranchSummaries(option);
             snapshot.event_options_detailed.Add(option);
         }
+
+        private static void AddCurrentEventDetailed(
+            GameStateSnapshot snapshot,
+            CardSnapshot card,
+            HashSet<string> detailedEventOptionIds)
+        {
+            if (snapshot == null || card == null || string.IsNullOrEmpty(card.id))
+            {
+                return;
+            }
+
+            if (!detailedEventOptionIds.Add(card.id))
+            {
+                return;
+            }
+
+            EventOptionSnapshot option = new EventOptionSnapshot
+            {
+                id = card.id,
+                template_id = card.template_id,
+                name = card.name,
+                kind = EventKindFromCard(card),
+                card_type = card.card_type,
+                section = card.section,
+                source = string.IsNullOrEmpty(card.source) ? "unknown" : card.source,
+            };
+
+            snapshot.current_events.Add(option);
+        }
+
 
         private static void AddTemplateBranchSummaries(EventOptionSnapshot option)
         {
@@ -2752,10 +3113,10 @@ namespace BazaarStateExporter
             string id = card == null ? "" : card.id ?? "";
             string cardType = card == null ? "" : card.card_type ?? "";
 
-            if (cardType.IndexOf("Encounter", StringComparison.OrdinalIgnoreCase) >= 0
-                || id.StartsWith("enc_", StringComparison.OrdinalIgnoreCase))
+            if (cardType.IndexOf("Combat", StringComparison.OrdinalIgnoreCase) >= 0
+                || id.StartsWith("com_", StringComparison.OrdinalIgnoreCase))
             {
-                return "encounter";
+                return "combat";
             }
 
             if (id.StartsWith("ste_", StringComparison.OrdinalIgnoreCase))
@@ -2763,14 +3124,16 @@ namespace BazaarStateExporter
                 return "step";
             }
 
-            if (id.StartsWith("com_", StringComparison.OrdinalIgnoreCase))
-            {
-                return "combat";
-            }
-
-            if (id.StartsWith("pvp_", StringComparison.OrdinalIgnoreCase))
+            if (cardType.IndexOf("Pvp", StringComparison.OrdinalIgnoreCase) >= 0
+                || id.StartsWith("pvp_", StringComparison.OrdinalIgnoreCase))
             {
                 return "pvp";
+            }
+
+            if (cardType.IndexOf("Encounter", StringComparison.OrdinalIgnoreCase) >= 0
+                || id.StartsWith("enc_", StringComparison.OrdinalIgnoreCase))
+            {
+                return "encounter";
             }
 
             return "unknown";

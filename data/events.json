@@ -3784,6 +3784,47 @@
       "notes": "Get a Silver-tier Poison item"
     },
     {
+      "name": "Bountiful Harvest",
+      "source_id": "1a508bee-0dba-4110-9402-f372bb6c6137",
+      "source_ids": [
+        "1a508bee-0dba-4110-9402-f372bb6c6137",
+        "9dea6b33-264c-4550-9282-80ec297fb070",
+        "ec7fa0bf-dc6b-4019-b199-253a1475abf7",
+        "facaa0bc-ddb9-48dc-8be7-f44b8a07df00"
+      ],
+      "event_heroes": [
+        "Jules"
+      ],
+      "event_type": "item_reward",
+      "exact_names": [],
+      "reward_tags": [
+        "food"
+      ],
+      "card_reward": {
+        "enabled": true,
+        "exact_names": [],
+        "reward_tags": [
+          "food"
+        ],
+        "match_mode": "any",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Get a Silver-tier Food"
+    },
+    {
       "name": "Cabin Fishing",
       "source_id": "0c77d216-69de-4a92-9893-5f4b154128dc",
       "source_ids": [
@@ -3943,6 +3984,50 @@
         "health": 0
       },
       "notes": "Choose a Core"
+    },
+    {
+      "name": "Cupboard",
+      "source_id": "13b4c0cd-313d-4e0f-9a51-eb4d288f32a5",
+      "source_ids": [
+        "13b4c0cd-313d-4e0f-9a51-eb4d288f32a5",
+        "6de772fb-6a02-4b8c-a2c2-26023472ca31",
+        "7421cca5-1d3e-4cf8-afa0-a3ce0c06e1c1",
+        "f0a36d78-d446-4d57-81e0-9dfe942e4307"
+      ],
+      "event_heroes": [
+        "Jules"
+      ],
+      "event_type": "item_reward",
+      "exact_names": [],
+      "reward_tags": [
+        "food"
+      ],
+      "card_reward": {
+        "enabled": true,
+        "exact_names": [],
+        "reward_tags": [
+          "food"
+        ],
+        "match_mode": "any",
+        "rarity_filter": {
+          "min": "bronze",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current",
+        "size_filter": [
+          "small"
+        ]
+      },
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Get a Small Bronze-tier Food"
     },
     {
       "name": "Deep Sea Fishing",
@@ -5043,6 +5128,46 @@
         "health": 0
       },
       "notes": "Get a copy of any item on your board"
+    },
+    {
+      "name": "Meal Prep",
+      "source_id": "04e1aad5-e5e4-4864-b217-28e5ff00023b",
+      "source_ids": [
+        "04e1aad5-e5e4-4864-b217-28e5ff00023b",
+        "71b59c65-e8b3-47bd-abb3-f5b019edb5c7",
+        "e3aac200-f30f-404f-83cf-27732bb6f927"
+      ],
+      "event_heroes": [
+        "Jules"
+      ],
+      "event_type": "item_reward",
+      "exact_names": [],
+      "reward_tags": [
+        "food"
+      ],
+      "card_reward": {
+        "enabled": true,
+        "exact_names": [],
+        "reward_tags": [
+          "food"
+        ],
+        "match_mode": "any",
+        "rarity_filter": {
+          "min": "silver",
+          "max": "diamond"
+        },
+        "rarity_rule": null,
+        "excluded_tags": [
+          "legendary"
+        ],
+        "hero_scope": "current"
+      },
+      "resource_rewards": {
+        "gold": 0,
+        "exp": 0,
+        "health": 0
+      },
+      "notes": "Get a Silver-tier Food"
     },
     {
       "name": "Medicine Cabinet",
@@ -7027,24 +7152,6 @@
       "notes": "Lose {ability.0} Income and gain {ability.1} Gold"
     },
     {
-      "name": "Bountiful Harvest",
-      "source_id": "ec7fa0bf-dc6b-4019-b199-253a1475abf7",
-      "source_ids": [
-        "ec7fa0bf-dc6b-4019-b199-253a1475abf7"
-      ],
-      "event_heroes": [
-        "Jules"
-      ],
-      "event_type": "resource_event",
-      "resource_types": [
-        "gold"
-      ],
-      "resource_rewards": {
-        "gold": 1
-      },
-      "notes": "Get a Gold-tier Food"
-    },
-    {
       "name": "Cache of Riches",
       "source_id": "7d832f18-dd4c-4d67-8e4f-573618f7fa38",
       "source_ids": [
@@ -7097,24 +7204,6 @@
       "notes": "Study the blacksmith working silently in the back of their shop"
     },
     {
-      "name": "Cupboard",
-      "source_id": "7421cca5-1d3e-4cf8-afa0-a3ce0c06e1c1",
-      "source_ids": [
-        "7421cca5-1d3e-4cf8-afa0-a3ce0c06e1c1"
-      ],
-      "event_heroes": [
-        "Jules"
-      ],
-      "event_type": "resource_event",
-      "resource_types": [
-        "gold"
-      ],
-      "resource_rewards": {
-        "gold": 1
-      },
-      "notes": "Get a Small Gold-tier Food"
-    },
-    {
       "name": "Dino Trapping",
       "source_id": "f785c906-9f01-4641-80a6-b7cc360c271a",
       "source_ids": [
@@ -7124,12 +7213,8 @@
         "Dooley"
       ],
       "event_type": "resource_event",
-      "resource_types": [
-        "gold"
-      ],
-      "resource_rewards": {
-        "gold": 1
-      },
+      "resource_types": [],
+      "resource_rewards": {},
       "notes": "Get a Gold-tier Dinosaur"
     },
     {
@@ -7246,12 +7331,8 @@
         "Common"
       ],
       "event_type": "resource_event",
-      "resource_types": [
-        "gold"
-      ],
-      "resource_rewards": {
-        "gold": 1
-      },
+      "resource_types": [],
+      "resource_rewards": {},
       "notes": "Get a Gold-tier Relic from any Hero"
     },
     {
@@ -7345,24 +7426,6 @@
         "gold": 1
       },
       "notes": "The wallet was full of Gold"
-    },
-    {
-      "name": "Meal Prep",
-      "source_id": "e3aac200-f30f-404f-83cf-27732bb6f927",
-      "source_ids": [
-        "e3aac200-f30f-404f-83cf-27732bb6f927"
-      ],
-      "event_heroes": [
-        "Jules"
-      ],
-      "event_type": "resource_event",
-      "resource_types": [
-        "gold"
-      ],
-      "resource_rewards": {
-        "gold": 1
-      },
-      "notes": "Get a Gold-tier Food"
     },
     {
       "name": "Moonlit Meadow",
@@ -7849,12 +7912,8 @@
         "Pygmalien"
       ],
       "event_type": "resource_event",
-      "resource_types": [
-        "gold"
-      ],
-      "resource_rewards": {
-        "gold": 1
-      },
+      "resource_types": [],
+      "resource_rewards": {},
       "notes": "Get 2 Gold-tier Truffles"
     }
   ],
@@ -9106,25 +9165,6 @@
       "notes": "Get a gift from another Hero"
     },
     {
-      "name": "Bountiful Harvest",
-      "source_id": "1a508bee-0dba-4110-9402-f372bb6c6137",
-      "source_ids": [
-        "1a508bee-0dba-4110-9402-f372bb6c6137",
-        "9dea6b33-264c-4550-9282-80ec297fb070",
-        "facaa0bc-ddb9-48dc-8be7-f44b8a07df00"
-      ],
-      "event_heroes": [
-        "Jules"
-      ],
-      "event_type": "unknown_event",
-      "resource_rewards": {
-        "gold": 0,
-        "exp": 0,
-        "health": 0
-      },
-      "notes": "Get a Silver-tier Food"
-    },
-    {
       "name": "Cargo Hold",
       "source_id": "07139793-c844-4fbb-ad90-9f279843cdc8",
       "source_ids": [
@@ -9192,25 +9232,6 @@
         "health": 0
       },
       "notes": "Enter the Crystal Growth Chamber"
-    },
-    {
-      "name": "Cupboard",
-      "source_id": "13b4c0cd-313d-4e0f-9a51-eb4d288f32a5",
-      "source_ids": [
-        "13b4c0cd-313d-4e0f-9a51-eb4d288f32a5",
-        "6de772fb-6a02-4b8c-a2c2-26023472ca31",
-        "f0a36d78-d446-4d57-81e0-9dfe942e4307"
-      ],
-      "event_heroes": [
-        "Jules"
-      ],
-      "event_type": "unknown_event",
-      "resource_rewards": {
-        "gold": 0,
-        "exp": 0,
-        "health": 0
-      },
-      "notes": "Get a Small Bronze-tier Food"
     },
     {
       "name": "Dabora",
@@ -9369,24 +9390,6 @@
         "health": 0
       },
       "notes": "A quiet place to learn new skills"
-    },
-    {
-      "name": "Meal Prep",
-      "source_id": "04e1aad5-e5e4-4864-b217-28e5ff00023b",
-      "source_ids": [
-        "04e1aad5-e5e4-4864-b217-28e5ff00023b",
-        "71b59c65-e8b3-47bd-abb3-f5b019edb5c7"
-      ],
-      "event_heroes": [
-        "Jules"
-      ],
-      "event_type": "unknown_event",
-      "resource_rewards": {
-        "gold": 0,
-        "exp": 0,
-        "health": 0
-      },
-      "notes": "Get a Silver-tier Food"
     },
     {
       "name": "Regenerative Tincture",

@@ -97,6 +97,34 @@
     "resource_rewards": {},
     "notes": "Gain dynamic Gold. Amount is not parsed yet."
   },
+  "Bountiful Harvest": {
+    "_override_reason": "Manual correction: Gold-tier Food means item rarity, not +gold. This event grants one Food item at the encounter tier.",
+    "event_type": "item_reward",
+    "event_category": "item_rewards",
+    "exact_names": [],
+    "reward_tags": ["food"],
+    "card_reward": {
+      "enabled": true,
+      "exact_names": [],
+      "reward_tags": ["food"],
+      "match_mode": "any",
+      "rarity_filter": {
+        "min": "bronze",
+        "max": "diamond"
+      },
+      "rarity_rule": null,
+      "excluded_tags": ["legendary"],
+      "hero_scope": "current",
+      "count": 1
+    },
+    "resource_types": [],
+    "resource_rewards": {
+      "gold": 0,
+      "exp": 0,
+      "health": 0
+    },
+    "notes": "Get a Food item at this event's tier."
+  },
   "The Docks": {
     "_override_reason": "人工修正：码头是父事件，实际进入三个工作子选项；父事件本身不直接给金币。",
     "event_type": "utility_event",

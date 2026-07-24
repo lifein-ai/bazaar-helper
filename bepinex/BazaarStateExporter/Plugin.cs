@@ -543,6 +543,8 @@ namespace BazaarStateExporter
     {
         public static void Apply(GameStateSnapshot snapshot, string reason, int exportCount)
         {
+            ExportDebugSnapshot previousDebug = snapshot.debug;
+            UiScanDebugSnapshot uiScanDebug = RuntimeStateCache.GetLastUiScanDebug();
             snapshot.last_export_reason = string.IsNullOrEmpty(reason)
                 ? "unknown"
                 : reason;
@@ -562,6 +564,16 @@ namespace BazaarStateExporter
                     : snapshot.current_reward_options.Count,
                 dto_source = RuntimeStateCache.LatestGameStateSource,
                 dto_summary = RuntimeStateCache.LatestGameStateSummary,
+                card_controller_total = uiScanDebug.card_controller_total,
+                active_card_controller_count = uiScanDebug.active_card_controller_count,
+                ui_snapshot_success_count = uiScanDebug.ui_snapshot_success_count,
+                ui_snapshot_failed_count = uiScanDebug.ui_snapshot_failed_count,
+                captured_cards = uiScanDebug.captured_cards,
+                dto_day = previousDebug == null ? null : previousDebug.dto_day,
+                ui_day = previousDebug == null ? null : previousDebug.ui_day,
+                dto_selection_count = previousDebug == null ? 0 : previousDebug.dto_selection_count,
+                event_source = previousDebug == null ? null : previousDebug.event_source,
+                scene_guess = previousDebug == null ? null : previousDebug.scene_guess,
             };
         }
 
@@ -578,6 +590,7 @@ namespace BazaarStateExporter
             AppendStrings(builder, snapshot.event_option_ids);
             AppendStrings(builder, snapshot.event_option_template_ids);
             AppendEventOptions(builder, snapshot.event_options_detailed);
+            AppendEventOptions(builder, snapshot.current_events);
             AppendCards(builder, snapshot.owned_cards);
             AppendCards(builder, snapshot.monster_items);
             AppendCards(builder, snapshot.monster_skills);

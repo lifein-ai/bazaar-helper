@@ -75,7 +75,6 @@ namespace BazaarStateExporter
         private Vector2 scrollPosition;
         private Vector2 buildScrollPosition;
         private OverlayAnalysis latest = OverlayAnalysis.Waiting("正在等待 BazaarHelper...");
-        private OverlayCombatSimulation latestCombat = OverlayCombatSimulation.Waiting("");
         private OverlayCombatSimulation latestTrainingDummy = OverlayCombatSimulation.Waiting("");
         private OverlayUpdateState updateState = new OverlayUpdateState();
         private string selectedBuildOverride = "";
@@ -595,12 +594,6 @@ namespace BazaarStateExporter
             string buildName = FirstNonEmpty(latest.CurrentBuildName, latest.CurrentBuildId);
             GUILayout.Label(string.IsNullOrEmpty(buildName) ? "当前阵容" : buildName, titleStyle);
 
-            GUI.enabled = !simulationRequestInFlight;
-            if (GUILayout.Button(simulationRequestInFlight ? "正在模拟..." : "模拟当前阵容", GUILayout.MinHeight(28f)))
-            {
-                RequestCombatSimulation();
-            }
-            GUI.enabled = true;
             GUILayout.BeginVertical(itemStyle);
             GUILayout.Label("训练假人时长：" + Mathf.RoundToInt(trainingDummyDurationSeconds) + "秒", mutedStyle);
             GUILayout.BeginHorizontal();
@@ -634,8 +627,6 @@ namespace BazaarStateExporter
 
             buildScrollPosition = GUILayout.BeginScrollView(buildScrollPosition, false, true);
             DrawAiAnalysisSection();
-            GUILayout.Space(6f);
-            DrawCombatSimulationSection();
             GUILayout.Space(6f);
             DrawTrainingDummySection();
             GUILayout.Space(6f);
@@ -857,36 +848,6 @@ namespace BazaarStateExporter
                 if (GUILayout.Button("暂不更新", GUILayout.MinHeight(24f)))
                 {
                     RequestDismissUpdate();
-                }
-            }
-            GUILayout.EndVertical();
-        }
-
-        private void DrawCombatSimulationSection()
-        {
-            OverlayCombatSimulation combat = latestCombat;
-            if (combat == null || (string.IsNullOrEmpty(combat.Status) && !combat.HasResult))
-            {
-                return;
-            }
-
-            GUILayout.BeginVertical(itemStyle);
-            GUILayout.Label("当前阵容战斗模拟", titleStyle);
-            if (!string.IsNullOrEmpty(combat.Status))
-            {
-                GUILayout.Label(combat.Status, combat.HasResult ? mutedStyle : reasonStyle);
-            }
-            if (combat.HasResult)
-            {
-                GUILayout.Label("总伤害：" + combat.TotalDamage + "  秒伤：" + combat.DamagePerSecond, reasonStyle);
-                GUILayout.Label("直接伤害：" + combat.DirectDamage + "  护盾：" + combat.TotalShield + "  剩余盾：" + combat.EndingShield, mutedStyle);
-                GUILayout.Label("回血：" + combat.EffectiveHeal + "  再生：" + combat.RegenApplied + "  溢出：" + combat.Overheal, mutedStyle);
-                GUILayout.Label("燃烧：" + combat.BurnApplied + " / 跳伤 " + combat.BurnTickDamage + "  毒：" + combat.PoisonApplied + " / 跳伤 " + combat.PoisonTickDamage, mutedStyle);
-                GUILayout.Label("减速：" + combat.SlowDuration + "秒  冰冻：" + combat.FreezeDuration + "秒  加速：" + combat.HasteDuration + "秒  充能：" + combat.ChargeSeconds + "秒", mutedStyle);
-                GUILayout.Label("击杀时间：" + combat.KillTime + "  模拟卡数：" + combat.SimulatedCardCount, mutedStyle);
-                if (combat.SkippedCardCount > 0)
-                {
-                    GUILayout.Label("有 " + combat.SkippedCardCount + " 张卡暂未参与模拟。", mutedStyle);
                 }
             }
             GUILayout.EndVertical();
@@ -1403,56 +1364,6 @@ namespace BazaarStateExporter
             RequestAnalysis(includeAiForNextRequest, status, false);
         }
 
-        private void RequestCombatSimulation()
-        {
-            if (simulationRequestInFlight)
-            {
-                latestCombat = OverlayCombatSimulation.Waiting("正在模拟，请稍候...");
-                return;
-            }
-
-            simulationRequestInFlight = true;
-            latestCombat = OverlayCombatSimulation.Waiting("正在导出当前阵容并估算伤害...");
-            ManualExportResult exportResult = Plugin.RequestManualExport();
-            if (exportResult == null || !exportResult.SnapshotAvailable)
-            {
-                latestCombat = OverlayCombatSimulation.Waiting("暂时没有可模拟的实时阵容。");
-                simulationRequestInFlight = false;
-                return;
-            }
-
-            ThreadPool.QueueUserWorkItem(_ =>
-            {
-                try
-                {
-                    EnsureHelperServiceStarted();
-                    string url = GetHelperBaseUrl().TrimEnd('/') + "/api/combat-simulation?duration=60&trials=1";
-                    using (TimeoutWebClient client = new TimeoutWebClient(8000))
-                    {
-                        client.Encoding = Encoding.UTF8;
-                        string json = client.DownloadString(url);
-                        OverlayCombatSimulation parsed = OverlayAnalysisParser.ParseCombatSimulation(json);
-                        lock (this)
-                        {
-                            latestCombat = parsed;
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    lock (this)
-                    {
-                        latestCombat = OverlayCombatSimulation.Waiting("模拟失败：" + ex.Message);
-                    }
-                    LogAnalysisFailure(ex);
-                }
-                finally
-                {
-                    simulationRequestInFlight = false;
-                }
-            });
-        }
-
         private void RequestTrainingDummySimulation(int durationSeconds)
         {
             if (simulationRequestInFlight)
@@ -1682,6 +1593,7 @@ namespace BazaarStateExporter
                             {
                                 parsed.Status = previousStatus;
                             }
+                            PruneMonsterSimulationCache(parsed);
                             latest = parsed;
                             lastSuccessfulAnalysisUtc = DateTime.UtcNow;
                             lastSuccessfulAnalysisKey = analysisKey ?? "";
@@ -1711,6 +1623,37 @@ namespace BazaarStateExporter
                     requestInFlight = false;
                 }
             });
+        }
+
+        private void PruneMonsterSimulationCache(OverlayAnalysis parsed)
+        {
+            if (parsed == null || latestMonsterSimulations.Count == 0)
+            {
+                return;
+            }
+
+            HashSet<string> activeChoiceIds = new HashSet<string>(StringComparer.Ordinal);
+            foreach (OverlayMonsterChoice choice in parsed.MonsterChoices)
+            {
+                if (choice != null && !string.IsNullOrEmpty(choice.Id))
+                {
+                    activeChoiceIds.Add(choice.Id);
+                }
+            }
+
+            List<string> staleChoiceIds = new List<string>();
+            foreach (string choiceId in latestMonsterSimulations.Keys)
+            {
+                if (!activeChoiceIds.Contains(choiceId))
+                {
+                    staleChoiceIds.Add(choiceId);
+                }
+            }
+            foreach (string choiceId in staleChoiceIds)
+            {
+                latestMonsterSimulations.Remove(choiceId);
+                monsterFeedbackExpanded.Remove(choiceId);
+            }
         }
 
         private string AnalysisFailureStatus(Exception ex, bool includeAiForRequest)
@@ -2321,46 +2264,6 @@ namespace BazaarStateExporter
             return FirstNonEmpty(
                 FindStringProperty(json, "ai_error"),
                 FindStringProperty(json, "error"));
-        }
-
-        public static OverlayCombatSimulation ParseCombatSimulation(string json)
-        {
-            string error = FindStringProperty(json, "error");
-            if (!string.IsNullOrEmpty(error))
-            {
-                return OverlayCombatSimulation.Waiting(error);
-            }
-
-            string combatObject = FindObjectProperty(json, "combat");
-            if (string.IsNullOrEmpty(combatObject))
-            {
-                return OverlayCombatSimulation.Waiting("当前没有可模拟的阵容。");
-            }
-
-            OverlayCombatSimulation result = new OverlayCombatSimulation();
-            result.HasResult = true;
-            result.Status = "估算完成。结果只覆盖当前已支持的伤害、燃烧、毒和触发规则。";
-            result.TotalDamage = FormatNumber(FindNumberProperty(combatObject, "total_damage"));
-            result.DamagePerSecond = FormatNumber(FindNumberProperty(combatObject, "damage_per_second"));
-            result.DirectDamage = FormatNumber(FindNumberProperty(combatObject, "direct_damage"));
-            result.TotalShield = FormatNumber(FindNumberProperty(combatObject, "total_shield"));
-            result.EndingShield = FormatNumber("0");
-            result.EffectiveHeal = FormatNumber(FindNumberProperty(combatObject, "total_heal"));
-            result.Overheal = FormatNumber("0");
-            result.RegenApplied = FormatNumber("0");
-            result.BurnApplied = FormatNumber("0");
-            result.PoisonApplied = FormatNumber("0");
-            result.BurnTickDamage = FormatNumber(FindNumberProperty(combatObject, "total_burn_tick_damage"));
-            result.PoisonTickDamage = FormatNumber(FindNumberProperty(combatObject, "total_poison_tick_damage"));
-            result.SlowDuration = FormatNumber("0");
-            result.FreezeDuration = FormatNumber("0");
-            result.HasteDuration = FormatNumber("0");
-            result.ChargeSeconds = FormatNumber("0");
-            string killTime = FindNumberProperty(combatObject, "kill_time_sec");
-            result.KillTime = string.IsNullOrEmpty(killTime) ? "未击杀" : FormatNumber(killTime) + " 秒";
-            result.SimulatedCardCount = ParseInt(FindNumberProperty(combatObject, "simulated_card_count"));
-            result.SkippedCardCount = CountJsonObjects(FindArrayProperty(combatObject, "skipped_cards"));
-            return result;
         }
 
         public static OverlayCombatSimulation ParseTrainingDummySimulation(string json)
